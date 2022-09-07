@@ -1,0 +1,48 @@
+_seps: "()-:,|&!⋀⋁=→←↞^□◇~"
+
+5 neg = [{"¬" "!"} expr:"arg"]
+4 app = [lexpr:"f" .r!(["(" .w? expr:"arg" .w? ")"])]
+3 op = {
+  "⋀":"⋀"
+  ",":"⋀"
+  "&":"⋀"
+  "⋁":"⋁"
+  "|":"⋁"
+  "=":"="
+  ":":":"
+  "→":"→"
+  "->":"→"
+  "←":"←"
+  "↞":"↞"
+  "^":"^"
+  "□":"□"
+  "◇":"◇"
+  "~":"~"
+}
+5 bin_inner_expr = bin_inner:"bin"
+4 bin_inner = [expr:"left" .w? {expr:"op" op:"op"} .w? expr:"right"]
+2 bin = ["(" .w? bin_inner .w? ")"]
+2 expr = {
+  app:"app"
+  lexpr
+}
+1 lexpr = {
+  bin:"bin"
+  neg:"neg"
+  ["'" op "'"]
+  "fst":"fst"
+  "snd":"snd"
+  "left":"left"
+  "right":"right"
+  "swap_or":"swap_or"
+  "A":"A"
+  "B":"B"
+  "X":"X"
+  "Y":"Y"
+  "⊤":"⊤"
+  "True":"⊤"
+  "⊥":"⊥"
+  "False":"⊥"
+  .._seps!:"var"
+}
+0 doc = [.w? {[!"(" bin_inner_expr:"expr"] expr:"expr"} .w?]
