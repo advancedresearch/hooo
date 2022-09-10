@@ -143,8 +143,12 @@ impl Tactic {
             Sym => {
                 for f in facts {
                     if let Expr::Bin(abc) = f {
-                        if abc.0 == Expr::Eq {
-                            add(eq_symmetry(), format!("{}", Eq));
+                        match abc.0 {
+                            Expr::Eq => add(eq_symmetry(), format!("{}", Sym)),
+                            Expr::And => add(and_symmetry(), format!("{}", Sym)),
+                            Expr::Or => add(or_symmetry(), format!("{}", Sym)),
+                            Expr::Wave => add(wave_symmetry(), format!("{}", Sym)),
+                            _ => {}
                         }
                     }
                 }
