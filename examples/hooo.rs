@@ -12,6 +12,7 @@ pub enum Tactic {
     Eq,
     Sym,
     Zero,
+    Modus,
 }
 
 impl Tactic {
@@ -153,6 +154,10 @@ impl Tactic {
                     }
                 }
             }
+            Modus => {
+                add(modus_ponens(), format!("{}", Modus));
+                add(modus_tollens(), format!("{}", Modus));
+            }
         }
     }
 }
@@ -170,6 +175,7 @@ impl fmt::Display for Tactic {
             Debug => write!(w, "debug")?,
             App => write!(w, "app")?,
             And => write!(w, "and")?,
+            Modus => write!(w, "modus")?,
         }
         Ok(())
     }
@@ -233,6 +239,7 @@ fn main() {
             "use debug" => new_tactic(Tactic::Debug, &mut tactics),
             "use app" => new_tactic(Tactic::App, &mut tactics),
             "use and" => new_tactic(Tactic::And, &mut tactics),
+            "use modus" => new_tactic(Tactic::Modus, &mut tactics),
             x if x.starts_with("rem ") => {
                 let rest = x[4..].trim();
                 let mut found: Option<usize> = None;
