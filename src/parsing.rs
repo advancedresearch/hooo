@@ -23,6 +23,9 @@ fn parse_expr(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut V
         } else if let Ok((range, val)) = parse_bin("bin", dirs, convert, ignored) {
             convert.update(range);
             expr = Some(val);
+        } else if let Ok((range, val)) = parse_un("un", dirs, convert, ignored) {
+            convert.update(range);
+            expr = Some(val);
         } else if let Ok((range, _)) = convert.meta_bool("⋀") {
             convert.update(range);
             expr = Some(And);
@@ -157,6 +160,35 @@ fn parse_app(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut Ve
         arg = app(arg, a)
     }
     Ok((convert.subtract(start), arg))
+}
+
+fn parse_un(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut Vec<Range>) -> Result<(Range, Expr), ()> {
+    let start = convert;
+    let start_range = convert.start_node(node)?;
+    convert.update(start_range);
+
+    let mut op: Option<Expr> = None;
+    let mut arg: Option<Expr> = None;
+    loop {
+        if let Ok(range) = convert.end_node(node) {
+            convert.update(range);
+            break;
+        } else if let Ok((range, _)) = convert.meta_bool("~") {
+            convert.update(range);
+            op = Some(Qubit);
+        } else if let Ok((range, val)) = parse_expr("arg", dirs, convert, ignored) {
+            convert.update(range);
+            arg = Some(val);
+        } else {
+            let range = convert.ignore();
+            convert.update(range);
+            ignored.push(range);
+        }
+    }
+
+    let op = op.ok_or(())?;
+    let arg = arg.ok_or(())?;
+    Ok((convert.subtract(start), Un(Box::new((op, arg)))))
 }
 
 fn parse_bin(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut Vec<Range>) -> Result<(Range, Expr), ()> {
@@ -309,5 +341,8 @@ mod tests {
 
         let a: Expr = parse_str(r#"False^'_di'"#, &[]).unwrap();
         assert_eq!(format!("{}", a), "(⊥ ^ '◇')".to_string());
+
+        let a: Expr = parse_str(r#"~a"#, &[]).unwrap();
+        assert_eq!(format!("{}", a), "~a".to_string());
     }
 }
