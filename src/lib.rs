@@ -312,7 +312,9 @@ impl Expr {
             Or |
             Eq |
             Wave |
-            App => true,
+            App |
+            Sq |
+            Di => true,
             _ => false,
         }
     }

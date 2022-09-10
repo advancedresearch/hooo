@@ -300,5 +300,11 @@ mod tests {
 
         let a: Expr = parse_str(r#"swap_or"#, &[]).unwrap();
         assert_eq!(format!("{}", a), "swap_or".to_string());
+
+        let a: Expr = parse_str(r#"False^'_sq'"#, &[]).unwrap();
+        assert_eq!(format!("{}", a), "(⊥ ^ '□')".to_string());
+
+        let a: Expr = parse_str(r#"False^'_di'"#, &[]).unwrap();
+        assert_eq!(format!("{}", a), "(⊥ ^ '◇')".to_string());
     }
 }
