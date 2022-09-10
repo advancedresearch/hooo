@@ -188,6 +188,19 @@ impl From<&str> for Expr {
 }
 
 impl Expr {
+    /// Get `(A = B) ^ ⊤` info.
+    pub fn qubit_eq(&self) -> Option<(Expr, Expr)> {
+        if let Some(res) = self.pow() {
+            match res {
+                (Bin(abc), Tr) if abc.0 == Eq => {
+                    return Some((abc.1.clone(), abc.2.clone()));
+                }
+                _ => {}
+            }
+        }
+        None
+    }
+
     /// Get imply info.
     pub fn imply(&self) -> Option<(Expr, Expr)> {
         if let Bin(abc) = self {

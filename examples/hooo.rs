@@ -14,6 +14,7 @@ pub enum Tactic {
     Imply,
     Zero,
     Modus,
+    Qubit,
 }
 
 impl Tactic {
@@ -182,6 +183,21 @@ impl Tactic {
                 add(modus_ponens(), format!("{}", Modus));
                 add(modus_tollens(), format!("{}", Modus));
             }
+            Qubit => {
+                for f in facts {
+                    if let Expr::Un(ab) = f {
+                        if ab.0 == Expr::Qubit {
+                            for g in facts {
+                                if let Some((a, b)) = g.qubit_eq() {
+                                    if a == ab.1 {
+                                        add(qu(b), format!("{}", Qubit));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -201,6 +217,7 @@ impl fmt::Display for Tactic {
             And => write!(w, "and")?,
             Imply => write!(w, "imply")?,
             Modus => write!(w, "modus")?,
+            Qubit => write!(w, "qubit")?,
         }
         Ok(())
     }
@@ -255,6 +272,8 @@ fn main() {
             "help" => println!("{}", include_str!("../assets/help/help.txt")),
             "help tactic" => println!("{}", include_str!("../assets/help/tactic.txt")),
             "help app" => println!("{}", include_str!("../assets/help/app.txt")),
+            "help and" => println!("{}", include_str!("../assets/help/and.txt")),
+            "help qubit" => println!("{}", include_str!("../assets/help/qubit.txt")),
             "bye" => break,
             "use zero" => new_tactic(Tactic::Zero, &mut tactics),
             "use silence" => new_tactic(Tactic::Silence, &mut tactics),
@@ -266,6 +285,7 @@ fn main() {
             "use and" => new_tactic(Tactic::And, &mut tactics),
             "use imply" => new_tactic(Tactic::Imply, &mut tactics),
             "use modus" => new_tactic(Tactic::Modus, &mut tactics),
+            "use qubit" => new_tactic(Tactic::Qubit, &mut tactics),
             x if x.starts_with("rem ") => {
                 let rest = x[4..].trim();
                 let mut found: Option<usize> = None;
