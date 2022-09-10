@@ -10,6 +10,7 @@ pub enum Tactic {
     And,
     Hooo,
     Eq,
+    Sym,
     Zero,
 }
 
@@ -119,6 +120,8 @@ impl Tactic {
                 for f in facts {
                     if let Expr::Bin(abc) = f {
                         if abc.0 == Expr::Eq {
+                            add(eq(abc.2.clone(), abc.1.clone()), format!("{}", Eq));
+
                             for g in facts {
                                 if let Ok(res) = rewrite(f, g) {
                                     add(res, format!("{}", Eq));
@@ -137,6 +140,15 @@ impl Tactic {
                     }
                 }
             }
+            Sym => {
+                for f in facts {
+                    if let Expr::Bin(abc) = f {
+                        if abc.0 == Expr::Eq {
+                            add(eq_symmetry(), format!("{}", Eq));
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -149,6 +161,7 @@ impl fmt::Display for Tactic {
             Zero => write!(w, "zero")?,
             Silence => write!(w, "silence")?,
             Eq => write!(w, "eq")?,
+            Sym => write!(w, "sym")?,
             Hooo => write!(w, "hooo")?,
             Debug => write!(w, "debug")?,
             App => write!(w, "app")?,
@@ -211,6 +224,7 @@ fn main() {
             "use zero" => new_tactic(Tactic::Zero, &mut tactics),
             "use silence" => new_tactic(Tactic::Silence, &mut tactics),
             "use eq" => new_tactic(Tactic::Eq, &mut tactics),
+            "use sym" => new_tactic(Tactic::Sym, &mut tactics),
             "use hooo" => new_tactic(Tactic::Hooo, &mut tactics),
             "use debug" => new_tactic(Tactic::Debug, &mut tactics),
             "use app" => new_tactic(Tactic::App, &mut tactics),
