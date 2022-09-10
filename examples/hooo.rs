@@ -11,6 +11,7 @@ pub enum Tactic {
     Hooo,
     Eq,
     Sym,
+    Imply,
     Zero,
     Modus,
 }
@@ -154,6 +155,19 @@ impl Tactic {
                     }
                 }
             }
+            Imply => {
+                for f in facts {
+                    if let Expr::Bin(abc) = f {
+                        if let Expr::Imply = abc.0 {
+                            for g in facts {
+                                if g == &abc.1 {
+                                    add(abc.2.clone(), format!("{}", Imply));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             Modus => {
                 add(modus_ponens(), format!("{}", Modus));
                 add(modus_tollens(), format!("{}", Modus));
@@ -175,6 +189,7 @@ impl fmt::Display for Tactic {
             Debug => write!(w, "debug")?,
             App => write!(w, "app")?,
             And => write!(w, "and")?,
+            Imply => write!(w, "imply")?,
             Modus => write!(w, "modus")?,
         }
         Ok(())
@@ -239,6 +254,7 @@ fn main() {
             "use debug" => new_tactic(Tactic::Debug, &mut tactics),
             "use app" => new_tactic(Tactic::App, &mut tactics),
             "use and" => new_tactic(Tactic::And, &mut tactics),
+            "use imply" => new_tactic(Tactic::Imply, &mut tactics),
             "use modus" => new_tactic(Tactic::Modus, &mut tactics),
             x if x.starts_with("rem ") => {
                 let rest = x[4..].trim();
