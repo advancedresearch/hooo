@@ -158,12 +158,22 @@ impl Tactic {
             Imply => {
                 for f in facts {
                     if let Expr::Bin(abc) = f {
-                        if let Expr::Imply = abc.0 {
-                            for g in facts {
-                                if g == &abc.1 {
-                                    add(abc.2.clone(), format!("{}", Imply));
+                        match abc.0 {
+                            Expr::Imply => {
+                                for g in facts {
+                                    if g == &abc.1 {
+                                        add(abc.2.clone(), format!("{}", Imply));
+                                    }
                                 }
                             }
+                            Expr::Rimply => {
+                                for g in facts {
+                                    if g == &abc.2 {
+                                        add(abc.1.clone(), format!("{}", Imply));
+                                    }
+                                }
+                            }
+                            _ => {}
                         }
                     }
                 }
