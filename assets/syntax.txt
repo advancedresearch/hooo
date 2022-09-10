@@ -1,5 +1,7 @@
 _seps: "()_-<>:,|&!⋀⋁=→←↞^□◇~"
 
+7 un = [un_op expr:"arg"]
+6 un_op = "~":"~"
 5 neg = [{"¬" "!"} expr:"arg"]
 4 app = [lexpr:"f" .r!(["(" .w? expr:"arg" .w? ")"])]
 3 op = {
@@ -33,6 +35,7 @@ _seps: "()_-<>:,|&!⋀⋁=→←↞^□◇~"
   lexpr
 }
 1 lexpr = {
+  un:"un"
   bin:"bin"
   neg:"neg"
   ["'" op "'"]

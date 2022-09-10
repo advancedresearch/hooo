@@ -88,8 +88,10 @@ pub enum Expr {
     Or,
     /// Equality `a = b`.
     Eq,
-    /// Wave `a ~ b`.
+    /// Wave `a ~◇~ b`.
     Wave,
+    /// Qubit `~a`.
+    Qubit,
     /// First and component.
     Fst,
     /// Second and component.
@@ -120,6 +122,8 @@ pub enum Expr {
     Var(Arc<String>),
     /// Binary operation.
     Bin(Box<(Expr, Expr, Expr)>),
+    /// Unary operation.
+    Un(Box<(Expr, Expr)>),
 }
 
 impl fmt::Display for Expr {
@@ -141,6 +145,7 @@ impl fmt::Display for Expr {
             Or => write!(w, "⋁")?,
             Eq => write!(w, "=")?,
             Wave => write!(w, "~◇~")?,
+            Qubit => write!(w, "~")?,
             Fst => write!(w, "fst")?,
             Snd => write!(w, "snd")?,
             Left => write!(w, "left")?,
@@ -169,6 +174,9 @@ impl fmt::Display for Expr {
                     write!(w, "{}", abc.2)?;
                 }
                 write!(w, ")")?;
+            }
+            Un(ab) => {
+                write!(w, "{}{}", ab.0, ab.1)?;
             }
         }
         Ok(())
@@ -631,6 +639,11 @@ pub fn imply(a: Expr, b: Expr) -> Expr {
 /// `a → ⊥`.
 pub fn not(a: Expr) -> Expr {
     imply(a, Fa)
+}
+
+/// `~a`.
+pub fn qu(a: Expr) -> Expr {
+    Un(Box::new((Qubit, a)))
 }
 
 /// `a ⋀ b`.
