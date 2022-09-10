@@ -22,7 +22,8 @@ _seps: "()_-<>:,|&!⋀⋁=→←↞^□◇~"
   "_sq":"□"
   "◇":"◇"
   "_di":"◇"
-  "~":"~"
+  "~◇~":"~◇~"
+  "_wave":"~◇~"
 }
 5 bin_inner_expr = bin_inner:"bin"
 4 bin_inner = [expr:"left" .w? {expr:"op" op:"op"} .w? expr:"right"]

@@ -140,7 +140,7 @@ impl fmt::Display for Expr {
             And => write!(w, "⋀")?,
             Or => write!(w, "⋁")?,
             Eq => write!(w, "=")?,
-            Wave => write!(w, "~")?,
+            Wave => write!(w, "~◇~")?,
             Fst => write!(w, "fst")?,
             Snd => write!(w, "snd")?,
             Left => write!(w, "left")?,
