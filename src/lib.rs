@@ -626,6 +626,11 @@ pub fn imply(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((Imply, a, b)))
 }
 
+/// `a → ⊥`.
+pub fn not(a: Expr) -> Expr {
+    imply(a, Fa)
+}
+
 /// `a ⋀ b`.
 pub fn and(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((And, a, b)))
@@ -768,6 +773,16 @@ pub fn wave_eq() -> Expr {wave(Eq, Eq)}
 /// `(A ⋀ (A → ⊥)) = ⊥`.
 pub fn paradox_eq() -> Expr {
     eq(and(A, imply(A, Fa)), Fa)
+}
+
+/// `(A ⋀ (B → A)) → B`.
+pub fn modus_ponens() -> Expr {
+    imply(and(A, imply(A, B)), B)
+}
+
+/// `((A → B) → ((B → ⊥) → (A → ⊥)))`.
+pub fn modus_tollens() -> Expr {
+    imply(imply(A, B), imply(not(B), not(A)))
 }
 
 /// `(A = B) = ((A → B) ⋀ (B → A))`.
