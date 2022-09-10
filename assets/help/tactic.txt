@@ -22,6 +22,7 @@ use debug     Print debugging representation of input
 use and       Suggest useful steps for and expressions
 use hooo      Suggest basic HOOO axioms
 use eq        Make suggestions based on equality rules
+use imply     Make suggestions based on implication rules
 use sym       Make suggestions based on symmetric rules
 use modus     Suggest modus ponens/tollens
 use silence   Do not output list of tactics or expressions
