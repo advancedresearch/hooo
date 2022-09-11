@@ -52,6 +52,7 @@ use std::sync::Arc;
 use std::fmt;
 
 pub mod parsing;
+pub mod tactic;
 
 use Expr::*;
 
