@@ -151,7 +151,7 @@ impl Tactic {
                                     if f == g {continue}
                                     if g.has_bind_symbol() {continue}
 
-                                    if let Ok(res) = rewrite(f, g) {
+                                    if let Ok(res) = transform::rewrite(f, g) {
                                         add(res, format!("{}", Eq));
                                     }
                                 }
@@ -304,14 +304,14 @@ impl Tactic {
                         if let Some((a, _)) = f.eq() {
                             if f.has_bind_symbol() {
                                 if let Some((a1, a2)) = a.and() {
-                                    let mut hc1: Vec<crate::Context> = vec![];
-                                    let mut hc2: Vec<crate::Context> = vec![];
+                                    let mut hc1: Vec<transform::Context> = vec![];
+                                    let mut hc2: Vec<transform::Context> = vec![];
                                     for g in facts {
-                                        let mut hc = crate::Context::new();
+                                        let mut hc = transform::Context::new();
                                         if hc.bind(&a1, g).is_ok() {
                                             hc1.push(hc);
                                         }
-                                        let mut hc = crate::Context::new();
+                                        let mut hc = transform::Context::new();
                                         if hc.bind(&a2, g).is_ok() {
                                             hc2.push(hc);
                                         }
@@ -340,7 +340,7 @@ impl Tactic {
                                 Expr::Imply => {
                                     if f.has_bind_symbol() {
                                         for g in facts {
-                                            let mut hc = crate::Context::new();
+                                            let mut hc = transform::Context::new();
                                             if hc.bind(&abc.1, g).is_ok() {
                                                 if let Ok(expr) = hc.synth(f) {
                                                     add(expr, format!("{}", Imply));
@@ -384,13 +384,13 @@ impl Tactic {
                                     if f == g {continue}
                                     if g.has_bind_symbol() {continue}
 
-                                    if let Ok(res) = rewrite_left(f, g) {
+                                    if let Ok(res) = transform::rewrite_left(f, g) {
                                         add(res, format!("{}", Eq));
                                     }
-                                    if let Ok(res) = rewrite_middle(f, g) {
+                                    if let Ok(res) = transform::rewrite_middle(f, g) {
                                         add(res, format!("{}", Eq));
                                     }
-                                    if let Ok(res) = rewrite_right(f, g) {
+                                    if let Ok(res) = transform::rewrite_right(f, g) {
                                         add(res, format!("{}", Eq));
                                     }
                                 }
@@ -402,16 +402,16 @@ impl Tactic {
                     for f in facts {
                         if let Expr::Bin(abc) = f {
                             if abc.0 == Expr::Eq {
-                                if let Ok(res) = rewrite(f, f) {
+                                if let Ok(res) = transform::rewrite(f, f) {
                                     add(res, format!("{}", Eq));
                                 }
-                                if let Ok(res) = rewrite_left(f, f) {
+                                if let Ok(res) = transform::rewrite_left(f, f) {
                                     add(res, format!("{}", Eq));
                                 }
-                                if let Ok(res) = rewrite_middle(f, f) {
+                                if let Ok(res) = transform::rewrite_middle(f, f) {
                                     add(res, format!("{}", Eq));
                                 }
-                                if let Ok(res) = rewrite_right(f, f) {
+                                if let Ok(res) = transform::rewrite_right(f, f) {
                                     add(res, format!("{}", Eq));
                                 }
                             }
@@ -428,16 +428,16 @@ impl Tactic {
                                     if f == g {continue}
                                     if !g.has_bind_symbol() {continue}
 
-                                    if let Ok(res) = rewrite(f, g) {
+                                    if let Ok(res) = transform::rewrite(f, g) {
                                         add(res, format!("{}", Eq));
                                     }
-                                    if let Ok(res) = rewrite_left(f, g) {
+                                    if let Ok(res) = transform::rewrite_left(f, g) {
                                         add(res, format!("{}", Eq));
                                     }
-                                    if let Ok(res) = rewrite_middle(f, g) {
+                                    if let Ok(res) = transform::rewrite_middle(f, g) {
                                         add(res, format!("{}", Eq));
                                     }
-                                    if let Ok(res) = rewrite_right(f, g) {
+                                    if let Ok(res) = transform::rewrite_right(f, g) {
                                         add(res, format!("{}", Eq));
                                     }
                                 }
