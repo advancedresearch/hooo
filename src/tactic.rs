@@ -145,8 +145,6 @@ impl Tactic {
                     for f in facts {
                         if let Expr::Bin(abc) = f {
                             if abc.0 == Expr::Eq {
-                                add(eq(abc.2.clone(), abc.1.clone()), format!("{}", Eq));
-
                                 for g in facts {
                                     if f == g {continue}
                                     if g.has_bind_symbol() {continue}
@@ -156,6 +154,12 @@ impl Tactic {
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    for f in facts {
+                        if let Some((a, b)) = f.eq() {
+                            add(eq(b, a), format!("{}", Eq));
                         }
                     }
                 }
