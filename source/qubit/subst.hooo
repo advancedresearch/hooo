@@ -1,0 +1,4 @@
+use qubit;
+~a;
+((a = b) ^ True);
+sugg ~b;
