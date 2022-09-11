@@ -165,12 +165,15 @@ impl Tactic {
                 }
                 And => {
                     for f in facts {
-                        if let Some((a, _)) = f.eq() {
+                        if let Some((a, b)) = f.eq() {
                             if let Some((a1, a2)) = a.and() {
-                                if a1.find(facts.iter()).is_some() &&
-                                   a2.find(facts.iter()).is_some()
-                                {
-                                    add(and(a1, a2), format!("{}", And));
+                                let found_a1 = a1.find(facts.iter()).is_some();
+                                let found_a2 = a2.find(facts.iter()).is_some();
+                                match (found_a1, found_a2) {
+                                    (true, true) => add(and(a1, a2), format!("{}", And)),
+                                    (false, true) => add(eq(a1, b), format!("{}", And)),
+                                    (true, false) => add(eq(a2, b), format!("{}", And)),
+                                    (false, false) => {}
                                 }
                             }
                         }
@@ -272,6 +275,22 @@ impl Tactic {
                 }
                 Qubit => {
                     for f in facts {
+                        if let Some((a, b)) = f.eq() {
+                            let mut a_found = false;
+                            let mut b_found = true;
+                            for g in facts {
+                                if let Some(c) = g.qu() {
+                                    a_found |= c == a;
+                                    b_found |= c == b;
+                                }
+                            }
+                            if a_found && b_found {
+                                add(qual_def(), format!("{}", Qubit));
+                            }
+                        }
+                    }
+
+                    for f in facts {
                         if let Expr::Un(ab) = f {
                             if ab.0 == Expr::Qubit {
                                 for g in facts {
@@ -311,31 +330,44 @@ impl Tactic {
                 Debug => {}
                 App => {}
                 And => {
+                    fn search<F>(f: &Expr, a1: Expr, a2: Expr, facts: &[Expr], add: &mut F)
+                        where F: FnMut(Expr, String)
+                    {
+                        let mut hc1: Vec<transform::Context> = vec![];
+                        let mut hc2: Vec<transform::Context> = vec![];
+                        for g in facts {
+                            let mut hc = transform::Context::new();
+                            if hc.bind(&a1, g).is_ok() {
+                                hc1.push(hc);
+                            }
+                            let mut hc = transform::Context::new();
+                            if hc.bind(&a2, g).is_ok() {
+                                hc2.push(hc);
+                            }
+                        }
+                        for hc1 in &hc1 {
+                            for hc2 in &hc2 {
+                                if let Ok(hc) = hc1.join(&hc2) {
+                                    if let Ok(expr) = hc.synth(f) {
+                                        add(expr, format!("{}", And));
+                                    }
+                                }
+                            }
+                        }
+
+                        if let Some((a, b)) = a1.and() {
+                            search(f, a, b, facts, add);
+                        }
+                        if let Some((a, b)) = a2.and() {
+                            search(f, a, b, facts, add);
+                        }
+                    }
+
                     for f in facts {
                         if let Some((a, _)) = f.eq() {
                             if f.has_bind_symbol() {
                                 if let Some((a1, a2)) = a.and() {
-                                    let mut hc1: Vec<transform::Context> = vec![];
-                                    let mut hc2: Vec<transform::Context> = vec![];
-                                    for g in facts {
-                                        let mut hc = transform::Context::new();
-                                        if hc.bind(&a1, g).is_ok() {
-                                            hc1.push(hc);
-                                        }
-                                        let mut hc = transform::Context::new();
-                                        if hc.bind(&a2, g).is_ok() {
-                                            hc2.push(hc);
-                                        }
-                                    }
-                                    for hc1 in &hc1 {
-                                        for hc2 in &hc2 {
-                                            if let Ok(hc) = hc1.join(&hc2) {
-                                                if let Ok(expr) = hc.synth(f) {
-                                                    add(expr, format!("{}", And));
-                                                }
-                                            }
-                                        }
-                                    }
+                                    search(f, a1, a2, facts, &mut add);
                                 }
                             }
                         }

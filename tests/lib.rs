@@ -30,6 +30,7 @@ fn test_sources() {
     assert_eq!(0, check_file("source/hooo/transport_tr.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/subst.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/to_qual.hooo").unwrap());
+    assert_eq!(10, check_file("source/qubit/qual_def.hooo").unwrap());
     assert_eq!(0, check_file("source/sesh/to_qu_not.hooo").unwrap());
     assert_eq!(0, check_file("source/sesh/to_not_qu.hooo").unwrap());
 }

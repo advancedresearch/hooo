@@ -546,6 +546,11 @@ pub fn qual_eq_qubit() -> Expr {
     eq(qual(A, A), qu(A))
 }
 
+/// `((A ~~ B) = ((A = B) ⋀ (~A ⋀ ~B)))`.
+pub fn qual_def() -> Expr {
+    eq(qual(A, B), and(eq(A, B), and(qu(A), qu(B))))
+}
+
 /// `X^X = ⊤`.
 pub fn refl() -> Expr {
     eq(pow(X, X), Tr)
