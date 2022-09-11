@@ -10,6 +10,7 @@ fn test_sources() {
     assert_eq!(0, check_file("source/primitives/ty.hooo").unwrap());
     assert_eq!(0, check_file("source/primitives/wave.hooo").unwrap());
     assert_eq!(0, check_file("source/primitives/qubit.hooo").unwrap());
+    assert_eq!(0, check_file("source/primitives/qual.hooo").unwrap());
     assert_eq!(0, check_file("source/primitives/true.hooo").unwrap());
     assert_eq!(0, check_file("source/primitives/false.hooo").unwrap());
     assert_eq!(0, check_file("source/and/fst.hooo").unwrap());

@@ -99,6 +99,8 @@ pub enum Expr {
     Wave,
     /// Qubit `~a`.
     Qubit,
+    /// Quality `a ~~ b`.
+    Qual,
     /// First and component.
     Fst,
     /// Second and component.
@@ -153,6 +155,7 @@ impl fmt::Display for Expr {
             Eq => write!(w, "=")?,
             Wave => write!(w, "~◇~")?,
             Qubit => write!(w, "~")?,
+            Qual => write!(w, "~~")?,
             Fst => write!(w, "fst")?,
             Snd => write!(w, "snd")?,
             Left => write!(w, "left")?,
@@ -368,7 +371,8 @@ impl Expr {
             Wave |
             App |
             Sq |
-            Di => true,
+            Di |
+            Qual => true,
         }
     }
 
@@ -402,7 +406,8 @@ impl Expr {
             PowMul |
             Sq |
             Di |
-            Qubit => true,
+            Qubit |
+            Qual => true,
         }
     }
 

@@ -56,6 +56,9 @@ fn parse_expr(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut V
         } else if let Ok((range, _)) = convert.meta_bool("◇") {
             convert.update(range);
             expr = Some(Di);
+        } else if let Ok((range, _)) = convert.meta_bool("~~") {
+            convert.update(range);
+            expr = Some(Qual);
         } else if let Ok((range, _)) = convert.meta_bool("~◇~") {
             convert.update(range);
             expr = Some(Wave);
@@ -344,5 +347,8 @@ mod tests {
 
         let a: Expr = parse_str(r#"~a"#, &[]).unwrap();
         assert_eq!(format!("{}", a), "~a".to_string());
+
+        let a: Expr = parse_str(r#"(a ~~ b)"#, &[]).unwrap();
+        assert_eq!(format!("{}", a), "(a ~~ b)".to_string());
     }
 }
