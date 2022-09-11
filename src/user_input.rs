@@ -1,0 +1,139 @@
+//! # User input
+
+use crate::*;
+use context::Context;
+use tactic::Tactic;
+
+/// Represents user input.
+pub enum UserInput {
+    /// Print readable separator.
+    Separator,
+    /// Clear tactics and expressions from context.
+    Clear,
+    /// Help main.
+    HelpMain,
+    /// Help about tactics in general.
+    HelpTactic,
+    /// Help with tactic.
+    Help(Tactic),
+    /// Quit REPL.
+    Bye,
+    /// Use tactic.
+    Use(Tactic),
+    /// Remove tactic.
+    RemTactic(usize),
+    /// Remove expression.
+    RemExpr(usize),
+    /// Make new suggestions.
+    Sugg,
+    /// Add expression.
+    AddExpr(Expr),
+    /// Parsing error.
+    ParseError(String),
+    /// Could not find expression.
+    CouldNotFindExpr(Expr),
+    /// Pick this suggestion.
+    PickSuggestion(usize),
+    /// The suggestion is outside of the bounds of new suggestions.
+    SuggestionOutOfBounds(usize),
+    /// Unrefined removal string (requires context to be refined).
+    Rem(String),
+    /// Unrefined unknown string (requires context to be refined).
+    Unknown(String),
+}
+
+impl UserInput {
+    /// Refines the user input to provide errors in relation to context.
+    pub fn refine(self, context: &Context) -> UserInput {
+        use UserInput::*;
+
+        match self {
+            Separator |
+            Clear |
+            Sugg |
+            HelpMain |
+            HelpTactic |
+            Help(_) |
+            Bye |
+            Use(_) |
+            RemTactic(_) |
+            RemExpr(_) |
+            AddExpr(_) |
+            ParseError(_) |
+            CouldNotFindExpr(_) |
+            PickSuggestion(_) |
+            SuggestionOutOfBounds(_) => self,
+            Rem(ref rest) => {
+                let mut found: Option<usize> = None;
+                for (i, t) in context.tactics.iter().enumerate() {
+                    if &format!("{}", t) == rest {
+                        found = Some(i);
+                        break;
+                    }
+                }
+                if let Some(ind) = found {
+                    RemTactic(ind)
+                } else {
+                    let expr = match parsing::parse_str(rest, &[]) {
+                        Ok(x) => x,
+                        Err(err) => return ParseError(err),
+                    };
+                    if let Some(ind) = expr.find(context.facts.iter()) {
+                        RemExpr(ind)
+                    } else {
+                        CouldNotFindExpr(expr)
+                    }
+                }
+            }
+            Unknown(ref x) => {
+                use std::str::FromStr;
+
+                if let Ok(n) = usize::from_str(x) {
+                    if n < context.new_suggestions.len() {
+                        PickSuggestion(n)
+                    } else {
+                        SuggestionOutOfBounds(n)
+                    }
+                } else {
+                    AddExpr(match parsing::parse_str(x, &[]) {
+                        Ok(x) => x,
+                        Err(err) => return ParseError(err),
+                    })
+                }
+            }
+        }
+    }
+
+    /// Convert string into user input.
+    pub fn from_str(input: &str) -> Self {
+        use UserInput::*;
+
+        match input.trim() {
+            "" => Separator,
+            "clear" => Clear,
+            "sugg" => Sugg,
+            "help" => HelpMain,
+            "help tactic" => HelpTactic,
+            "help app" => Help(Tactic::App),
+            "help and" => Help(Tactic::And),
+            "help qubit" => Help(Tactic::Qubit),
+            "bye" => Bye,
+            "use zero" => Use(Tactic::Zero),
+            "use silence" => Use(Tactic::Silence),
+            "use eq" => Use(Tactic::Eq),
+            "use sym" => Use(Tactic::Sym),
+            "use hooo" => Use(Tactic::Hooo),
+            "use debug" => Use(Tactic::Debug),
+            "use app" => Use(Tactic::App),
+            "use and" => Use(Tactic::And),
+            "use imply" => Use(Tactic::Imply),
+            "use modus" => Use(Tactic::Modus),
+            "use qubit" => Use(Tactic::Qubit),
+            x if x.starts_with("rem ") => {
+                let rest = x[4..].trim();
+                Rem(rest.into())
+            }
+            x => Unknown(x.into())
+        }
+    }
+}
