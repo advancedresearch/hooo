@@ -14,6 +14,8 @@ fn test_sources() {
     check_file("source/primitives/false.hooo").unwrap();
     check_file("source/and/fst.hooo").unwrap();
     check_file("source/and/snd.hooo").unwrap();
+    check_file("source/and/and_to_eq.hooo").unwrap();
+    check_file("source/and/eq_to_and.hooo").unwrap();
     check_file("source/eq/transport.hooo").unwrap();
     check_file("source/sym/flip.hooo").unwrap();
     check_file("source/imply/modus_ponens.hooo").unwrap();
