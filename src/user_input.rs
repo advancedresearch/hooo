@@ -175,18 +175,24 @@ impl UserInput {
     }
 }
 
-/// Checks user input.
-pub fn check(inputs: Vec<UserInput>) -> Result<(), String> {
+/// Checks user input, while summing up the energy of the proof.
+///
+/// The energy is the sum over picked suggestion indices.
+pub fn check(inputs: Vec<UserInput>) -> Result<usize, String> {
     let mut context = Context::new();
+    let mut energy = 0;
     for input in inputs.into_iter() {
         let input = input.refine(&context);
+        if let UserInput::PickSuggestion(ind) = input {
+            energy += ind;
+        }
         context.handle(input)?;
     }
-    Ok(())
+    Ok(energy)
 }
 
 /// Checks file.
-pub fn check_file(file: &str) -> Result<(), String> {
+pub fn check_file(file: &str) -> Result<usize, String> {
     let inputs = UserInput::from_file(&file)
         .map_err(|err| format!("{}\nIn file `{}`", err, file))?;
     check(inputs)
