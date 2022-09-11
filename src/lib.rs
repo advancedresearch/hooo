@@ -50,9 +50,14 @@
 
 use std::sync::Arc;
 use std::fmt;
+pub use repl::main as repl;
 
 pub mod parsing;
 pub mod tactic;
+pub mod context;
+pub mod user_input;
+
+mod repl;
 
 use Expr::*;
 
