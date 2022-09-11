@@ -194,6 +194,25 @@ impl From<&str> for Expr {
 }
 
 impl Expr {
+    /// Get `¬~A` info.
+    pub fn not_qu(&self) -> Option<Expr> {self.not()?.qu()}
+
+    /// Get `~¬A` info.
+    pub fn qu_not(&self) -> Option<Expr> {self.qu()?.not()}
+
+    /// Get `~A` info.
+    pub fn qu(&self) -> Option<Expr> {
+        if let Un(ab) = self {
+            if ab.0 == Qubit {return Some(ab.1.clone())}
+        }
+        None
+    }
+
+    /// Get `A → ⊥` info.
+    pub fn not(&self) -> Option<Expr> {
+        if let Some((a, Fa)) = self.imply() {Some(a)} else {None}
+    }
+
     /// Get `(A = B) ^ ⊤` info.
     pub fn qubit_eq(&self) -> Option<(Expr, Expr)> {
         if let Some(res) = self.pow() {
@@ -349,6 +368,8 @@ impl Expr {
     /// Wether the expression is a symbol.
     pub fn is_sym(&self) -> bool {
         match self {
+            X | Y | A | B => false,
+            Var(_) | Bin(_) | Un(_) => false,
             Tr |
             Fa |
             Ty |
@@ -371,8 +392,10 @@ impl Expr {
             HoooDual |
             HoooWave |
             SwapWave |
-            PowMul => true,
-            _ => false,
+            PowMul |
+            Sq |
+            Di |
+            Qubit => true,
         }
     }
 
@@ -446,6 +469,10 @@ impl Context {
                 self.bind(&abc.1, &xyz.1)?;
                 self.bind(&abc.2, &xyz.2)
             }
+            (Un(ab), Un(xy)) => {
+                self.bind(&ab.0, &xy.0)?;
+                self.bind(&ab.1, &xy.1)
+            }
             (Var(x), Var(y)) if x == y => Ok(()),
             _ => Err(())
         }
@@ -499,6 +526,11 @@ impl Context {
                 let b = self.synth(&abc.1)?;
                 let c = self.synth(&abc.2)?;
                 Ok(Bin(Box::new((a, b, c))))
+            }
+            Un(ab) => {
+                let a = self.synth(&ab.0)?;
+                let b = self.synth(&ab.1)?;
+                Ok(Un(Box::new((a, b))))
             }
             _ => Err(())
         }
@@ -690,11 +722,16 @@ pub fn dual(op: Expr, a: Expr, b: Expr) -> Expr {
     Bin(Box::new((pow(Fa, op), a, b)))
 }
 
-/// `a ~ b`.
+/// `a ~◇~ b`.
 ///
 /// This describes the duality between two operators.
 pub fn wave(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((Wave, a, b)))
+}
+
+/// `(¬~A = ~¬A)`.
+pub fn sesh_qubit_eq() -> Expr {
+    eq(not(qu(A)), qu(not(A)))
 }
 
 /// `X^X = ⊤`.
@@ -777,12 +814,12 @@ pub fn hooo_wave_red() -> Expr {
     )
 }
 
-/// `(A ~ B) = (B ~ A)`.
+/// `(A ~◇~ B) = (B ~◇~ A)`.
 pub fn wave_symmetry() -> Expr {
     eq(wave(A, B), wave(B, A))
 }
 
-/// `(Y : (A ~ B)) = (((((fst ↞ (A ~ B)) ↞ (B ~ A)) ↞ swap_wave) ↞ Y) : (B ~ A))`.
+/// `(Y : (A ~◇~ B)) = (((((fst ↞ (A ~◇~ B)) ↞ (B ~◇~ A)) ↞ swap_wave) ↞ Y) : (B ~◇~ A))`.
 pub fn wave_red_symmetry() -> Expr {
     let a = wave(A, B);
     let b = wave(B, A);
@@ -792,16 +829,16 @@ pub fn wave_red_symmetry() -> Expr {
     )
 }
 
-/// `'⋀' ~ '⋁'`.
+/// `'⋀' ~◇~ '⋁'`.
 pub fn wave_and_or() -> Expr {wave(And, Or)}
 
-/// `'→' ~ '←'`.
+/// `'→' ~◇~ '←'`.
 pub fn wave_imply_rimply() -> Expr {wave(Imply, Rimply)}
 
-/// `':' ~ ':'`.
+/// `':' ~◇~ ':'`.
 pub fn wave_ty() -> Expr {wave(Ty, Ty)}
 
-/// `'=' ~ '='`.
+/// `'=' ~◇~ '='`.
 pub fn wave_eq() -> Expr {wave(Eq, Eq)}
 
 /// `(A ⋀ (A → ⊥)) = ⊥`.

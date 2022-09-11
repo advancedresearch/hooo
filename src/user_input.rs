@@ -142,6 +142,7 @@ impl UserInput {
             "use imply" => Use(Tactic::Imply),
             "use modus" => Use(Tactic::Modus),
             "use qubit" => Use(Tactic::Qubit),
+            "use sesh" => Use(Tactic::Sesh),
             x if x.starts_with("sugg ") => {
                 let rest = x[5..].trim();
                 if rest == "" {Sugg} else {SuggCheck(rest.into())}
@@ -186,6 +187,8 @@ pub fn check(inputs: Vec<UserInput>) -> Result<(), String> {
 
 /// Checks file.
 pub fn check_file(file: &str) -> Result<(), String> {
-    let inputs = UserInput::from_file(&file)?;
+    let inputs = UserInput::from_file(&file)
+        .map_err(|err| format!("{}\nIn file `{}`", err, file))?;
     check(inputs)
+        .map_err(|err| format!("{}\nIn file `{}`", err, file))
 }

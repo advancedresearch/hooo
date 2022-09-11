@@ -21,6 +21,8 @@ fn test_sources() {
     check_file("source/hooo/tr_eq.hooo").unwrap();
     check_file("source/hooo/transport_tr.hooo").unwrap();
     check_file("source/qubit/subst.hooo").unwrap();
+    check_file("source/sesh/to_qu_not.hooo").unwrap();
+    check_file("source/sesh/to_not_qu.hooo").unwrap();
 }
 
 #[test]

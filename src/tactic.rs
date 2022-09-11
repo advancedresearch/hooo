@@ -27,6 +27,8 @@ pub enum Tactic {
     Modus,
     /// The qubit tactic.
     Qubit,
+    /// The sesh tactic.
+    Sesh,
 }
 
 impl Tactic {
@@ -233,6 +235,16 @@ impl Tactic {
                     }
                 }
             }
+            Sesh => {
+                for f in facts {
+                    if f.qu_not().is_some() {
+                        add(sesh_qubit_eq(), format!("{}", Sesh));
+                    }
+                    if f.not_qu().is_some() {
+                        add(sesh_qubit_eq(), format!("{}", Sesh));
+                    }
+                }
+            }
         }
     }
 }
@@ -253,6 +265,7 @@ impl fmt::Display for Tactic {
             Imply => write!(w, "imply")?,
             Modus => write!(w, "modus")?,
             Qubit => write!(w, "qubit")?,
+            Sesh => write!(w, "sesh")?,
         }
         Ok(())
     }
