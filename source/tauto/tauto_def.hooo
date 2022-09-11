@@ -1,0 +1,6 @@
+use tauto;
+use eq;
+(a ^ True);
+sugg ((tauto ↞ A) = (A ^ ⊤));
+sugg ((A ^ ⊤) = (tauto ↞ A));
+sugg (tauto ↞ a);
