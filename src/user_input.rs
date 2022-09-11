@@ -139,6 +139,7 @@ impl UserInput {
             "use debug" => Use(Tactic::Debug),
             "use app" => Use(Tactic::App),
             "use and" => Use(Tactic::And),
+            "use or" => Use(Tactic::Or),
             "use imply" => Use(Tactic::Imply),
             "use modus" => Use(Tactic::Modus),
             "use qubit" => Use(Tactic::Qubit),
