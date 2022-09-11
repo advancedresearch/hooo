@@ -26,5 +26,6 @@ use imply     Make suggestions based on implication rules
 use sym       Make suggestions based on symmetric rules
 use modus     Suggest modus ponens/tollens
 use qubit     Make suggestions based on qubit rules
+use sesh      Make suggestions based on Seshatism rules
 use silence   Do not output list of tactics or expressions
 use zero      Pick the 0th suggestion if there none others
