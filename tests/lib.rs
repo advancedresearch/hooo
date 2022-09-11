@@ -37,6 +37,8 @@ fn test_sources() {
     assert_eq!(0, check_file("source/tauto/para_def.hooo").unwrap());
     assert_eq!(0, check_file("source/tauto/tauto_expand.hooo").unwrap());
     assert_eq!(0, check_file("source/tauto/para_expand.hooo").unwrap());
+    assert_eq!(0, check_file("source/tauto/uniform_expand.hooo").unwrap());
+    assert_eq!(5, check_file("source/tauto/uniform_def.hooo").unwrap());
 }
 
 #[test]

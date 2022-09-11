@@ -101,10 +101,12 @@ pub enum Expr {
     Qubit,
     /// Quality `a ~~ b`.
     Qual,
-    /// Tautology `a ^ True`.
+    /// Tautology `tauto ↞ a`.
     Tauto,
-    /// Paradox `False ^ a`.
+    /// Paradox `para ↞ a`.
     Para,
+    /// Uniform `uniform ↞ a`.
+    Uniform,
     /// First and component.
     Fst,
     /// Second and component.
@@ -162,6 +164,7 @@ impl fmt::Display for Expr {
             Qual => write!(w, "~~")?,
             Tauto => write!(w, "tauto")?,
             Para => write!(w, "para")?,
+            Uniform => write!(w, "uniform")?,
             Fst => write!(w, "fst")?,
             Snd => write!(w, "snd")?,
             Left => write!(w, "left")?,
@@ -204,6 +207,14 @@ impl From<&str> for Expr {
 }
 
 impl Expr {
+    /// Get `a ⋁ b` info.
+    pub fn or(&self) -> Option<(Expr, Expr)> {
+        if let Bin(abc) = self {
+            if abc.0 == Or {return Some((abc.1.clone(), abc.2.clone()))}
+        }
+        None
+    }
+
     /// Get `(f ↞ x)` info.
     pub fn app(&self) -> Option<(Expr, Expr)> {
         if let Bin(abc) = self {
@@ -373,7 +384,7 @@ impl Expr {
             Fst | Snd | Left | Right |
             SwapOr | SubTyFst | SubTySnd |
             Hooo | HoooDual | HoooWave |
-            SwapWave | PowMul | Tauto | Para => false,
+            SwapWave | PowMul | Tauto | Para | Uniform => false,
             Var(_) | Bin(_) | Un(_) => false,
             Ty |
             Imply |
@@ -423,7 +434,8 @@ impl Expr {
             Qubit |
             Qual |
             Tauto |
-            Para => true,
+            Para |
+            Uniform => true,
         }
     }
 
@@ -520,14 +532,19 @@ pub fn qual(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((Qual, a, b)))
 }
 
-/// `(tauto ↞ A)`.
+/// `(tauto ↞ a)`.
 pub fn tauto(a: Expr) -> Expr {
     app(Tauto, a)
 }
 
-/// `(para ↞ A)`.
+/// `(para ↞ a)`.
 pub fn para(a: Expr) -> Expr {
     app(Para, a)
+}
+
+/// `(uniform ↞ a)`.
+pub fn uniform(a: Expr) -> Expr {
+    app(Uniform, a)
 }
 
 /// `a ⋀ b`.
@@ -585,6 +602,11 @@ pub fn tauto_def() -> Expr {
 /// `((para ↞ A) = (⊥ ^ A))`.
 pub fn para_def() -> Expr {
     eq(para(A), pow(Fa, A))
+}
+
+/// `((uniform ↞ A) = ((tauto ↞ A) ⋁ (para ↞ a)))`.
+pub fn uniform_def() -> Expr {
+    eq(uniform(A), or(tauto(A), para(A)))
 }
 
 /// `X^X = ⊤`.

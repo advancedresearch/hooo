@@ -15,6 +15,8 @@ pub enum Tactic {
     Eq,
     /// The and tactic.
     And,
+    /// The or tactic.
+    Or,
     /// The hooo tactic.
     Hooo,
     /// The sym tactic.
@@ -206,6 +208,20 @@ impl Tactic {
                         }
                     }
                 }
+                Or => {
+                    for f in facts {
+                        if let Some((a, _)) = f.eq() {
+                            if let Some((a1, a2)) = a.or() {
+                                for g in facts {
+                                    if (g == &a1) || (g == &a2) {
+                                        add(or(a1, a2), format!("{}", Or));
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 Hooo => {
                     for f in facts {
                         if let Some((base, exp)) = f.pow() {
@@ -334,8 +350,15 @@ impl Tactic {
                         }
                         if let Some((f, _)) = f.app() {
                             match f {
-                                Expr::Tauto => add(tauto_def(), format!("{}", Tauto)),
-                                Expr::Para => add(para_def(), format!("{}", Para)),
+                                Expr::Tauto => {
+                                    add(tauto_def(), format!("{}", Tauto));
+                                    add(uniform_def(), format!("{}", Tauto));
+                                }
+                                Expr::Para => {
+                                    add(para_def(), format!("{}", Para));
+                                    add(uniform_def(), format!("{}", Tauto));
+                                }
+                                Expr::Uniform => add(uniform_def(), format!("{}", Uniform)),
                                 _ => {}
                             }
                         }
@@ -394,6 +417,30 @@ impl Tactic {
                         }
                     }
                 }
+                Or => {
+                    for f in facts {
+                        if let Some((a, _)) = f.eq() {
+                            if f.has_bind_symbol() {
+                                if let Some((a1, a2)) = a.or() {
+                                    for g in facts {
+                                        let mut hc = transform::Context::new();
+                                        if hc.bind(&a1, g).is_ok() {
+                                            if let Ok(expr) = hc.synth(f) {
+                                                add(expr, format!("{}", Or));
+                                            }
+                                        }
+                                        let mut hc = transform::Context::new();
+                                        if hc.bind(&a2, g).is_ok() {
+                                            if let Ok(expr) = hc.synth(f) {
+                                                add(expr, format!("{}", Or));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 Hooo => {}
                 Eq => {}
                 Sym => {}
@@ -431,6 +478,7 @@ impl Tactic {
                 App => {}
                 Debug => {}
                 And => {}
+                Or => {}
                 Hooo => {}
                 Sym => {}
                 Imply => {}
@@ -529,6 +577,7 @@ impl fmt::Display for Tactic {
             Debug => write!(w, "debug")?,
             App => write!(w, "app")?,
             And => write!(w, "and")?,
+            Or => write!(w, "or")?,
             Imply => write!(w, "imply")?,
             Modus => write!(w, "modus")?,
             Qubit => write!(w, "qubit")?,
