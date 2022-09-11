@@ -49,6 +49,13 @@ impl Context {
         for t in &self.tactics {
             t.suggestions(Suggestion::Rare, &self.facts, &mut self.new_suggestions);
         }
+
+        // Detect `false` and put it first.
+        for i in 0..self.new_suggestions.len() {
+            if self.new_suggestions[i].0 == Expr::Fa {
+                self.new_suggestions.swap(0, i);
+            }
+        }
     }
 
     /// If zero tactic is enabled, then zero tactic.
