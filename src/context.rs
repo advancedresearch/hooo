@@ -1,7 +1,7 @@
 //! # Context
 
 use crate::*;
-use tactic::Tactic;
+use tactic::{Suggestion, Tactic};
 use user_input::UserInput;
 
 /// Represents context.
@@ -24,14 +24,38 @@ impl Context {
         }
     }
 
+    /// Get suggestions.
+    pub fn suggestions(&mut self) {
+        self.new_suggestions.clear();
+        let dumb_limit = 30;
+        // Keep a list of expressions above the dumb limit.
+        let mut dumb: Vec<(Expr, String)> = vec![];
+        for t in &self.tactics {
+            t.suggestions(Suggestion::Simple, &self.facts, &mut self.new_suggestions);
+        }
+        // Find simple suggestions that are dumb.
+        for i in (0..self.new_suggestions.len()).rev() {
+            if format!("{}", self.new_suggestions[i].0).len() > dumb_limit {
+                dumb.push(self.new_suggestions[i].clone());
+                self.new_suggestions.swap_remove(i);
+            }
+        }
+        dumb.reverse();
+        for t in &self.tactics {
+            t.suggestions(Suggestion::Advanced, &self.facts, &mut self.new_suggestions);
+        }
+        // Add dumb suggestions after advanced suggestions.
+        self.new_suggestions.extend(dumb);
+        for t in &self.tactics {
+            t.suggestions(Suggestion::Rare, &self.facts, &mut self.new_suggestions);
+        }
+    }
+
     /// If zero tactic is enabled, then zero tactic.
     pub fn zero(&mut self) {
         if Tactic::Zero.find(self.tactics.iter()).is_some() {
             loop {
-                self.new_suggestions.clear();
-                for t in &self.tactics {
-                    t.suggestions(&self.facts, &mut self.new_suggestions);
-                }
+                self.suggestions();
                 if self.new_suggestions.len() == 1 {
                     let s = &self.new_suggestions[0];
                     if s.1 != "".to_string() {
@@ -49,10 +73,7 @@ impl Context {
     pub fn make_suggestions(&mut self) {
         self.zero();
         if Tactic::Zero.find(self.tactics.iter()).is_none() {
-            self.new_suggestions.clear();
-            for t in &self.tactics {
-                t.suggestions(&self.facts, &mut self.new_suggestions);
-            }
+            self.suggestions();
         }
 
         if self.new_suggestions.len() != 0 {
@@ -95,6 +116,7 @@ impl Context {
                 eprintln!("Tactic already in use");
             } else {
                 tactics.push(new_tactic);
+                tactics.sort();
                 if Tactic::Silence.find(tactics.iter()).is_none() {
                     for t in &*tactics {
                         println!("{}", t);

@@ -350,6 +350,13 @@ impl Expr {
     /// Whether the expression is a binary operator.
     pub fn is_bin(&self) -> bool {
         match self {
+            X | Y | A | B => false,
+            Tr | Fa | Qubit => false,
+            Fst | Snd | Left | Right |
+            SwapOr | SubTyFst | SubTySnd |
+            Hooo | HoooDual | HoooWave |
+            SwapWave | PowMul => false,
+            Var(_) | Bin(_) | Un(_) => false,
             Ty |
             Imply |
             Rimply |
@@ -361,7 +368,6 @@ impl Expr {
             App |
             Sq |
             Di => true,
-            _ => false,
         }
     }
 
@@ -435,6 +441,27 @@ impl Context {
             sq: None,
             di: None,
         }
+    }
+
+    /// Joins two contexts into a single one.
+    pub fn join(&self, other: &Context) -> Result<Context, ()> {
+        let f = |a: &Option<Expr>, b: &Option<Expr>| -> Result<Option<Expr>, ()> {
+            match (a, b) {
+                (Some(x), Some(y)) if x == y => Ok(Some(x.clone())),
+                (Some(x), None) | (None, Some(x)) => Ok(Some(x.clone())),
+                (None, None) => Ok(None),
+                _ => Err(())
+            }
+        };
+
+        Ok(Context {
+            x: f(&self.x, &other.x)?,
+            y: f(&self.y, &other.y)?,
+            a: f(&self.a, &other.a)?,
+            b: f(&self.b, &other.b)?,
+            sq: f(&self.sq, &other.sq)?,
+            di: f(&self.di, &other.di)?,
+        })
     }
 
     /// Set unknown to some expression.

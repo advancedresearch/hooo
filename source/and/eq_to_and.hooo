@@ -1,0 +1,5 @@
+use and;
+use eq;
+(a = b);
+sugg ((A = B) = ((A → B) ⋀ (B → A)));
+sugg ((a -> b) & (b -> a));
