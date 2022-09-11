@@ -17,6 +17,7 @@ fn test_sources() {
     check_file("source/eq/transport.hooo").unwrap();
     check_file("source/sym/flip.hooo").unwrap();
     check_file("source/imply/modus_ponens.hooo").unwrap();
+    check_file("source/imply/modus_tollens.hooo").unwrap();
     check_file("source/hooo/tr_eq.hooo").unwrap();
     check_file("source/hooo/transport_tr.hooo").unwrap();
     check_file("source/qubit/subst.hooo").unwrap();
