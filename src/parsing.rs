@@ -80,6 +80,9 @@ fn parse_expr(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut V
         } else if let Ok((range, _)) = convert.meta_bool("tauto") {
             convert.update(range);
             expr = Some(Tauto);
+        } else if let Ok((range, _)) = convert.meta_bool("para") {
+            convert.update(range);
+            expr = Some(Para);
         } else if let Ok((range, _)) = convert.meta_bool("A") {
             convert.update(range);
             expr = Some(A);
@@ -356,5 +359,8 @@ mod tests {
 
         let a: Expr = parse_str(r#"(tauto ↞ a)"#, &[]).unwrap();
         assert_eq!(format!("{}", a), "(tauto ↞ a)".to_string());
+
+        let a: Expr = parse_str(r#"(para ↞ a)"#, &[]).unwrap();
+        assert_eq!(format!("{}", a), "(para ↞ a)".to_string());
     }
 }

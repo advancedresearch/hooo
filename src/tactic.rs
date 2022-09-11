@@ -324,9 +324,12 @@ impl Tactic {
                 }
                 Tauto => {
                     for f in facts {
-                        if let Some((_, b)) = f.pow() {
+                        if let Some((a, b)) = f.pow() {
                             if b == Expr::Tr {
                                 add(tauto_def(), format!("{}", Tauto));
+                            }
+                            if a == Expr::Fa {
+                                add(para_def(), format!("{}", Tauto));
                             }
                         }
                     }

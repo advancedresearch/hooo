@@ -34,6 +34,7 @@ fn test_sources() {
     assert_eq!(0, check_file("source/sesh/to_qu_not.hooo").unwrap());
     assert_eq!(0, check_file("source/sesh/to_not_qu.hooo").unwrap());
     assert_eq!(0, check_file("source/tauto/tauto_def.hooo").unwrap());
+    assert_eq!(0, check_file("source/tauto/para_def.hooo").unwrap());
 }
 
 #[test]
