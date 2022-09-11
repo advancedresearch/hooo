@@ -1,0 +1,6 @@
+use imply;
+use sym;
+use eq;
+(a -> b);
+sugg ((A -> B) = (B <- A));
+sugg (b <- a);
