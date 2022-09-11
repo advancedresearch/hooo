@@ -143,6 +143,7 @@ impl UserInput {
             "use modus" => Use(Tactic::Modus),
             "use qubit" => Use(Tactic::Qubit),
             "use sesh" => Use(Tactic::Sesh),
+            "use tauto" => Use(Tactic::Tauto),
             x if x.starts_with("sugg ") => {
                 let rest = x[5..].trim();
                 if rest == "" {Sugg} else {SuggCheck(rest.into())}

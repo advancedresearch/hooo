@@ -101,6 +101,8 @@ pub enum Expr {
     Qubit,
     /// Quality `a ~~ b`.
     Qual,
+    /// Tautology `a ^ True`.
+    Tauto,
     /// First and component.
     Fst,
     /// Second and component.
@@ -156,6 +158,7 @@ impl fmt::Display for Expr {
             Wave => write!(w, "~◇~")?,
             Qubit => write!(w, "~")?,
             Qual => write!(w, "~~")?,
+            Tauto => write!(w, "tauto")?,
             Fst => write!(w, "fst")?,
             Snd => write!(w, "snd")?,
             Left => write!(w, "left")?,
@@ -359,7 +362,7 @@ impl Expr {
             Fst | Snd | Left | Right |
             SwapOr | SubTyFst | SubTySnd |
             Hooo | HoooDual | HoooWave |
-            SwapWave | PowMul => false,
+            SwapWave | PowMul | Tauto => false,
             Var(_) | Bin(_) | Un(_) => false,
             Ty |
             Imply |
@@ -407,7 +410,8 @@ impl Expr {
             Sq |
             Di |
             Qubit |
-            Qual => true,
+            Qual |
+            Tauto => true,
         }
     }
 
@@ -504,6 +508,11 @@ pub fn qual(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((Qual, a, b)))
 }
 
+/// `(tauto ↞ A)`.
+pub fn tauto(a: Expr) -> Expr {
+    app(Tauto, a)
+}
+
 /// `a ⋀ b`.
 pub fn and(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((And, a, b)))
@@ -549,6 +558,11 @@ pub fn qual_eq_qubit() -> Expr {
 /// `((A ~~ B) = ((A = B) ⋀ (~A ⋀ ~B)))`.
 pub fn qual_def() -> Expr {
     eq(qual(A, B), and(eq(A, B), and(qu(A), qu(B))))
+}
+
+/// `((tauto ↞ A) = (A ^ ⊤))`.
+pub fn tauto_def() -> Expr {
+    eq(tauto(A), pow(A, Tr))
 }
 
 /// `X^X = ⊤`.

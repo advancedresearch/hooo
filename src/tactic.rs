@@ -29,6 +29,8 @@ pub enum Tactic {
     Qubit,
     /// The sesh tactic.
     Sesh,
+    /// The tauto tactic.
+    Tauto,
 }
 
 /// Represents a suggestion level.
@@ -320,6 +322,15 @@ impl Tactic {
                         }
                     }
                 }
+                Tauto => {
+                    for f in facts {
+                        if let Some((_, b)) = f.pow() {
+                            if b == Expr::Tr {
+                                add(tauto_def(), format!("{}", Tauto));
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -400,6 +411,7 @@ impl Tactic {
                 Modus => {}
                 Qubit => {}
                 Sesh => {}
+                Tauto => {}
             }
         }
 
@@ -416,6 +428,7 @@ impl Tactic {
                 Modus => {}
                 Qubit => {}
                 Sesh => {}
+                Tauto => {}
                 Eq => {
                     // Suggest rewriting rules in branches.
                     for f in facts {
@@ -510,6 +523,7 @@ impl fmt::Display for Tactic {
             Modus => write!(w, "modus")?,
             Qubit => write!(w, "qubit")?,
             Sesh => write!(w, "sesh")?,
+            Tauto => write!(w, "tauto")?,
         }
         Ok(())
     }
