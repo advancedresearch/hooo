@@ -204,6 +204,14 @@ impl From<&str> for Expr {
 }
 
 impl Expr {
+    /// Get `(f ↞ x)` info.
+    pub fn app(&self) -> Option<(Expr, Expr)> {
+        if let Bin(abc) = self {
+            if abc.0 == App {return Some((abc.1.clone(), abc.2.clone()))}
+        }
+        None
+    }
+
     /// Get `¬~A` info.
     pub fn not_qu(&self) -> Option<Expr> {self.not()?.qu()}
 

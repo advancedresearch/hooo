@@ -1,0 +1,5 @@
+use tauto;
+use eq;
+para(a);
+sugg (para(A) = (False ^ A));
+sugg (False ^ a);
