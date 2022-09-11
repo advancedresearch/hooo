@@ -1,0 +1,6 @@
+use qubit;
+use eq;
+~a;
+sugg ((A ~~ A) = ~A);
+sugg (~A = (A ~~ A));
+sugg (a ~~ a);
