@@ -484,6 +484,11 @@ pub fn imply(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((Imply, a, b)))
 }
 
+/// `a ← b`.
+pub fn rimply(a: Expr, b: Expr) -> Expr {
+    Bin(Box::new((Rimply, a, b)))
+}
+
 /// `a → ⊥`.
 pub fn not(a: Expr) -> Expr {
     imply(a, Fa)
@@ -733,6 +738,11 @@ pub fn eq_symmetry() -> Expr {
 /// `(X : (A = B)) = (((((fst ↞ A) ↞ B) ↞ X) ⋀ (((snd ↞ A) ↞ B) ↞ X)) : (B = A))`.
 pub fn eq_red_symmetry() -> Expr {
     eq(ty(X, eq(A, B)), ty(and(fst(A, B, X), snd(A, B, X)), eq(B, A)))
+}
+
+/// `(A → B) = (B ← A)`.
+pub fn imply_symmetry() -> Expr {
+    eq(imply(A, B), rimply(B, A))
 }
 
 /// `(⊤ ⋀ X) = X`.

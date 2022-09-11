@@ -237,6 +237,7 @@ impl Tactic {
                                 Expr::And => add(and_symmetry(), format!("{}", Sym)),
                                 Expr::Or => add(or_symmetry(), format!("{}", Sym)),
                                 Expr::Wave => add(wave_symmetry(), format!("{}", Sym)),
+                                Expr::Imply => add(imply_symmetry(), format!("{}", Sym)),
                                 _ => {}
                             }
                         }

@@ -21,6 +21,7 @@ fn test_sources() {
     assert_eq!(0, check_file("source/sym/flip.hooo").unwrap());
     assert_eq!(0, check_file("source/imply/modus_ponens.hooo").unwrap());
     assert_eq!(2, check_file("source/imply/modus_tollens.hooo").unwrap());
+    assert_eq!(0, check_file("source/imply/to_rimply.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/tr_eq.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/transport_tr.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/subst.hooo").unwrap());
