@@ -136,4 +136,39 @@ impl UserInput {
             x => Unknown(x.into())
         }
     }
+
+    /// Convert source into a sequence of user input.
+    pub fn from_source(src: &str) -> Vec<Self> {
+        src.split(";").map(|input| Self::from_str(input)).collect()
+    }
+
+    /// Get sequence of user input from file.
+    pub fn from_file(file: &str) -> Result<Vec<Self>, String> {
+        use std::fs::File;
+        use std::io::Read;
+
+        let mut data_file = File::open(file).map_err(|err|
+            format!("Could not open `{}`, {}", file, err))?;
+        let mut data = String::new();
+        data_file.read_to_string(&mut data).unwrap();
+
+        let inputs = UserInput::from_source(&data);
+        Ok(inputs)
+    }
+}
+
+/// Checks user input.
+pub fn check(inputs: Vec<UserInput>) -> Result<(), String> {
+    let mut context = Context::new();
+    for input in inputs.into_iter() {
+        let input = input.refine(&context);
+        context.handle(input)?;
+    }
+    Ok(())
+}
+
+/// Checks file.
+pub fn check_file(file: &str) -> Result<(), String> {
+    let inputs = UserInput::from_file(&file)?;
+    check(inputs)
 }
