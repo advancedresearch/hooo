@@ -164,7 +164,7 @@ impl Context {
                 self.make_suggestions();
             }
             // These cases are handled by the refine step.
-            Rem(_) | Unknown(_) => {}
+            Rem(_) | SuggCheck(_) | Unknown(_) => {}
         }
         Ok(())
     }

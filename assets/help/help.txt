@@ -6,5 +6,6 @@ rem <expr>    Remove tactic or expression
 use <tactic>  Use tactic
 clear         Clear all tactics and expressions
 sugg          Get suggestions
+sugg <expr>   Check expression is suggested and add it
 ``            Prints line separator
 help tactic   More information about tactics

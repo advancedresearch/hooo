@@ -38,6 +38,8 @@ pub enum UserInput {
     SuggestionOutOfBounds(usize),
     /// Unrefined removal string (requires context to be refined).
     Rem(String),
+    /// Unrefined suggestion check.
+    SuggCheck(String),
     /// Unrefined unknown string (requires context to be refined).
     Unknown(String),
 }
@@ -85,6 +87,17 @@ impl UserInput {
                     }
                 }
             }
+            SuggCheck(ref rest) => {
+                let expr = match parsing::parse_str(rest, &[]) {
+                    Ok(x) => x,
+                    Err(err) => return ParseError(err),
+                };
+                if let Some(ind) = expr.find(context.new_suggestions.iter().map(|(a, _)| a)) {
+                    PickSuggestion(ind)
+                } else {
+                    CouldNotFindExpr(expr)
+                }
+            }
             Unknown(ref x) => {
                 use std::str::FromStr;
 
@@ -129,6 +142,10 @@ impl UserInput {
             "use imply" => Use(Tactic::Imply),
             "use modus" => Use(Tactic::Modus),
             "use qubit" => Use(Tactic::Qubit),
+            x if x.starts_with("sugg ") => {
+                let rest = x[5..].trim();
+                if rest == "" {Sugg} else {SuggCheck(rest.into())}
+            }
             x if x.starts_with("rem ") => {
                 let rest = x[4..].trim();
                 Rem(rest.into())
