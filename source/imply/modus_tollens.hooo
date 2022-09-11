@@ -1,0 +1,6 @@
+use imply;
+use modus;
+(a -> b);
+sugg ((A → B) → ((B → ⊥) → (A → ⊥)));
+sugg ((a → b) → ((b → ⊥) → (a → ⊥)));
+sugg (!b -> !a);

@@ -171,6 +171,7 @@ impl Tactic {
                 }
             }
             Imply => {
+                // Suggest simple inference first.
                 for f in facts {
                     if let Expr::Bin(abc) = f {
                         match abc.0 {
@@ -185,6 +186,26 @@ impl Tactic {
                                 for g in facts {
                                     if g == &abc.2 {
                                         add(abc.1.clone(), format!("{}", Imply));
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                // Suggest more advanced inference.
+                for f in facts {
+                    if let Expr::Bin(abc) = f {
+                        match abc.0 {
+                            Expr::Imply => {
+                                if f.has_bind_symbol() {
+                                    for g in facts {
+                                        let mut hc = crate::Context::new();
+                                        if hc.bind(&abc.1, g).is_ok() {
+                                            if let Ok(expr) = hc.synth(f) {
+                                                add(expr, format!("{}", Imply));
+                                            }
+                                        }
                                     }
                                 }
                             }
