@@ -332,6 +332,13 @@ impl Tactic {
                                 add(para_def(), format!("{}", Tauto));
                             }
                         }
+                        if let Some((f, _)) = f.app() {
+                            match f {
+                                Expr::Tauto => add(tauto_def(), format!("{}", Tauto)),
+                                Expr::Para => add(para_def(), format!("{}", Para)),
+                                _ => {}
+                            }
+                        }
                     }
                 }
             }
