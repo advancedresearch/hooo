@@ -1,0 +1,6 @@
+use tauto;
+use eq;
+(False ^ a);
+sugg ((para ↞ A) = (⊥ ^ A));
+sugg ((⊥ ^ A) = (para ↞ A));
+sugg (para ↞ a);

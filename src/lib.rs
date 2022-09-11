@@ -103,6 +103,8 @@ pub enum Expr {
     Qual,
     /// Tautology `a ^ True`.
     Tauto,
+    /// Paradox `False ^ a`.
+    Para,
     /// First and component.
     Fst,
     /// Second and component.
@@ -159,6 +161,7 @@ impl fmt::Display for Expr {
             Qubit => write!(w, "~")?,
             Qual => write!(w, "~~")?,
             Tauto => write!(w, "tauto")?,
+            Para => write!(w, "para")?,
             Fst => write!(w, "fst")?,
             Snd => write!(w, "snd")?,
             Left => write!(w, "left")?,
@@ -362,7 +365,7 @@ impl Expr {
             Fst | Snd | Left | Right |
             SwapOr | SubTyFst | SubTySnd |
             Hooo | HoooDual | HoooWave |
-            SwapWave | PowMul | Tauto => false,
+            SwapWave | PowMul | Tauto | Para => false,
             Var(_) | Bin(_) | Un(_) => false,
             Ty |
             Imply |
@@ -411,7 +414,8 @@ impl Expr {
             Di |
             Qubit |
             Qual |
-            Tauto => true,
+            Tauto |
+            Para => true,
         }
     }
 
@@ -513,6 +517,11 @@ pub fn tauto(a: Expr) -> Expr {
     app(Tauto, a)
 }
 
+/// `(para ↞ A)`.
+pub fn para(a: Expr) -> Expr {
+    app(Para, a)
+}
+
 /// `a ⋀ b`.
 pub fn and(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((And, a, b)))
@@ -563,6 +572,11 @@ pub fn qual_def() -> Expr {
 /// `((tauto ↞ A) = (A ^ ⊤))`.
 pub fn tauto_def() -> Expr {
     eq(tauto(A), pow(A, Tr))
+}
+
+/// `((para ↞ A) = (⊥ ^ A))`.
+pub fn para_def() -> Expr {
+    eq(para(A), pow(Fa, A))
 }
 
 /// `X^X = ⊤`.
