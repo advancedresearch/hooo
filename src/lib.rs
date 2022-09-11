@@ -494,6 +494,11 @@ pub fn qu(a: Expr) -> Expr {
     Un(Box::new((Qubit, a)))
 }
 
+/// `a ~~ b`.
+pub fn qual(a: Expr, b: Expr) -> Expr {
+    Bin(Box::new((Qual, a, b)))
+}
+
 /// `a ⋀ b`.
 pub fn and(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((And, a, b)))
@@ -529,6 +534,11 @@ pub fn wave(a: Expr, b: Expr) -> Expr {
 /// `(¬~A = ~¬A)`.
 pub fn sesh_qubit_eq() -> Expr {
     eq(not(qu(A)), qu(not(A)))
+}
+
+/// `(A ~~ A) = ~A`.
+pub fn qual_eq_qubit() -> Expr {
+    eq(qual(A, A), qu(A))
 }
 
 /// `X^X = ⊤`.

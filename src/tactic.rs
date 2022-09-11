@@ -283,6 +283,12 @@ impl Tactic {
                             }
                         }
                     }
+
+                    for f in facts {
+                        if f.qu().is_some() {
+                            add(qual_eq_qubit(), format!("{}", Qubit));
+                        }
+                    }
                 }
                 Sesh => {
                     for f in facts {
