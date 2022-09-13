@@ -181,6 +181,18 @@ impl Tactic {
                                 }
                             }
                         }
+                        if let Some((a, b)) = f.imply() {
+                            if let Some((a1, a2)) = a.and() {
+                                let found_a1 = a1.find(facts.iter()).is_some();
+                                let found_a2 = a2.find(facts.iter()).is_some();
+                                match (found_a1, found_a2) {
+                                    (true, true) => add(and(a1, a2), format!("{}", And)),
+                                    (false, true) => add(eq(a1, b), format!("{}", And)),
+                                    (true, false) => add(eq(a2, b), format!("{}", And)),
+                                    (false, false) => {}
+                                }
+                            }
+                        }
                         if let Some((f, a_ty, b_ty)) = f.and_ty() {
                             let expr = ty(fst(a_ty.clone(), b_ty.clone(), f.clone()), a_ty.clone());
                             add(expr, format!("{}", And));
@@ -283,6 +295,19 @@ impl Tactic {
                                     }
                                 }
                                 _ => {}
+                            }
+                        }
+                    }
+
+                    'outer: for f in facts {
+                        if let Some((_, b)) = f.imply() {
+                            for g in facts {
+                                if let Some((b2, _)) = g.imply() {
+                                    if b == b2 {
+                                        add(imply_transitivity(), format!("{}", Imply));
+                                        break 'outer;
+                                    }
+                                }
                             }
                         }
                     }
@@ -408,11 +433,16 @@ impl Tactic {
                     }
 
                     for f in facts {
-                        if let Some((a, _)) = f.eq() {
-                            if f.has_bind_symbol() {
-                                if let Some((a1, a2)) = a.and() {
-                                    search(f, a1, a2, facts, &mut add);
+                        if let Bin(abc) = f {
+                            match abc.0 {
+                                Expr::Imply | Expr::Eq => {
+                                    if f.has_bind_symbol() {
+                                        if let Some((a1, a2)) = abc.1.and() {
+                                            search(f, a1, a2, facts, &mut add);
+                                        }
+                                    }
                                 }
+                                _ => {}
                             }
                         }
                     }

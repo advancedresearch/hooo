@@ -808,6 +808,11 @@ pub fn imply_symmetry() -> Expr {
     eq(imply(A, B), rimply(B, A))
 }
 
+/// `(((A → B) ⋀ (B → X)) → (A → X))`.
+pub fn imply_transitivity() -> Expr {
+    imply(and(imply(A, B), imply(B, X)), imply(A, X))
+}
+
 /// `(⊤ ⋀ X) = X`.
 pub fn and_left_tr() -> Expr {
     eq(and(Tr, X), X)

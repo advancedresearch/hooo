@@ -1,0 +1,8 @@
+use imply;
+use and;
+(a -> b);
+(b -> c);
+sugg (((A → B) ⋀ (B → X)) → (A → X));
+sugg (((a → b) ⋀ (b → c)) → (a → c));
+sugg ((a → b) ⋀ (b → c));
+sugg (a -> c);
