@@ -237,6 +237,14 @@ impl Expr {
         None
     }
 
+    /// Get `A ~~ B` info.
+    pub fn qual(&self) -> Option<(Expr, Expr)> {
+        if let Bin(abc) = self {
+            if abc.0 == Qual {return Some((abc.1.clone(), abc.2.clone()))}
+        }
+        None
+    }
+
     /// Get `A → ⊥` info.
     pub fn not(&self) -> Option<Expr> {
         if let Some((a, Fa)) = self.imply() {Some(a)} else {None}
