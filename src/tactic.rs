@@ -33,6 +33,8 @@ pub enum Tactic {
     Sesh,
     /// The tauto tactic.
     Tauto,
+    /// The qual tactic.
+    Qual,
 }
 
 /// The rule of some tactic that generated a suggestion.
@@ -150,6 +152,10 @@ pub enum Rule {
     TautoParadoxDefinition,
     /// Tauto uniform definition.
     TautoUniformDefinition,
+    /// Qual left.
+    QualLeft,
+    /// Qual right.
+    QualRight,
 }
 
 impl Rule {
@@ -215,6 +221,8 @@ impl Rule {
             TautoTautologyDefinition |
             TautoParadoxDefinition |
             TautoUniformDefinition => Tauto,
+            QualLeft |
+            QualRight => Qual,
         }
     }
 }
@@ -286,6 +294,7 @@ impl Tactic {
             "qubit" => Some(Qubit),
             "sesh" => Some(Sesh),
             "tauto" => Some(Tauto),
+            "qual" => Some(Qual),
             _ => None,
         }
     }
@@ -605,6 +614,14 @@ impl Tactic {
                         }
                     }
                 }
+                Qual => {
+                    for f in facts {
+                        if let Some((a, b)) = f.qual() {
+                            add(qual(a.clone(), a), QualLeft);
+                            add(qual(b.clone(), b), QualRight);
+                        }
+                    }
+                }
             }
         }
 
@@ -715,6 +732,7 @@ impl Tactic {
                 Qubit => {}
                 Sesh => {}
                 Tauto => {}
+                Qual => {}
             }
         }
 
@@ -733,6 +751,7 @@ impl Tactic {
                 Qubit => {}
                 Sesh => {}
                 Tauto => {}
+                Qual => {}
                 Eq => {
                     // Suggest rewriting rules in branches.
                     for f in facts {
@@ -825,6 +844,7 @@ impl fmt::Display for Tactic {
             Qubit => write!(w, "qubit")?,
             Sesh => write!(w, "sesh")?,
             Tauto => write!(w, "tauto")?,
+            Qual => write!(w, "qual")?,
         }
         Ok(())
     }
