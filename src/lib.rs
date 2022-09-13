@@ -607,6 +607,11 @@ pub fn qual_symmetry() -> Expr {
     eq(qual(A, B), qual(B, A))
 }
 
+/// `(((A ~~ B) ⋀ (B ~~ X)) = (A ~~ X))`.
+pub fn qual_transitivity() -> Expr {
+    eq(and(qual(A, B), qual(B, X)), qual(A, X))
+}
+
 /// `((tauto ↞ A) = (A ^ ⊤))`.
 pub fn tauto_def() -> Expr {
     eq(tauto(A), pow(A, Tr))
