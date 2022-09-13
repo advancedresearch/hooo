@@ -53,6 +53,7 @@ fn test_sources() {
     assert_eq!(0, check_file("source/qual/left.hooo").unwrap());
     assert_eq!(1, check_file("source/qual/right.hooo").unwrap());
     assert_eq!(9, check_file("source/qual/transitivity.hooo").unwrap());
+    assert_eq!(5, check_file("source/qual/symmetry-without-sym.hooo").unwrap());
 }
 
 #[test]
