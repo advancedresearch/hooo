@@ -58,6 +58,7 @@ fn test_sources() {
     assert_eq!(9, check_file("source/qual/transitivity.hooo").unwrap());
     assert_eq!(5, check_file("source/qual/symmetry-without-sym.hooo").unwrap());
     assert_eq!(26, check_file("source/qual/transitivity-without-qual.hooo").unwrap());
+    assert_eq!(2, check_file("source/qual/lift.hooo").unwrap());
 }
 
 #[test]
