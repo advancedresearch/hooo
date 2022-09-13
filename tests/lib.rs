@@ -22,6 +22,7 @@ fn test_sources() {
     assert_eq!(0, check_file("source/and/and_fst_fa.hooo").unwrap());
     assert_eq!(0, check_file("source/and/and_snd_fa.hooo").unwrap());
     assert_eq!(0, check_file("source/eq/transport.hooo").unwrap());
+    assert_eq!(2, check_file("source/eq/transitivity.hooo").unwrap());
     assert_eq!(0, check_file("source/sym/flip.hooo").unwrap());
     assert_eq!(0, check_file("source/imply/modus_ponens.hooo").unwrap());
     assert_eq!(2, check_file("source/imply/modus_tollens.hooo").unwrap());
