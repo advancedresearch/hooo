@@ -267,6 +267,29 @@ impl Suggestion {
 pub type Info = (Tactic, Rule);
 
 impl Tactic {
+    /// Converts from string.
+    pub fn from_str(s: &str) -> Option<Self> {
+        use Tactic::*;
+
+        match s {
+            "silence" => Some(Silence),
+            "app" => Some(App),
+            "debug" => Some(Debug),
+            "eq" => Some(Eq),
+            "and" => Some(And),
+            "or" => Some(Or),
+            "hooo" => Some(Hooo),
+            "sym" => Some(Sym),
+            "imply" => Some(Imply),
+            "zero" => Some(Zero),
+            "modus" => Some(Modus),
+            "qubit" => Some(Qubit),
+            "sesh" => Some(Sesh),
+            "tauto" => Some(Tauto),
+            _ => None,
+        }
+    }
+
     /// Finds tactic in iterator.
     pub fn find<'a>(&self, tactics: impl Iterator<Item = &'a Tactic>) -> Option<usize> {
         let mut found: Option<usize> = None;
