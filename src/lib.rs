@@ -622,6 +622,11 @@ pub fn qual_transitivity() -> Expr {
     eq(and(qual(A, B), qual(B, X)), qual(A, X))
 }
 
+/// `(((A = B) ⋀ (theory ↞ (A = B))) → (A ~~ B))`.
+pub fn qual_lift() -> Expr {
+    imply(and(eq(A, B), theory(eq(A, B))), qual(A, B))
+}
+
 /// `((tauto ↞ A) = (A ^ ⊤))`.
 pub fn tauto_def() -> Expr {
     eq(tauto(A), pow(A, Tr))

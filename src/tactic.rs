@@ -166,6 +166,8 @@ pub enum Rule {
     QualRight,
     /// Qual transitivity.
     QualTransitivity,
+    /// Qual lift.
+    QualLift,
 }
 
 impl Rule {
@@ -237,7 +239,8 @@ impl Rule {
             TautoTheoryDefinition => Tauto,
             QualLeft |
             QualRight |
-            QualTransitivity => Qual,
+            QualTransitivity |
+            QualLift => Qual,
         }
     }
 }
@@ -668,6 +671,20 @@ impl Tactic {
                                 if let Some((b2, _)) = g.qual() {
                                     if b == b2 {
                                         add(qual_transitivity(), QualTransitivity);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    for f in facts {
+                        if let Some((f, x)) = f.app() {
+                            if f == Theory {
+                                if let Bin(abc) = &x {
+                                    if abc.0 == Expr::Eq {
+                                        if x.find(facts.iter()).is_some() {
+                                            add(qual_lift(), QualLift);
+                                        }
                                     }
                                 }
                             }
