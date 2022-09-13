@@ -44,6 +44,8 @@ fn test_sources() {
     assert_eq!(5, check_file("source/tauto/uniform_def.hooo").unwrap());
     assert_eq!(0, check_file("source/app/app_ty.hooo").unwrap());
     assert_eq!(0, check_file("source/app/app_imply.hooo").unwrap());
+    assert_eq!(0, check_file("source/qual/left.hooo").unwrap());
+    assert_eq!(1, check_file("source/qual/right.hooo").unwrap());
 }
 
 #[test]
