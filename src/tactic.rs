@@ -558,6 +558,11 @@ impl Tactic {
                                 add(qual_def(), QubitQualityDefinition);
                             }
                         }
+                        if let Some((a, b)) = f.qual() {
+                            if a != b {
+                                add(qual_def(), QubitQualityDefinition);
+                            }
+                        }
                     }
 
                     for f in facts {
