@@ -1,0 +1,4 @@
+use app;
+(f : (a -> b));
+(x : a);
+sugg (f(x) : b);
