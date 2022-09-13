@@ -102,6 +102,10 @@ pub enum Rule {
     OrRewriteEquality1,
     /// Or rewrite equality 2.
     OrRewriteEquality2,
+    /// Or imply left.
+    OrImplyLeft,
+    /// Or imply right.
+    OrImplyRight,
     /// Hooo reflexivity.
     HoooReflexivity,
     /// Hooo overloading.
@@ -201,7 +205,9 @@ impl Rule {
             AndRecursiveRewrite => And,
             OrFormation |
             OrRewriteEquality1 |
-            OrRewriteEquality2 => Or,
+            OrRewriteEquality2 |
+            OrImplyLeft |
+            OrImplyRight => Or,
             HoooReflexivity |
             HoooOverloading |
             HoooDual |
@@ -462,6 +468,15 @@ impl Tactic {
                             }
                         }
                     }
+
+                    for f in facts {
+                        if let Some((a, b)) = f.imply() {
+                            if let Some((a1, a2)) = a.or() {
+                                add(imply(a1, b.clone()), OrImplyLeft);
+                                add(imply(a2, b), OrImplyRight);
+                            }
+                        }
+                    }
                 }
                 Hooo => {
                     for f in facts {
@@ -604,15 +619,9 @@ impl Tactic {
                     }
                 }
                 Tauto => {
-                    for f in facts {
-                        if let Some((a, b)) = f.pow() {
-                            if b == Expr::Tr {
-                                add(tauto_def(), TautoTautologyDefinition);
-                            }
-                            if a == Expr::Fa {
-                                add(para_def(), TautoParadoxDefinition);
-                            }
-                        }
+                    fn axioms<F>(f: &Expr, add: &mut F)
+                        where F: FnMut(Expr, Rule)
+                    {
                         if let Some((f, _)) = f.app() {
                             match f {
                                 Expr::Tauto => {
@@ -627,6 +636,21 @@ impl Tactic {
                                 Expr::Theory => add(theory_def(), TautoTheoryDefinition),
                                 _ => {}
                             }
+                        }
+                    }
+
+                    for f in facts {
+                        if let Some((a, b)) = f.pow() {
+                            if b == Expr::Tr {
+                                add(tauto_def(), TautoTautologyDefinition);
+                            }
+                            if a == Expr::Fa {
+                                add(para_def(), TautoParadoxDefinition);
+                            }
+                        }
+                        axioms(f, &mut add);
+                        if let Some((ref a, _)) = f.imply() {
+                            axioms(a, &mut add);
                         }
                     }
                 }
