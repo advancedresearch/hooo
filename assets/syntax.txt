@@ -1,4 +1,4 @@
-_seps: "()_-<>:,|&!⋀⋁=→←↞^□◇~"
+_seps: "()-<>:,|&!⋀⋁=→←↞^□◇~"
 
 7 un = [un_op expr:"arg"]
 6 un_op = "~":"~"
@@ -40,22 +40,8 @@ _seps: "()_-<>:,|&!⋀⋁=→←↞^□◇~"
   bin:"bin"
   neg:"neg"
   ["'" op "'"]
-  "fst":"fst"
-  "snd":"snd"
-  "left":"left"
-  "right":"right"
-  "swap_or":"swap_or"
-  "tauto":"tauto"
-  "para":"para"
-  "uniform":"uniform"
-  "A":"A"
-  "B":"B"
-  "X":"X"
-  "Y":"Y"
   "⊤":"⊤"
-  "True":"⊤"
   "⊥":"⊥"
-  "False":"⊥"
   .._seps!:"var"
 }
 0 doc = [.w? {[!"(" bin_inner_expr:"expr"] expr:"expr"} .w?]

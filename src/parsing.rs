@@ -62,42 +62,6 @@ fn parse_expr(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut V
         } else if let Ok((range, _)) = convert.meta_bool("~◇~") {
             convert.update(range);
             expr = Some(Wave);
-        } else if let Ok((range, _)) = convert.meta_bool("fst") {
-            convert.update(range);
-            expr = Some(Fst);
-        } else if let Ok((range, _)) = convert.meta_bool("snd") {
-            convert.update(range);
-            expr = Some(Snd);
-        } else if let Ok((range, _)) = convert.meta_bool("left") {
-            convert.update(range);
-            expr = Some(Left);
-        } else if let Ok((range, _)) = convert.meta_bool("right") {
-            convert.update(range);
-            expr = Some(Right);
-        } else if let Ok((range, _)) = convert.meta_bool("swap_or") {
-            convert.update(range);
-            expr = Some(SwapOr);
-        } else if let Ok((range, _)) = convert.meta_bool("tauto") {
-            convert.update(range);
-            expr = Some(Tauto);
-        } else if let Ok((range, _)) = convert.meta_bool("para") {
-            convert.update(range);
-            expr = Some(Para);
-        } else if let Ok((range, _)) = convert.meta_bool("uniform") {
-            convert.update(range);
-            expr = Some(Uniform);
-        } else if let Ok((range, _)) = convert.meta_bool("A") {
-            convert.update(range);
-            expr = Some(A);
-        } else if let Ok((range, _)) = convert.meta_bool("B") {
-            convert.update(range);
-            expr = Some(B);
-        } else if let Ok((range, _)) = convert.meta_bool("X") {
-            convert.update(range);
-            expr = Some(X);
-        } else if let Ok((range, _)) = convert.meta_bool("Y") {
-            convert.update(range);
-            expr = Some(Y);
         } else if let Ok((range, _)) = convert.meta_bool("⊤") {
             convert.update(range);
             expr = Some(Tr);
@@ -106,7 +70,24 @@ fn parse_expr(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut V
             expr = Some(Fa);
         } else if let Ok((range, val)) = convert.meta_string("var") {
             convert.update(range);
-            expr = Some(Var(val));
+            expr = Some(match &**val {
+                "A" => A,
+                "B" => B,
+                "X" => X,
+                "Y" => Y,
+                "_wave" => Wave,
+                "left" => Left,
+                "right" => Right,
+                "fst" => Fst,
+                "snd" => Snd,
+                "swap_or" => SwapOr,
+                "tauto" => Tauto,
+                "para" => Para,
+                "uniform" => Uniform,
+                "True" => Tr,
+                "False" => Fa,
+                _ => Var(val),
+            });
         } else {
             let range = convert.ignore();
             convert.update(range);
