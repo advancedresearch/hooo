@@ -154,6 +154,8 @@ pub enum Rule {
     TautoParadoxDefinition,
     /// Tauto uniform definition.
     TautoUniformDefinition,
+    /// Tauto theory definition.
+    TautoTheoryDefinition,
     /// Qual left.
     QualLeft,
     /// Qual right.
@@ -225,7 +227,8 @@ impl Rule {
             SeshQubitEquality => Sesh,
             TautoTautologyDefinition |
             TautoParadoxDefinition |
-            TautoUniformDefinition => Tauto,
+            TautoUniformDefinition |
+            TautoTheoryDefinition => Tauto,
             QualLeft |
             QualRight |
             QualTransitivity => Qual,
@@ -621,6 +624,7 @@ impl Tactic {
                                     add(uniform_def(), TautoUniformDefinition);
                                 }
                                 Expr::Uniform => add(uniform_def(), TautoUniformDefinition),
+                                Expr::Theory => add(theory_def(), TautoTheoryDefinition),
                                 _ => {}
                             }
                         }
