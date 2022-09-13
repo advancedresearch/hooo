@@ -158,6 +158,8 @@ pub enum Rule {
     QualLeft,
     /// Qual right.
     QualRight,
+    /// Qual transitivity.
+    QualTransitivity,
 }
 
 impl Rule {
@@ -225,7 +227,8 @@ impl Rule {
             TautoParadoxDefinition |
             TautoUniformDefinition => Tauto,
             QualLeft |
-            QualRight => Qual,
+            QualRight |
+            QualTransitivity => Qual,
         }
     }
 }
@@ -623,6 +626,18 @@ impl Tactic {
                         if let Some((a, b)) = f.qual() {
                             add(qual(a.clone(), a), QualLeft);
                             add(qual(b.clone(), b), QualRight);
+                        }
+                    }
+
+                    for f in facts {
+                        if let Some((_, b)) = f.qual() {
+                            for g in facts {
+                                if let Some((b2, _)) = g.qual() {
+                                    if b == b2 {
+                                        add(qual_transitivity(), QualTransitivity);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
