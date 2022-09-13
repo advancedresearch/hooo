@@ -107,6 +107,8 @@ pub enum Expr {
     Para,
     /// Uniform `uniform ↞ a`.
     Uniform,
+    /// Theory `theory ↞ a`.
+    Theory,
     /// First and component.
     Fst,
     /// Second and component.
@@ -165,6 +167,7 @@ impl fmt::Display for Expr {
             Tauto => write!(w, "tauto")?,
             Para => write!(w, "para")?,
             Uniform => write!(w, "uniform")?,
+            Theory => write!(w, "theory")?,
             Fst => write!(w, "fst")?,
             Snd => write!(w, "snd")?,
             Left => write!(w, "left")?,
@@ -392,7 +395,8 @@ impl Expr {
             Fst | Snd | Left | Right |
             SwapOr | SubTyFst | SubTySnd |
             Hooo | HoooDual | HoooWave |
-            SwapWave | PowMul | Tauto | Para | Uniform => false,
+            SwapWave | PowMul |
+            Tauto | Para | Uniform | Theory => false,
             Var(_) | Bin(_) | Un(_) => false,
             Ty |
             Imply |
@@ -443,7 +447,8 @@ impl Expr {
             Qual |
             Tauto |
             Para |
-            Uniform => true,
+            Uniform |
+            Theory => true,
         }
     }
 
@@ -555,6 +560,11 @@ pub fn uniform(a: Expr) -> Expr {
     app(Uniform, a)
 }
 
+/// `(theory ↞ a)`.
+pub fn theory(a: Expr) -> Expr {
+    app(Theory, a)
+}
+
 /// `a ⋀ b`.
 pub fn and(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((And, a, b)))
@@ -625,6 +635,11 @@ pub fn para_def() -> Expr {
 /// `((uniform ↞ A) = ((tauto ↞ A) ⋁ (para ↞ a)))`.
 pub fn uniform_def() -> Expr {
     eq(uniform(A), or(tauto(A), para(A)))
+}
+
+/// ``.
+pub fn theory_def() -> Expr {
+    eq(theory(A), not(uniform(A)))
 }
 
 /// `X^X = ⊤`.

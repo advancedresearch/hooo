@@ -1,0 +1,5 @@
+use tauto;
+use eq;
+theory(a);
+sugg ((theory ↞ A) = ((uniform ↞ A) → ⊥));
+sugg ((uniform ↞ a) → ⊥);

@@ -84,6 +84,7 @@ fn parse_expr(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut V
                 "tauto" => Tauto,
                 "para" => Para,
                 "uniform" => Uniform,
+                "theory" => Theory,
                 "True" => Tr,
                 "False" => Fa,
                 _ => Var(val),
