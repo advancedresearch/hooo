@@ -126,6 +126,8 @@ pub enum Rule {
     SymmetryWave,
     /// Symmetry imply.
     SymmetryImply,
+    /// Symmetry quality.
+    SymmetryQuality,
     /// Imply modus ponens.
     ImplyModusPonens,
     /// Imply modus ponens reverse.
@@ -207,7 +209,8 @@ impl Rule {
             SymmetryAnd |
             SymmetryOr |
             SymmetryWave |
-            SymmetryImply => Sym,
+            SymmetryImply |
+            SymmetryQuality => Sym,
             ImplyModusPonens |
             ImplyModusPonensReverse |
             ImplyTransitivity |
@@ -491,6 +494,7 @@ impl Tactic {
                                 Expr::Or => add(or_symmetry(), SymmetryOr),
                                 Expr::Wave => add(wave_symmetry(), SymmetryWave),
                                 Expr::Imply => add(imply_symmetry(), SymmetryImply),
+                                Expr::Qual => add(qual_symmetry(), SymmetryQuality),
                                 _ => {}
                             }
                         }

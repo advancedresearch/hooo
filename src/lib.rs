@@ -602,6 +602,11 @@ pub fn qual_def() -> Expr {
     eq(qual(A, B), and(eq(A, B), and(qu(A), qu(B))))
 }
 
+/// `(A ~~ B) = (B ~~ A)`.
+pub fn qual_symmetry() -> Expr {
+    eq(qual(A, B), qual(B, A))
+}
+
 /// `((tauto ↞ A) = (A ^ ⊤))`.
 pub fn tauto_def() -> Expr {
     eq(tauto(A), pow(A, Tr))
