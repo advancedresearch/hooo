@@ -186,6 +186,7 @@ pub fn in_left<F>(e: &Expr, f: F) -> Result<Expr, ()>
     where F: Fn(&Expr) -> Result<Expr, ()>
 {
     match e {
+        Bin(abc) if abc.0 == Qual => Err(()),
         Bin(abc) => Ok(Bin(Box::new((
             abc.0.clone(),
             f(&abc.1)?,
@@ -214,6 +215,7 @@ pub fn in_right<F>(e: &Expr, f: F) -> Result<Expr, ()>
     where F: Fn(&Expr) -> Result<Expr, ()>
 {
     match e {
+        Bin(abc) if abc.0 == Qual => Err(()),
         Bin(abc) => Ok(Bin(Box::new((
             abc.0.clone(),
             abc.1.clone(),
