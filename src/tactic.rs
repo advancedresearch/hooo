@@ -3,7 +3,7 @@
 use crate::*;
 
 /// Represents tactics.
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum Tactic {
     /// The silence tactic.
     Silence,
@@ -33,6 +33,190 @@ pub enum Tactic {
     Sesh,
     /// The tauto tactic.
     Tauto,
+}
+
+/// The rule of some tactic that generated a suggestion.
+#[derive(Clone, Copy, Debug)]
+pub enum Rule {
+    /// Found a matching expression of type to apply to some function.
+    ApplyType,
+    /// Found a matching expression of imply (modus ponens).
+    ApplyImplication,
+    /// Rewrite equality rule using another expression.
+    EqualityRewrite,
+    /// Swap sides of equality.
+    EqualitySymmetry,
+    /// Equality rewrite left.
+    EqualityRewriteLeft,
+    /// Equality rewrite middle.
+    EqualityRewriteMiddle,
+    /// Equality rewrite right.
+    EqualityRewriteRight,
+    /// Equality rewrite self.
+    EqualityRewriteSelf,
+    /// Equality rewrite self left.
+    EqualityRewriteSelfLeft,
+    /// Equality rewrite self middle.
+    EqualityRewriteSelfMiddle,
+    /// Equality rewrite self right.
+    EqualityRewriteSelfRight,
+    /// Equality rewrite rule.
+    EqualityRewriteRule,
+    /// Equality rewrite rule left.
+    EqualityRewriteRuleLeft,
+    /// Equality rewrite rule middle.
+    EqualityRewriteRuleMiddle,
+    /// Equality rewrite rule right.
+    EqualityRewriteRuleRight,
+    /// And formation.
+    AndFormation,
+    /// And equality reduction 1.
+    AndEqualityReduction1,
+    /// And equality reduction 2.
+    AndEqualityReduction2,
+    /// And implication reduction 1.
+    AndImplicationReduction1,
+    /// And implication reduction 2.
+    AndImplicationReduction2,
+    /// And first type.
+    AndFirstType,
+    /// And second type.
+    AndSecondType,
+    /// And first.
+    AndFirst,
+    /// And second.
+    AndSecond,
+    /// And paradox.
+    AndParadox,
+    /// And equality definition by equality.
+    AndEqualityDefinitionByEquality,
+    /// And equality definition by implication.
+    AndEqualityDefinitionByImplication,
+    /// And recursive rewrite.
+    AndRecursiveRewrite,
+    /// Or formation.
+    OrFormation,
+    /// Or rewrite equality 1.
+    OrRewriteEquality1,
+    /// Or rewrite equality 2.
+    OrRewriteEquality2,
+    /// Hooo reflexivity.
+    HoooReflexivity,
+    /// Hooo overloading.
+    HoooOverloading,
+    /// Hooo dual.
+    HoooDual,
+    /// Hooo wave equality.
+    HoooWaveEquality,
+    /// Hooo wave type.
+    HoooWaveType,
+    /// Hooo wave and or.
+    HoooWaveAndOr,
+    /// Hooo wave.
+    HoooWave,
+    /// Symmetry equality.
+    SymmetryEquality,
+    /// Symmetry and.
+    SymmetryAnd,
+    /// Symmetry or.
+    SymmetryOr,
+    /// Symmetry wave.
+    SymmetryWave,
+    /// Symmetry imply.
+    SymmetryImply,
+    /// Imply modus ponens.
+    ImplyModusPonens,
+    /// Imply modus ponens reverse.
+    ImplyModusPonensReverse,
+    /// Imply transitivity.
+    ImplyTransitivity,
+    /// Imply rewrite.
+    ImplyRewrite,
+    /// Modus ponens.
+    ModusPonens,
+    /// Modus tollens.
+    ModusTollens,
+    /// Qubit quality definition.
+    QubitQualityDefinition,
+    /// Qubit substitution.
+    QubitSubstitution,
+    /// Qubit quality equals qubit.
+    QubitQualityEqualsQubit,
+    /// Sesh qubit quality.
+    SeshQubitEquality,
+    /// Tauto tautology definition.
+    TautoTautologyDefinition,
+    /// Tauto paradox definition.
+    TautoParadoxDefinition,
+    /// Tauto uniform definition.
+    TautoUniformDefinition,
+}
+
+impl Rule {
+    /// Gets the tactic of the rule.
+    pub fn get_tactic(&self) -> Tactic {
+        use Rule::*;
+        use Tactic::*;
+
+        match self {
+            ApplyType |
+            ApplyImplication => App,
+            EqualityRewrite |
+            EqualitySymmetry |
+            EqualityRewriteLeft |
+            EqualityRewriteMiddle |
+            EqualityRewriteRight |
+            EqualityRewriteSelf |
+            EqualityRewriteSelfLeft |
+            EqualityRewriteSelfMiddle |
+            EqualityRewriteSelfRight |
+            EqualityRewriteRule |
+            EqualityRewriteRuleLeft |
+            EqualityRewriteRuleMiddle |
+            EqualityRewriteRuleRight => Eq,
+            AndFormation |
+            AndEqualityReduction1 |
+            AndEqualityReduction2 |
+            AndImplicationReduction1 |
+            AndImplicationReduction2 |
+            AndFirstType |
+            AndSecondType |
+            AndFirst |
+            AndSecond |
+            AndParadox |
+            AndEqualityDefinitionByEquality |
+            AndEqualityDefinitionByImplication |
+            AndRecursiveRewrite => And,
+            OrFormation |
+            OrRewriteEquality1 |
+            OrRewriteEquality2 => Or,
+            HoooReflexivity |
+            HoooOverloading |
+            HoooDual |
+            HoooWaveEquality |
+            HoooWaveType |
+            HoooWaveAndOr |
+            HoooWave => Hooo,
+            SymmetryEquality |
+            SymmetryAnd |
+            SymmetryOr |
+            SymmetryWave |
+            SymmetryImply => Sym,
+            ImplyModusPonens |
+            ImplyModusPonensReverse |
+            ImplyTransitivity |
+            ImplyRewrite => Imply,
+            ModusPonens |
+            ModusTollens => Modus,
+            QubitQualityDefinition |
+            QubitSubstitution |
+            QubitQualityEqualsQubit => Qubit,
+            SeshQubitEquality => Sesh,
+            TautoTautologyDefinition |
+            TautoParadoxDefinition |
+            TautoUniformDefinition => Tauto,
+        }
+    }
 }
 
 /// Represents a suggestion level.
@@ -79,6 +263,9 @@ impl Suggestion {
     }
 }
 
+/// The type of suggestion info.
+pub type Info = (Tactic, Rule);
+
 impl Tactic {
     /// Finds tactic in iterator.
     pub fn find<'a>(&self, tactics: impl Iterator<Item = &'a Tactic>) -> Option<usize> {
@@ -97,11 +284,12 @@ impl Tactic {
         &self,
         sugg: Suggestion,
         facts: &[Expr],
-        new_suggestions: &mut Vec<(Expr, String)>,
+        new_suggestions: &mut Vec<(Expr, Info)>,
     ) {
         use Tactic::*;
+        use Rule::*;
 
-        let mut add = |expr: Expr, comment: String| {
+        let mut add = |expr: Expr, rule: Rule| {
             if expr.find(facts.iter()).is_none() &&
                expr.find(new_suggestions.iter().map(|&(ref e, _)| e)).is_none() {
                    // Detect refl.
@@ -113,7 +301,7 @@ impl Tactic {
                        if (op == Expr::Eq) && (a == b) {return}
                    }
                    if expr == Expr::Tr {return}
-                   new_suggestions.push((expr, comment))
+                   new_suggestions.push((expr, (self.clone(), rule)))
                }
         };
 
@@ -130,7 +318,7 @@ impl Tactic {
                                 if let Some((x, c_ty)) = g.ty() {
                                     if a_ty == c_ty {
                                         let expr = ty(app(f.clone(), x), b_ty.clone());
-                                        add(expr, format!("{}", App));
+                                        add(expr, ApplyType);
                                     }
                                 }
                             }
@@ -138,7 +326,7 @@ impl Tactic {
                         if let Some((a, b)) = f.imply() {
                             for g in facts {
                                 if g == &a {
-                                    add(b.clone(), format!("{}", App));
+                                    add(b.clone(), ApplyImplication);
                                     break;
                                 }
                             }
@@ -154,7 +342,7 @@ impl Tactic {
                                     if g.has_bind_symbol() {continue}
 
                                     if let Ok(res) = transform::rewrite(f, g) {
-                                        add(res, format!("{}", Eq));
+                                        add(res, EqualityRewrite);
                                     }
                                 }
                             }
@@ -163,7 +351,7 @@ impl Tactic {
 
                     for f in facts {
                         if let Some((a, b)) = f.eq() {
-                            add(eq(b, a), format!("{}", Eq));
+                            add(eq(b, a), EqualitySymmetry);
                         }
                     }
                 }
@@ -174,9 +362,9 @@ impl Tactic {
                                 let found_a1 = a1.find(facts.iter()).is_some();
                                 let found_a2 = a2.find(facts.iter()).is_some();
                                 match (found_a1, found_a2) {
-                                    (true, true) => add(and(a1, a2), format!("{}", And)),
-                                    (false, true) => add(eq(a1, b), format!("{}", And)),
-                                    (true, false) => add(eq(a2, b), format!("{}", And)),
+                                    (true, true) => add(and(a1, a2), AndFormation),
+                                    (false, true) => add(eq(a1, b), AndEqualityReduction1),
+                                    (true, false) => add(eq(a2, b), AndEqualityReduction2),
                                     (false, false) => {}
                                 }
                             }
@@ -186,34 +374,34 @@ impl Tactic {
                                 let found_a1 = a1.find(facts.iter()).is_some();
                                 let found_a2 = a2.find(facts.iter()).is_some();
                                 match (found_a1, found_a2) {
-                                    (true, true) => add(and(a1, a2), format!("{}", And)),
-                                    (false, true) => add(eq(a1, b), format!("{}", And)),
-                                    (true, false) => add(eq(a2, b), format!("{}", And)),
+                                    (true, true) => add(and(a1, a2), AndFormation),
+                                    (false, true) => add(eq(a1, b), AndImplicationReduction1),
+                                    (true, false) => add(eq(a2, b), AndImplicationReduction2),
                                     (false, false) => {}
                                 }
                             }
                         }
                         if let Some((f, a_ty, b_ty)) = f.and_ty() {
                             let expr = ty(fst(a_ty.clone(), b_ty.clone(), f.clone()), a_ty.clone());
-                            add(expr, format!("{}", And));
+                            add(expr, AndFirstType);
                             let expr = ty(snd(a_ty.clone(), b_ty.clone(), f), b_ty);
-                            add(expr, format!("{}", And));
+                            add(expr, AndSecondType);
                         }
                         if let Some((a, b)) = f.and() {
-                            add(a.clone(), format!("{}", And));
-                            add(b.clone(), format!("{}", And));
+                            add(a.clone(), AndFirst);
+                            add(b.clone(), AndSecond);
                             if &b == &imply(a.clone(), Expr::Fa) {
-                                add(paradox_eq(), format!("{}", And));
+                                add(paradox_eq(), AndParadox);
                             }
                         }
                         if let Some(_) = f.eq() {
-                            add(eq_def(), format!("{}", And));
+                            add(eq_def(), AndEqualityDefinitionByEquality);
                         }
                         if let Some((a, b)) = f.imply() {
                             for g in facts {
                                 if let Some((b2, a2)) = g.imply() {
                                     if (a == a2) && (b == b2) {
-                                        add(eq_def(), format!("{}", And));
+                                        add(eq_def(), AndEqualityDefinitionByImplication);
                                     }
                                 }
                             }
@@ -226,7 +414,7 @@ impl Tactic {
                             if let Some((a1, a2)) = a.or() {
                                 for g in facts {
                                     if (g == &a1) || (g == &a2) {
-                                        add(or(a1, a2), format!("{}", Or));
+                                        add(or(a1, a2), OrFormation);
                                         break;
                                     }
                                 }
@@ -238,27 +426,27 @@ impl Tactic {
                     for f in facts {
                         if let Some((base, exp)) = f.pow() {
                             if base == exp {
-                                add(refl(), format!("{}", Hooo));
+                                add(refl(), HoooReflexivity);
                             }
                             if let Expr::Bin(_) = base {
-                                add(hooo(), format!("{}", Hooo));
+                                add(hooo(), HoooOverloading);
                             }
                             if let Expr::Bin(_) = exp {
-                                add(hooo_dual(), format!("{}", Hooo));
+                                add(hooo_dual(), HoooDual);
                             }
                         }
                         if let Expr::Bin(abc) = f {
                             if let Some(op) = abc.0.dual_op() {
                                 match op {
-                                    Expr::Eq => add(wave_eq(), format!("{}", Hooo)),
-                                    Expr::Ty => add(wave_ty(), format!("{}", Hooo)),
-                                    Expr::And => add(wave_and_or(), format!("{}", Hooo)),
+                                    Expr::Eq => add(wave_eq(), HoooWaveEquality),
+                                    Expr::Ty => add(wave_ty(), HoooWaveType),
+                                    Expr::And => add(wave_and_or(), HoooWaveAndOr),
                                     _ => {}
                                 }
                             }
                         }
                         if let Some((_, _)) = f.wave() {
-                            add(hooo_wave(), format!("{}", Hooo));
+                            add(hooo_wave(), HoooWave);
                         }
                     }
                 }
@@ -266,11 +454,11 @@ impl Tactic {
                     for f in facts {
                         if let Expr::Bin(abc) = f {
                             match abc.0 {
-                                Expr::Eq => add(eq_symmetry(), format!("{}", Sym)),
-                                Expr::And => add(and_symmetry(), format!("{}", Sym)),
-                                Expr::Or => add(or_symmetry(), format!("{}", Sym)),
-                                Expr::Wave => add(wave_symmetry(), format!("{}", Sym)),
-                                Expr::Imply => add(imply_symmetry(), format!("{}", Sym)),
+                                Expr::Eq => add(eq_symmetry(), SymmetryEquality),
+                                Expr::And => add(and_symmetry(), SymmetryAnd),
+                                Expr::Or => add(or_symmetry(), SymmetryOr),
+                                Expr::Wave => add(wave_symmetry(), SymmetryWave),
+                                Expr::Imply => add(imply_symmetry(), SymmetryImply),
                                 _ => {}
                             }
                         }
@@ -283,14 +471,14 @@ impl Tactic {
                                 Expr::Imply => {
                                     for g in facts {
                                         if g == &abc.1 {
-                                            add(abc.2.clone(), format!("{}", Imply));
+                                            add(abc.2.clone(), ImplyModusPonens);
                                         }
                                     }
                                 }
                                 Expr::Rimply => {
                                     for g in facts {
                                         if g == &abc.2 {
-                                            add(abc.1.clone(), format!("{}", Imply));
+                                            add(abc.1.clone(), ImplyModusPonensReverse);
                                         }
                                     }
                                 }
@@ -304,7 +492,7 @@ impl Tactic {
                             for g in facts {
                                 if let Some((b2, _)) = g.imply() {
                                     if b == b2 {
-                                        add(imply_transitivity(), format!("{}", Imply));
+                                        add(imply_transitivity(), ImplyTransitivity);
                                         break 'outer;
                                     }
                                 }
@@ -313,8 +501,8 @@ impl Tactic {
                     }
                 }
                 Modus => {
-                    add(modus_ponens(), format!("{}", Modus));
-                    add(modus_tollens(), format!("{}", Modus));
+                    add(modus_ponens(), ModusPonens);
+                    add(modus_tollens(), ModusTollens);
                 }
                 Qubit => {
                     for f in facts {
@@ -328,7 +516,7 @@ impl Tactic {
                                 }
                             }
                             if a_found && b_found {
-                                add(qual_def(), format!("{}", Qubit));
+                                add(qual_def(), QubitQualityDefinition);
                             }
                         }
                     }
@@ -339,7 +527,7 @@ impl Tactic {
                                 for g in facts {
                                     if let Some((a, b)) = g.qubit_eq() {
                                         if a == ab.1 {
-                                            add(qu(b), format!("{}", Qubit));
+                                            add(qu(b), QubitSubstitution);
                                         }
                                     }
                                 }
@@ -349,17 +537,17 @@ impl Tactic {
 
                     for f in facts {
                         if f.qu().is_some() {
-                            add(qual_eq_qubit(), format!("{}", Qubit));
+                            add(qual_eq_qubit(), QubitQualityEqualsQubit);
                         }
                     }
                 }
                 Sesh => {
                     for f in facts {
                         if f.qu_not().is_some() {
-                            add(sesh_qubit_eq(), format!("{}", Sesh));
+                            add(sesh_qubit_eq(), SeshQubitEquality);
                         }
                         if f.not_qu().is_some() {
-                            add(sesh_qubit_eq(), format!("{}", Sesh));
+                            add(sesh_qubit_eq(), SeshQubitEquality);
                         }
                     }
                 }
@@ -367,23 +555,23 @@ impl Tactic {
                     for f in facts {
                         if let Some((a, b)) = f.pow() {
                             if b == Expr::Tr {
-                                add(tauto_def(), format!("{}", Tauto));
+                                add(tauto_def(), TautoTautologyDefinition);
                             }
                             if a == Expr::Fa {
-                                add(para_def(), format!("{}", Tauto));
+                                add(para_def(), TautoParadoxDefinition);
                             }
                         }
                         if let Some((f, _)) = f.app() {
                             match f {
                                 Expr::Tauto => {
-                                    add(tauto_def(), format!("{}", Tauto));
-                                    add(uniform_def(), format!("{}", Tauto));
+                                    add(tauto_def(), TautoTautologyDefinition);
+                                    add(uniform_def(), TautoUniformDefinition);
                                 }
                                 Expr::Para => {
-                                    add(para_def(), format!("{}", Para));
-                                    add(uniform_def(), format!("{}", Tauto));
+                                    add(para_def(), TautoParadoxDefinition);
+                                    add(uniform_def(), TautoUniformDefinition);
                                 }
-                                Expr::Uniform => add(uniform_def(), format!("{}", Uniform)),
+                                Expr::Uniform => add(uniform_def(), TautoUniformDefinition),
                                 _ => {}
                             }
                         }
@@ -400,7 +588,7 @@ impl Tactic {
                 App => {}
                 And => {
                     fn search<F>(f: &Expr, a1: Expr, a2: Expr, facts: &[Expr], add: &mut F)
-                        where F: FnMut(Expr, String)
+                        where F: FnMut(Expr, Rule)
                     {
                         let mut hc1: Vec<transform::Context> = vec![];
                         let mut hc2: Vec<transform::Context> = vec![];
@@ -418,7 +606,7 @@ impl Tactic {
                             for hc2 in &hc2 {
                                 if let Ok(hc) = hc1.join(&hc2) {
                                     if let Ok(expr) = hc.synth(f) {
-                                        add(expr, format!("{}", And));
+                                        add(expr, AndRecursiveRewrite);
                                     }
                                 }
                             }
@@ -456,13 +644,13 @@ impl Tactic {
                                         let mut hc = transform::Context::new();
                                         if hc.bind(&a1, g).is_ok() {
                                             if let Ok(expr) = hc.synth(f) {
-                                                add(expr, format!("{}", Or));
+                                                add(expr, OrRewriteEquality1);
                                             }
                                         }
                                         let mut hc = transform::Context::new();
                                         if hc.bind(&a2, g).is_ok() {
                                             if let Ok(expr) = hc.synth(f) {
-                                                add(expr, format!("{}", Or));
+                                                add(expr, OrRewriteEquality2);
                                             }
                                         }
                                     }
@@ -484,7 +672,7 @@ impl Tactic {
                                             let mut hc = transform::Context::new();
                                             if hc.bind(&abc.1, g).is_ok() {
                                                 if let Ok(expr) = hc.synth(f) {
-                                                    add(expr, format!("{}", Imply));
+                                                    add(expr, ImplyRewrite);
                                                 }
                                             }
                                         }
@@ -522,20 +710,18 @@ impl Tactic {
                     for f in facts {
                         if let Expr::Bin(abc) = f {
                             if abc.0 == Expr::Eq {
-                                add(eq(abc.2.clone(), abc.1.clone()), format!("{}", Eq));
-
                                 for g in facts {
                                     if f == g {continue}
                                     if g.has_bind_symbol() {continue}
 
                                     if let Ok(res) = transform::rewrite_left(f, g) {
-                                        add(res, format!("{}", Eq));
+                                        add(res, EqualityRewriteLeft);
                                     }
                                     if let Ok(res) = transform::rewrite_middle(f, g) {
-                                        add(res, format!("{}", Eq));
+                                        add(res, EqualityRewriteMiddle);
                                     }
                                     if let Ok(res) = transform::rewrite_right(f, g) {
-                                        add(res, format!("{}", Eq));
+                                        add(res, EqualityRewriteRight);
                                     }
                                 }
                             }
@@ -547,16 +733,16 @@ impl Tactic {
                         if let Expr::Bin(abc) = f {
                             if abc.0 == Expr::Eq {
                                 if let Ok(res) = transform::rewrite(f, f) {
-                                    add(res, format!("{}", Eq));
+                                    add(res, EqualityRewriteSelf);
                                 }
                                 if let Ok(res) = transform::rewrite_left(f, f) {
-                                    add(res, format!("{}", Eq));
+                                    add(res, EqualityRewriteSelfLeft);
                                 }
                                 if let Ok(res) = transform::rewrite_middle(f, f) {
-                                    add(res, format!("{}", Eq));
+                                    add(res, EqualityRewriteSelfMiddle);
                                 }
                                 if let Ok(res) = transform::rewrite_right(f, f) {
-                                    add(res, format!("{}", Eq));
+                                    add(res, EqualityRewriteSelfRight);
                                 }
                             }
                         }
@@ -566,23 +752,21 @@ impl Tactic {
                     for f in facts {
                         if let Expr::Bin(abc) = f {
                             if abc.0 == Expr::Eq {
-                                add(eq(abc.2.clone(), abc.1.clone()), format!("{}", Eq));
-
                                 for g in facts {
                                     if f == g {continue}
                                     if !g.has_bind_symbol() {continue}
 
                                     if let Ok(res) = transform::rewrite(f, g) {
-                                        add(res, format!("{}", Eq));
+                                        add(res, EqualityRewriteRule);
                                     }
                                     if let Ok(res) = transform::rewrite_left(f, g) {
-                                        add(res, format!("{}", Eq));
+                                        add(res, EqualityRewriteRuleLeft);
                                     }
                                     if let Ok(res) = transform::rewrite_middle(f, g) {
-                                        add(res, format!("{}", Eq));
+                                        add(res, EqualityRewriteRuleMiddle);
                                     }
                                     if let Ok(res) = transform::rewrite_right(f, g) {
-                                        add(res, format!("{}", Eq));
+                                        add(res, EqualityRewriteRuleRight);
                                     }
                                 }
                             }

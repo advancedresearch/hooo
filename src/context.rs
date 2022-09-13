@@ -1,7 +1,7 @@
 //! # Context
 
 use crate::*;
-use tactic::{Suggestion, Tactic};
+use tactic::{Info, Suggestion, Tactic};
 use user_input::UserInput;
 
 /// Represents context.
@@ -11,7 +11,7 @@ pub struct Context {
     /// List of tactics currently in use.
     pub tactics: Vec<Tactic>,
     /// A list of new suggestions.
-    pub new_suggestions: Vec<(Expr, String)>,
+    pub new_suggestions: Vec<(Expr, Info)>,
 }
 
 impl Context {
@@ -29,7 +29,7 @@ impl Context {
         self.new_suggestions.clear();
         let dumb_limit = 30;
         // Keep a list of expressions above the dumb limit.
-        let mut dumb: Vec<(Expr, String)> = vec![];
+        let mut dumb: Vec<(Expr, Info)> = vec![];
         for t in &self.tactics {
             t.suggestions(Suggestion::Simple, &self.facts, &mut self.new_suggestions);
         }
@@ -65,11 +65,7 @@ impl Context {
                 self.suggestions();
                 if self.new_suggestions.len() == 1 {
                     let s = &self.new_suggestions[0];
-                    if s.1 != "".to_string() {
-                        println!("{} by {}", s.0, s.1);
-                    } else {
-                        println!("{} by {}", s.0, s.1);
-                    }
+                    println!("{} by {}", s.0, s.1.0);
                     self.facts.push(s.0.clone());
                 } else {break}
             }
@@ -86,11 +82,7 @@ impl Context {
         if self.new_suggestions.len() != 0 {
             println!("Suggestions:");
             for (i, s) in self.new_suggestions.iter().enumerate() {
-                if s.1 != "".to_string() {
-                    println!("{}. {} by {}", i, s.0, s.1);
-                } else {
-                    println!("{}. {} by {}", i, s.0, s.1);
-                }
+                println!("{}. {} by {}", i, s.0, s.1.0);
             }
         }
     }
@@ -182,6 +174,10 @@ impl Context {
             ),
             PickSuggestion(ind) => {
                 let expr = self.new_suggestions[ind].0.clone();
+                if Tactic::Debug.find(self.tactics.iter()).is_some() {
+                    let (tactic, rule) = &self.new_suggestions[ind].1;
+                    println!("{}::{:?}", tactic, rule);
+                }
                 self.add_expr(expr);
                 self.make_suggestions();
             }
