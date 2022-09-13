@@ -1,0 +1,10 @@
+use qubit;
+use eq;
+use and;
+(a ~~ b);
+sugg ((A ~~ B) = ((A = B) ⋀ (~A ⋀ ~B)));
+sugg ((a = b) ⋀ (~a ⋀ ~b));
+sugg (a = b);
+sugg (~a ⋀ ~b);
+sugg ~a;
+sugg ~b;
