@@ -1,0 +1,3 @@
+use or;
+((a | b) -> c);
+sugg (a -> c);
