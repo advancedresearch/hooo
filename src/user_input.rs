@@ -126,25 +126,23 @@ impl UserInput {
             "clear" => Clear,
             "sugg" => Sugg,
             "help" => HelpMain,
-            "help tactic" => HelpTactic,
-            "help app" => Help(Tactic::App),
-            "help and" => Help(Tactic::And),
-            "help qubit" => Help(Tactic::Qubit),
             "bye" => Bye,
-            "use zero" => Use(Tactic::Zero),
-            "use silence" => Use(Tactic::Silence),
-            "use eq" => Use(Tactic::Eq),
-            "use sym" => Use(Tactic::Sym),
-            "use hooo" => Use(Tactic::Hooo),
-            "use debug" => Use(Tactic::Debug),
-            "use app" => Use(Tactic::App),
-            "use and" => Use(Tactic::And),
-            "use or" => Use(Tactic::Or),
-            "use imply" => Use(Tactic::Imply),
-            "use modus" => Use(Tactic::Modus),
-            "use qubit" => Use(Tactic::Qubit),
-            "use sesh" => Use(Tactic::Sesh),
-            "use tauto" => Use(Tactic::Tauto),
+            x if x.starts_with("help ") => {
+                let rest = x[5..].trim();
+                if let Some(t) = Tactic::from_str(rest) {
+                    Help(t)
+                } else {
+                    Unknown(x.into())
+                }
+            }
+            x if x.starts_with("use ") => {
+                let rest = x[4..].trim();
+                if let Some(t) = Tactic::from_str(rest) {
+                    Use(t)
+                } else {
+                    Unknown(x.into())
+                }
+            }
             x if x.starts_with("sugg ") => {
                 let rest = x[5..].trim();
                 if rest == "" {Sugg} else {SuggCheck(rest.into())}
