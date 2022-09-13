@@ -562,6 +562,11 @@ impl Tactic {
                         if f.qu().is_some() {
                             add(qual_eq_qubit(), QubitQualityEqualsQubit);
                         }
+                        if let Some((a, b)) = f.qual() {
+                            if a == b {
+                                add(qual_eq_qubit(), QubitQualityEqualsQubit);
+                            }
+                        }
                     }
                 }
                 Sesh => {
