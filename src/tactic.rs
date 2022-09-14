@@ -140,6 +140,8 @@ pub enum Rule {
     ImplyTransitivity,
     /// Imply rewrite.
     ImplyRewrite,
+    /// Imply right true.
+    ImplyRightTrue,
     /// Modus ponens.
     ModusPonens,
     /// Modus tollens.
@@ -226,7 +228,8 @@ impl Rule {
             ImplyModusPonens |
             ImplyModusPonensReverse |
             ImplyTransitivity |
-            ImplyRewrite => Imply,
+            ImplyRewrite |
+            ImplyRightTrue => Imply,
             ModusPonens |
             ModusTollens => Modus,
             QubitQualityDefinition |
@@ -566,6 +569,14 @@ impl Tactic {
                                         break 'outer;
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    for f in facts {
+                        if let Some((_, b)) = f.imply() {
+                            if b == Expr::Tr {
+                                add(imply_right_tr(), ImplyRightTrue);
                             }
                         }
                     }

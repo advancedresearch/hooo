@@ -35,6 +35,7 @@ fn test_sources() {
     assert_eq!(2, check_file("source/imply/modus_tollens.hooo").unwrap());
     assert_eq!(0, check_file("source/imply/to_rimply.hooo").unwrap());
     assert_eq!(0, check_file("source/imply/transitivity.hooo").unwrap());
+    assert_eq!(0, check_file("source/imply/right_true.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/tr_eq.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/transport_tr.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/imply_right.hooo").unwrap());
