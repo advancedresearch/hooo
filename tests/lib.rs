@@ -41,6 +41,7 @@ fn test_sources() {
     assert_eq!(0, check_file("source/hooo/imply_right.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/imply_left.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/false_from_true.hooo").unwrap());
+    assert_eq!(0, check_file("source/hooo/lower_true.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/imply.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/subst.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/to_qual.hooo").unwrap());

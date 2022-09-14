@@ -1,0 +1,6 @@
+use hooo;
+use imply;
+(x ^ ⊤);
+sugg ((A ^ B) → (B → A));
+sugg ((x ^ ⊤) → (⊤ → x));
+sugg (⊤ → x);
