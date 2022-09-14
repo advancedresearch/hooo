@@ -642,7 +642,7 @@ pub fn uniform_def() -> Expr {
     eq(uniform(A), or(tauto(A), para(A)))
 }
 
-/// ``.
+/// `((theory ↞ A) = ((uniform ↞ A) → ⊥))`.
 pub fn theory_def() -> Expr {
     eq(theory(A), not(uniform(A)))
 }
