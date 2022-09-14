@@ -27,35 +27,54 @@ impl Context {
     /// Get suggestions.
     pub fn suggestions(&mut self) {
         self.new_suggestions.clear();
+
+        let mut n: usize = 0;
+        let mut key: Vec<usize> = vec![];
         let dumb_limit = 30;
-        // Keep a list of expressions above the dumb limit.
-        let mut dumb: Vec<(Expr, Info)> = vec![];
         for t in &self.tactics {
             t.suggestions(Suggestion::Simple, &self.facts, &mut self.new_suggestions);
         }
         // Find simple suggestions that are dumb.
-        for i in (0..self.new_suggestions.len()).rev() {
+        for i in n..self.new_suggestions.len() {
             if format!("{}", self.new_suggestions[i].0).len() > dumb_limit {
-                dumb.push(self.new_suggestions[i].clone());
-                self.new_suggestions.swap_remove(i);
+                key.push(3);
+            } else {
+                key.push(1);
             }
         }
-        dumb.reverse();
+
+        n = self.new_suggestions.len();
         for t in &self.tactics {
             t.suggestions(Suggestion::Advanced, &self.facts, &mut self.new_suggestions);
         }
-        // Add dumb suggestions after advanced suggestions.
-        self.new_suggestions.extend(dumb);
+        for _ in n..self.new_suggestions.len() {
+            key.push(2);
+        }
+
+        n = self.new_suggestions.len();
         for t in &self.tactics {
             t.suggestions(Suggestion::Rare, &self.facts, &mut self.new_suggestions);
+        }
+        for _ in n..self.new_suggestions.len() {
+            key.push(4);
         }
 
         // Detect `false` and put it first.
         for i in 0..self.new_suggestions.len() {
             if self.new_suggestions[i].0 == Expr::Fa {
-                self.new_suggestions.swap(0, i);
+                key[i] = 0;
             }
         }
+
+        let mut res = Vec::with_capacity(self.new_suggestions.len());
+        for k in 0..5 {
+            for i in 0..self.new_suggestions.len() {
+                if key[i] == k {
+                    res.push(self.new_suggestions[i].clone());
+                }
+            }
+        }
+        self.new_suggestions = res;
     }
 
     /// If zero tactic is enabled, then zero tactic.

@@ -647,6 +647,11 @@ pub fn theory_def() -> Expr {
     eq(theory(A), not(uniform(A)))
 }
 
+/// `((A ^ B) → (A → B))`.
+pub fn hooo_imply() -> Expr {
+    imply(pow(A, B), imply(B, A))
+}
+
 /// `X^X = ⊤`.
 pub fn hooo_refl() -> Expr {
     eq(pow(X, X), Tr)

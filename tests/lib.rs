@@ -41,9 +41,10 @@ fn test_sources() {
     assert_eq!(0, check_file("source/hooo/imply_right.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/imply_left.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/false_from_true.hooo").unwrap());
+    assert_eq!(0, check_file("source/hooo/imply.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/subst.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/to_qual.hooo").unwrap());
-    assert_eq!(10, check_file("source/qubit/qual_def.hooo").unwrap());
+    assert_eq!(8, check_file("source/qubit/qual_def.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/from_qual.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/qual_def2.hooo").unwrap());
     assert_eq!(0, check_file("source/sesh/to_qu_not.hooo").unwrap());
@@ -52,16 +53,16 @@ fn test_sources() {
     assert_eq!(0, check_file("source/tauto/para_def.hooo").unwrap());
     assert_eq!(0, check_file("source/tauto/tauto_expand.hooo").unwrap());
     assert_eq!(0, check_file("source/tauto/para_expand.hooo").unwrap());
-    assert_eq!(0, check_file("source/tauto/uniform_expand.hooo").unwrap());
+    assert_eq!(1, check_file("source/tauto/uniform_expand.hooo").unwrap());
     assert_eq!(5, check_file("source/tauto/uniform_def.hooo").unwrap());
     assert_eq!(0, check_file("source/tauto/theory_expand.hooo").unwrap());
     assert_eq!(0, check_file("source/app/app_ty.hooo").unwrap());
     assert_eq!(0, check_file("source/app/app_imply.hooo").unwrap());
     assert_eq!(0, check_file("source/qual/left.hooo").unwrap());
     assert_eq!(1, check_file("source/qual/right.hooo").unwrap());
-    assert_eq!(9, check_file("source/qual/transitivity.hooo").unwrap());
-    assert_eq!(5, check_file("source/qual/symmetry-without-sym.hooo").unwrap());
-    assert_eq!(26, check_file("source/qual/transitivity-without-qual.hooo").unwrap());
+    assert_eq!(7, check_file("source/qual/transitivity.hooo").unwrap());
+    assert_eq!(6, check_file("source/qual/symmetry-without-sym.hooo").unwrap());
+    assert_eq!(29, check_file("source/qual/transitivity-without-qual.hooo").unwrap());
     assert_eq!(2, check_file("source/qual/lift.hooo").unwrap());
 }
 

@@ -1,0 +1,3 @@
+use hooo;
+(a ^ b);
+sugg ((A ^ B) -> (B -> A));
