@@ -120,6 +120,8 @@ pub enum Rule {
     HoooWaveAndOr,
     /// Hooo wave.
     HoooWave,
+    /// Hooo false from true.
+    HoooFalseFromTrue,
     /// Symmetry equality.
     SymmetryEquality,
     /// Symmetry and.
@@ -218,7 +220,8 @@ impl Rule {
             HoooWaveEquality |
             HoooWaveType |
             HoooWaveAndOr |
-            HoooWave => Hooo,
+            HoooWave |
+            HoooFalseFromTrue => Hooo,
             SymmetryEquality |
             SymmetryAnd |
             SymmetryOr |
@@ -497,6 +500,9 @@ impl Tactic {
                             }
                             if let Expr::Bin(_) = exp {
                                 add(hooo_dual(), HoooDual);
+                            }
+                            if (base == Expr::Fa) && (exp == Expr::Tr) {
+                                add(hooo_false_from_true(), HoooFalseFromTrue);
                             }
                         }
                         if let Expr::Bin(abc) = f {

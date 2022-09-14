@@ -657,6 +657,11 @@ pub fn refl_red() -> Expr {
     eq(ty(A, pow(X, X)), ty(Tr, Tr))
 }
 
+/// `((⊥ ^ ⊤) = ⊥)`.
+pub fn hooo_false_from_true() -> Expr {
+    eq(pow(Fa, Tr), Fa)
+}
+
 /// `X^⊥ = ⊤`.
 pub fn absurd() -> Expr {
     eq(pow(X, Fa), Tr)
