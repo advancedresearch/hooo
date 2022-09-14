@@ -37,14 +37,15 @@ fn test_sources() {
     assert_eq!(0, check_file("source/imply/transitivity.hooo").unwrap());
     assert_eq!(0, check_file("source/imply/left_true.hooo").unwrap());
     assert_eq!(0, check_file("source/imply/right_true.hooo").unwrap());
-    assert_eq!(0, check_file("source/hooo/tr_eq.hooo").unwrap());
-    assert_eq!(0, check_file("source/hooo/transport_tr.hooo").unwrap());
+    assert_eq!(1, check_file("source/hooo/tr_eq.hooo").unwrap());
+    assert_eq!(2, check_file("source/hooo/transport_tr.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/imply_right.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/imply_left.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/false_from_true.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/lower_true.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/imply.hooo").unwrap());
     assert_eq!(0, check_file("source/hooo/lift_eq_refl.hooo").unwrap());
+    assert_eq!(3, check_file("source/hooo/higher_order_lift_eq_refl.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/subst.hooo").unwrap());
     assert_eq!(0, check_file("source/qubit/to_qual.hooo").unwrap());
     assert_eq!(8, check_file("source/qubit/qual_def.hooo").unwrap());
