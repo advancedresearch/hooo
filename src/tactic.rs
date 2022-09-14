@@ -122,6 +122,8 @@ pub enum Rule {
     HoooWave,
     /// Hooo false from true.
     HoooFalseFromTrue,
+    /// Hooo imply.
+    HoooImply,
     /// Symmetry equality.
     SymmetryEquality,
     /// Symmetry and.
@@ -221,7 +223,8 @@ impl Rule {
             HoooWaveType |
             HoooWaveAndOr |
             HoooWave |
-            HoooFalseFromTrue => Hooo,
+            HoooFalseFromTrue |
+            HoooImply => Hooo,
             SymmetryEquality |
             SymmetryAnd |
             SymmetryOr |
@@ -404,12 +407,6 @@ impl Tactic {
                             }
                         }
                     }
-
-                    for f in facts {
-                        if let Some((a, b)) = f.eq() {
-                            add(eq(b, a), EqualitySymmetry);
-                        }
-                    }
                 }
                 And => {
                     for f in facts {
@@ -494,12 +491,6 @@ impl Tactic {
                         if let Some((base, exp)) = f.pow() {
                             if base == exp {
                                 add(hooo_refl(), HoooReflexivity);
-                            }
-                            if let Expr::Bin(_) = base {
-                                add(hooo(), HoooOverloading);
-                            }
-                            if let Expr::Bin(_) = exp {
-                                add(hooo_dual(), HoooDual);
                             }
                             if (base == Expr::Fa) && (exp == Expr::Tr) {
                                 add(hooo_false_from_true(), HoooFalseFromTrue);
@@ -800,8 +791,36 @@ impl Tactic {
                         }
                     }
                 }
-                Hooo => {}
-                Eq => {}
+                Hooo => {
+                    fn axioms<F>(f: &Expr, add: &mut F)
+                        where F: FnMut(Expr, Rule)
+                    {
+                        if let Some((base, exp)) = f.pow() {
+                            if let Expr::Bin(_) = base {
+                                add(hooo(), HoooOverloading);
+                            }
+                            if let Expr::Bin(_) = exp {
+                                add(hooo_dual(), HoooDual);
+                            }
+                            add(hooo_imply(), HoooImply);
+                        }
+                    }
+
+                    for f in facts {
+                        axioms(f, &mut add);
+                        if let Bin(abc) = f {
+                            axioms(&abc.1, &mut add);
+                            axioms(&abc.2, &mut add);
+                        }
+                    }
+                }
+                Eq => {
+                    for f in facts {
+                        if let Some((a, b)) = f.eq() {
+                            add(eq(b, a), EqualitySymmetry);
+                        }
+                    }
+                }
                 Sym => {}
                 Imply => {
                     for f in facts {
