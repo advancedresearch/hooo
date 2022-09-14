@@ -958,7 +958,7 @@ impl Tactic {
                 if exp.find(exps.iter()).is_some() {continue}
                 exps.push(exp.clone());
                 let mut list = vec![];
-                let mut fake_facts = vec![];
+                let mut fake_facts = vec![exp.clone()];
                 for f in facts {
                     if let Some((base, exp2)) = f.pow() {
                         if exp2 == exp {
