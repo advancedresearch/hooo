@@ -1,0 +1,3 @@
+use imply;
+(a -> True);
+sugg ((X → ⊤) = ⊤);
