@@ -961,6 +961,11 @@ pub fn imply_red_left_fa() -> Expr {
     eq(ty(A, imply(Fa, X)), ty(Tr, Tr))
 }
 
+/// `((⊤ → X) = X)`.
+pub fn imply_left_tr() -> Expr {
+    eq(imply(Tr, X), X)
+}
+
 /// `((A : x) ⋀ (B : y)) = ((A ⋀ B) : (x ⋀ y))`.
 pub fn and_intro(ty_a: Expr, ty_b: Expr) -> Expr {
     eq(and(ty(A, ty_a.clone()), ty(B, ty_b.clone())), ty(and(A, B), and(ty_a, ty_b)))
