@@ -482,7 +482,9 @@ impl Tactic {
                     }
                 }
                 Hooo => {
-                    for f in facts {
+                    fn axioms<F>(f: &Expr, add: &mut F)
+                        where F: FnMut(Expr, Rule)
+                    {
                         if let Some((base, exp)) = f.pow() {
                             if base == exp {
                                 add(refl(), HoooReflexivity);
@@ -506,6 +508,14 @@ impl Tactic {
                         }
                         if let Some((_, _)) = f.wave() {
                             add(hooo_wave(), HoooWave);
+                        }
+                    }
+
+                    for f in facts {
+                        axioms(f, &mut add);
+                        if let Bin(abc) = f {
+                            axioms(&abc.1, &mut add);
+                            axioms(&abc.2, &mut add);
                         }
                     }
                 }
