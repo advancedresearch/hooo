@@ -261,6 +261,7 @@ impl Rule {
 }
 
 /// Represents a suggestion level.
+#[derive(Copy, Clone)]
 pub enum Suggestion {
     /// Do simple suggestions only.
     Simple,
@@ -491,9 +492,7 @@ impl Tactic {
                     }
                 }
                 Hooo => {
-                    fn axioms<F>(f: &Expr, add: &mut F)
-                        where F: FnMut(Expr, Rule)
-                    {
+                    fn axioms(f: &Expr, add: &mut dyn FnMut(Expr, Rule)) {
                         if let Some((base, exp)) = f.pow() {
                             if base == exp {
                                 add(hooo_refl(), HoooReflexivity);
@@ -947,6 +946,30 @@ impl Tactic {
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        // Split facts by exponents.
+        let mut exps = vec![];
+        for g in facts {
+            if let Some((_, exp)) = g.pow() {
+                if exp.find(exps.iter()).is_some() {continue}
+                exps.push(exp.clone());
+                let mut list = vec![];
+                let mut fake_facts = vec![];
+                for f in facts {
+                    if let Some((base, exp2)) = f.pow() {
+                        if exp2 == exp {
+                            fake_facts.push(base);
+                        }
+                    }
+                }
+                if fake_facts.len() != 0 {
+                    self.suggestions(sugg, &fake_facts, &mut list);
+                    for (expr, (_, rule)) in list.into_iter() {
+                        add(pow(expr, exp.clone()), rule);
                     }
                 }
             }
