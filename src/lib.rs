@@ -648,12 +648,12 @@ pub fn theory_def() -> Expr {
 }
 
 /// `X^X = ⊤`.
-pub fn refl() -> Expr {
+pub fn hooo_refl() -> Expr {
     eq(pow(X, X), Tr)
 }
 
 /// `(A : (X ^ X)) = (⊤ : ⊤)`.
-pub fn refl_red() -> Expr {
+pub fn hooo_refl_red() -> Expr {
     eq(ty(A, pow(X, X)), ty(Tr, Tr))
 }
 
@@ -1023,7 +1023,7 @@ mod tests {
     #[test]
     fn test_refl() {
         assert_eq!(
-            rewrite(&refl(), &pow(Tr, Tr)),
+            rewrite(&hooo_refl(), &pow(Tr, Tr)),
             Ok(Tr)
         );
     }
@@ -1066,7 +1066,7 @@ mod tests {
         assert!(check_eq(&hooo_wave(), &hooo_wave_red()));
         assert!(check_eq(&htrue(), &htrue_red()));
         assert!(check_eq(&absurd(), &absurd_red()));
-        assert!(check_eq(&refl(), &refl_red()));
+        assert!(check_eq(&hooo_refl(), &hooo_refl_red()));
         assert!(check_eq(&eq_def(), &eq_red_def()));
         assert!(check_eq(&exp_def(), &exp_red_def()));
     }

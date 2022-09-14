@@ -493,7 +493,7 @@ impl Tactic {
                     {
                         if let Some((base, exp)) = f.pow() {
                             if base == exp {
-                                add(refl(), HoooReflexivity);
+                                add(hooo_refl(), HoooReflexivity);
                             }
                             if let Expr::Bin(_) = base {
                                 add(hooo(), HoooOverloading);
