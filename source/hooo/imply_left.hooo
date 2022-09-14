@@ -1,0 +1,3 @@
+use hooo;
+((True ^ True) -> a);
+sugg ((X ^ X) = ⊤);
