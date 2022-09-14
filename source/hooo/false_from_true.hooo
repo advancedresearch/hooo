@@ -1,0 +1,3 @@
+use hooo;
+(False ^ True);
+sugg ((False ^ True) = False);
