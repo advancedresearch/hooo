@@ -144,6 +144,8 @@ pub enum Rule {
     ImplyTransitivity,
     /// Imply rewrite.
     ImplyRewrite,
+    /// Imply left true.
+    ImplyLeftTrue,
     /// Imply right true.
     ImplyRightTrue,
     /// Modus ponens.
@@ -235,6 +237,7 @@ impl Rule {
             ImplyModusPonensReverse |
             ImplyTransitivity |
             ImplyRewrite |
+            ImplyLeftTrue |
             ImplyRightTrue => Imply,
             ModusPonens |
             ModusTollens => Modus,
@@ -571,7 +574,10 @@ impl Tactic {
                     }
 
                     for f in facts {
-                        if let Some((_, b)) = f.imply() {
+                        if let Some((a, b)) = f.imply() {
+                            if a == Expr::Tr {
+                                add(imply_left_tr(), ImplyLeftTrue);
+                            }
                             if b == Expr::Tr {
                                 add(imply_right_tr(), ImplyRightTrue);
                             }
