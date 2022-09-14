@@ -124,6 +124,8 @@ pub enum Rule {
     HoooFalseFromTrue,
     /// Hooo imply.
     HoooImply,
+    /// Hooo lift equality reflexivity.
+    HoooLiftEqualityReflexivity,
     /// Symmetry equality.
     SymmetryEquality,
     /// Symmetry and.
@@ -226,7 +228,8 @@ impl Rule {
             HoooWaveAndOr |
             HoooWave |
             HoooFalseFromTrue |
-            HoooImply => Hooo,
+            HoooImply |
+            HoooLiftEqualityReflexivity => Hooo,
             SymmetryEquality |
             SymmetryAnd |
             SymmetryOr |
@@ -511,6 +514,11 @@ impl Tactic {
                         }
                         if let Some((_, _)) = f.wave() {
                             add(hooo_wave(), HoooWave);
+                        }
+                        if let Some((a, b)) = f.eq() {
+                            if a == b {
+                                add(hooo_lift_eq_refl(), HoooLiftEqualityReflexivity);
+                            }
                         }
                     }
 
