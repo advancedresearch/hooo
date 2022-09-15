@@ -1,10 +1,11 @@
-_seps: "()-<>:,|&!⋀⋁=→←↞^□◇~"
+_seps: "()[]-<>:,|&!⋀⋁=→←↞^□◇~"
 
-7 un = [un_op expr:"arg"]
-6 un_op = "~":"~"
-5 neg = [{"¬" "!"} expr:"arg"]
-4 app = [lexpr:"f" .r!(["(" .w? expr:"arg" .w? ")"])]
-3 op = {
+11 subst = [lexpr:"f" "[" .w? expr:"var" .w? ":=" .w? expr:"arg" .w? "]"]
+10 un = [un_op expr:"arg"]
+9 un_op = "~":"~"
+8 neg = [{"¬" "!"} expr:"arg"]
+7 app = [lexpr:"f" .r!(["(" .w? expr:"arg" .w? ")"])]
+6 op = {
   "⋀":"⋀"
   ",":"⋀"
   "&":"⋀"
@@ -30,8 +31,9 @@ _seps: "()-<>:,|&!⋀⋁=→←↞^□◇~"
 }
 5 bin_inner_expr = bin_inner:"bin"
 4 bin_inner = [expr:"left" .w? {expr:"op" op:"op"} .w? expr:"right"]
-2 bin = ["(" .w? bin_inner .w? ")"]
+3 bin = ["(" .w? bin_inner .w? ")"]
 2 expr = {
+  subst:"subst"
   app:"app"
   lexpr
 }

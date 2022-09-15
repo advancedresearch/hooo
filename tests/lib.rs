@@ -62,6 +62,7 @@ fn test_sources() {
     assert_eq!(0, check_file("source/tauto/theory_expand.hooo").unwrap());
     assert_eq!(0, check_file("source/app/app_ty.hooo").unwrap());
     assert_eq!(0, check_file("source/app/app_imply.hooo").unwrap());
+    assert_eq!(0, check_file("source/app/app_subst.hooo").unwrap());
     assert_eq!(0, check_file("source/qual/left.hooo").unwrap());
     assert_eq!(1, check_file("source/qual/right.hooo").unwrap());
     assert_eq!(7, check_file("source/qual/transitivity.hooo").unwrap());

@@ -138,9 +138,17 @@ pub enum Expr {
     /// Variable.
     Var(Arc<String>),
     /// Binary operation.
+    ///
+    /// The first expression is the operator,
+    /// followed by the two arguments.
     Bin(Box<(Expr, Expr, Expr)>),
     /// Unary operation.
     Un(Box<(Expr, Expr)>),
+    /// Substitute free occurrences.
+    ///
+    /// The first expression is the one to substitute in,
+    /// followed by the expression to replace with the new expression.
+    Subst(Box<(Expr, Expr, Expr)>),
 }
 
 impl fmt::Display for Expr {
@@ -199,6 +207,9 @@ impl fmt::Display for Expr {
             }
             Un(ab) => {
                 write!(w, "{}{}", ab.0, ab.1)?;
+            }
+            Subst(abc) => {
+                write!(w, "{}[{} := {}]", abc.0, abc.1, abc.2)?;
             }
         }
         Ok(())
@@ -397,7 +408,7 @@ impl Expr {
             Hooo | HoooDual | HoooWave |
             SwapWave | PowMul |
             Tauto | Para | Uniform | Theory => false,
-            Var(_) | Bin(_) | Un(_) => false,
+            Var(_) | Bin(_) | Un(_) | Subst(_) => false,
             Ty |
             Imply |
             Rimply |
@@ -417,7 +428,7 @@ impl Expr {
     pub fn is_sym(&self) -> bool {
         match self {
             X | Y | A | B => false,
-            Var(_) | Bin(_) | Un(_) => false,
+            Var(_) | Bin(_) | Un(_) | Subst(_) => false,
             Tr |
             Fa |
             Ty |
@@ -595,6 +606,11 @@ pub fn dual(op: Expr, a: Expr, b: Expr) -> Expr {
 /// This describes the duality between two operators.
 pub fn wave(a: Expr, b: Expr) -> Expr {
     Bin(Box::new((Wave, a, b)))
+}
+
+/// `(((A ^ B) ↞ X) → A[B := X])`.
+pub fn app_subst() -> Expr {
+    imply(app(pow(A, B), X), Subst(Box::new((A, B, X))))
 }
 
 /// `(¬~A = ~¬A)`.
