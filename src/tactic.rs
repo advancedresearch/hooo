@@ -124,8 +124,6 @@ pub enum Rule {
     HoooWave,
     /// Hooo false from true.
     HoooFalseFromTrue,
-    /// Hooo imply.
-    HoooImply,
     /// Hooo lift equality reflexivity.
     HoooLiftEqualityReflexivity,
     /// Symmetry equality.
@@ -231,7 +229,6 @@ impl Rule {
             HoooWaveAndOr |
             HoooWave |
             HoooFalseFromTrue |
-            HoooImply |
             HoooLiftEqualityReflexivity => Hooo,
             SymmetryEquality |
             SymmetryAnd |
@@ -825,7 +822,6 @@ impl Tactic {
                             if let Expr::Bin(_) = exp {
                                 add(hooo_dual(), HoooDual);
                             }
-                            add(hooo_imply(), HoooImply);
                         }
                     }
 
