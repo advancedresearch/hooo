@@ -143,6 +143,12 @@ impl Context {
                 let b = self.synth(&ab.1)?;
                 Ok(Un(Box::new((a, b))))
             }
+            Subst(abc) => {
+                let a = self.synth(&abc.0)?;
+                let b = self.synth(&abc.1)?;
+                let c = self.synth(&abc.2)?;
+                a.subst(&b, &c)
+            }
             _ => Err(())
         }
     }
@@ -166,9 +172,33 @@ impl Context {
 
 /// Substitute pattern in rule with expression.
 pub fn substitue(rule: &Expr, pat: &Expr, e: &Expr) -> Result<Expr, ()> {
-    let mut c = Context::new();
-    c.set(pat, e)?;
-    c.synth(rule)
+    if pat.has_bind_symbol() {
+        let mut c = Context::new();
+        c.set(pat, e)?;
+        c.synth(rule)
+    } else {
+        fn subst(rule: &Expr, pat: &Expr, e: &Expr) -> Result<Expr, ()> {
+            match rule {
+                x if x == pat => Ok(e.clone()),
+                x if x.is_sym() => Ok(rule.clone()),
+                X | Y | A | B => Ok(rule.clone()),
+                Bin(abc) => {
+                    let a = subst(&abc.0, pat, e)?;
+                    let b = subst(&abc.1, pat, e)?;
+                    let c = subst(&abc.2, pat, e)?;
+                    Ok(Bin(Box::new((a, b, c))))
+                }
+                Un(ab) => {
+                    let a = subst(&ab.0, pat, e)?;
+                    let b = subst(&ab.1, pat, e)?;
+                    Ok(Un(Box::new((a, b))))
+                }
+                _ => Err(())
+            }
+        }
+
+        subst(rule, pat, e)
+    }
 }
 
 /// Rewrite expression using rule.

@@ -44,6 +44,8 @@ pub enum Rule {
     ApplyType,
     /// Found a matching expression of imply (modus ponens).
     ApplyImplication,
+    /// Application substitution.
+    ApplySubstitution,
     /// Rewrite equality rule using another expression.
     EqualityRewrite,
     /// Swap sides of equality.
@@ -188,7 +190,8 @@ impl Rule {
 
         match self {
             ApplyType |
-            ApplyImplication => App,
+            ApplyImplication |
+            ApplySubstitution => App,
             EqualityRewrite |
             EqualitySymmetry |
             EqualityRewriteLeft |
@@ -394,6 +397,13 @@ impl Tactic {
                                 if g == &a {
                                     add(b.clone(), ApplyImplication);
                                     break;
+                                }
+                            }
+                        }
+                        if let Some((f, _)) = f.app() {
+                            if let Bin(abc) = f {
+                                if abc.0 == Expr::Pow {
+                                    add(app_subst(), ApplySubstitution);
                                 }
                             }
                         }

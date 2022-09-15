@@ -14,6 +14,9 @@ fn parse_expr(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut V
         if let Ok(range) = convert.end_node(node) {
             convert.update(range);
             break;
+        } else if let Ok((range, val)) = parse_subst("subst", dirs, convert, ignored) {
+            convert.update(range);
+            expr = Some(val);
         } else if let Ok((range, val)) = parse_app("app", dirs, convert, ignored) {
             convert.update(range);
             expr = Some(val);
@@ -122,6 +125,40 @@ fn parse_neg(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut Ve
 
     let arg = arg.ok_or(())?;
     Ok((convert.subtract(start), imply(arg, Fa)))
+}
+
+fn parse_subst(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut Vec<Range>) -> Result<(Range, Expr), ()> {
+    let start = convert;
+    let start_range = convert.start_node(node)?;
+    convert.update(start_range);
+
+    let mut f: Option<Expr> = None;
+    let mut var: Option<Expr> = None;
+    let mut arg: Option<Expr> = None;
+    loop {
+        if let Ok(range) = convert.end_node(node) {
+            convert.update(range);
+            break;
+        } else if let Ok((range, val)) = parse_expr("f", dirs, convert, ignored) {
+            convert.update(range);
+            f = Some(val);
+        } else if let Ok((range, val)) = parse_expr("var", dirs, convert, ignored) {
+            convert.update(range);
+            var = Some(val);
+        } else if let Ok((range, val)) = parse_expr("arg", dirs, convert, ignored) {
+            convert.update(range);
+            arg = Some(val);
+        } else {
+            let range = convert.ignore();
+            convert.update(range);
+            ignored.push(range);
+        }
+    }
+
+    let f = f.ok_or(())?;
+    let var = var.ok_or(())?;
+    let arg = arg.ok_or(())?;
+    Ok((convert.subtract(start), Subst(Box::new((f, var, arg)))))
 }
 
 fn parse_app(node: &str, dirs: &[String], mut convert: Convert, ignored: &mut Vec<Range>) -> Result<(Range, Expr), ()> {
