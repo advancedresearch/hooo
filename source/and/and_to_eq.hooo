@@ -1,9 +1,0 @@
-use and;
-use eq;
-(a -> b);
-(b -> a);
-sugg ((A = B) = ((A → B) ⋀ (B → A)));
-sugg (((A → B) ⋀ (B → A)) = (A = B));
-sugg (((a → b) ⋀ (b → a)) = (a = b));
-sugg ((a → b) ⋀ (b → a));
-sugg (a = b);

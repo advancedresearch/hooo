@@ -1,0 +1,32 @@
+/// `□(□p => p)`.
+fn lob_triv (p^true => p)^true {
+    lam f p^true => p {
+        x : p^true;
+        let y = () : true;
+        let z = x(y) : p;
+        return z;
+    }
+    return f;
+}
+
+/// `(□(□false => false) => □false)  ->  false`.
+fn para_lob (false^true => false)^true => false^true  ->  false {
+    x : (false^true => false)^true => false^true;
+    use lob_triv;
+    let y = lob_triv() : (false^true => false)^true;
+    let x2 = x(y) : false^true;
+    let x3 = () : true;
+    let x4 = x2(x3) : false;
+    return x4;
+}
+
+/// Demonstrates that Löb's axiom is absurd in HOOO EP.
+fn lob_absurd all((p^true => p)^true => p^true)  ->  false {
+    arg : all((p^true => p)^true => p^true);
+    let x = arg() : (false^true => false)^true => false^true;
+    use para_lob;
+    let x2 = para_lob(x) : false;
+    let x3 = match x2 : true;
+    return x3;
+}
+

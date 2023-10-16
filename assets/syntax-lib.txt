@@ -1,0 +1,32 @@
+_seps: ":;"
+_ty: ";{}"
+
+200 multi_line_comment = ["/*" ..."*/"? .r?({
+    [!"*/" "*" ..."*/"?] [multi_line_comment ..."*/"?] ["/" ..."*/"?]
+}) "*/"]
+201 comment = {multi_line_comment ["//" ..."\n"?]}
+
+9 dep = {
+    ["path(" .w? .t!:"dep_path" .w? ")" .w? ";"]
+}
+8 deps = ["dependencies" .w! "{" .w? {
+    .l([.w? {comment dep} .w?])
+} .w? "}"]
+7 fun = [.._seps!:"name" .w? ":" ..._ty!:"ty" .w? ";"]
+6 ; = [.w? ";" .w?]
+5 funs = ["functions" .w! "{" .w?
+    .l([.w? {comment fun:"fun"} .w?])
+.w? "}"]
+4 desc = ["description:" .w! .t!:"desc" .w? ";"]
+3 version = ["version:" .w! .t!:"version" .w? ";"]
+2 name = ["name:" .w! .t!:"name" .w? ";"]
+1 lib = .l([.w? {
+    comment
+    name
+    version
+    desc
+    funs
+    deps
+.w? }])
+0 doc = [.w? lib:"lib" .w?]
+

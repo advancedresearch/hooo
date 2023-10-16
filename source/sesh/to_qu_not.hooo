@@ -1,5 +1,0 @@
-use sesh;
-use eq;
-!~a;
-sugg ((~A → ⊥) = ~(A → ⊥));
-sugg ~!a;

@@ -1,0 +1,199 @@
+fn refl a -> a {
+    x : a;
+
+    return x;
+}
+
+fn hooo_and (a & b)^c  ->  (a^c & b^c) {
+    use pow_transitivity;
+    use fst;
+    use snd;
+    use refl;
+
+    x : (a & b)^c;
+
+    let x2 = fst() : a^(a & b);
+    let x3 = snd() : b^(a & b);
+    let x4 = pow_transitivity(x, x2) : a^c;
+    let x5 = pow_transitivity(x, x3) : b^c;
+    let x6 = refl(x4, x5) : a^c & b^c;
+    return x6;
+}
+
+fn hooo_imply (a => b)^c  ->  a^c => b^c {
+    use tauto_hooo_imply;
+    use triv;
+
+    x : (a => b)^c;
+    let y = tauto_hooo_imply(x) : (a^c => b^c)^true;
+    let z = triv(y) : (a^c => b^c);
+    return z;
+}
+
+fn hooo_or (a | b)^c  ->  (a^c | b^c) {
+    use tauto_hooo_or;
+    use triv;
+
+    x : (a | b)^c;
+    let x2 = tauto_hooo_or(x) : (a^c | b^c)^true;
+    let x3 = triv(x2) : a^c | b^c;
+    return x3;
+}
+
+fn hooo_rev_and a^c & b^c -> (a & b)^c {
+    use and_map;
+    use pow_to_imply_lift;
+    use hooo_imply;
+    use modus_ponens;
+
+    x : a^c;
+    y : b^c;
+    let x1 = and_map() : (b => (a & b))^a;
+    let x2 = pow_to_imply_lift(x1) : (a => b => (a & b))^c;
+    let x3 = hooo_imply(x2) : a^c => (b => (a & b))^c;
+    let x4 = modus_ponens(x, x3) : (b => (a & b))^c;
+    let x5 = hooo_imply(x4) : b^c => (a & b)^c;
+    let x6 = modus_ponens(y, x5) : (a & b)^c;
+    return x6;
+}
+
+fn hooo_rev_or (a^c | b^c) -> (a | b)^c {
+    x : a^c | b^c;
+
+    lam f a^c => (a | b)^c {
+        y : a^c;
+        use left;
+        use pow_transitivity;
+        let y2 = left() : a -> (a | b);
+        let x2 = pow_transitivity(y, y2) : (a | b)^c;
+        return x2;
+    }
+
+    lam g b^c => (a | b)^c {
+        z : b^c;
+        use right;
+        use pow_transitivity;
+        let y3 = right() : b -> (a | b);
+        let x3 = pow_transitivity(z, y3) : (a | b)^c;
+        return x3;
+    }
+
+    use unify;
+    let x4 = unify(x, f, g) : (a | b)^c;
+    return x4;
+}
+
+fn pow_lift a^b -> (a^b)^c {
+    x : a^b;
+    return x;
+}
+
+fn pow_to_imply b^a -> a => b {
+    x : b^a;
+
+    let y = x() : a => b;
+    return y;
+}
+
+fn pow_to_imply_lift b^a -> (a => b)^c {
+    x : b^a;
+
+    use pow_lift;
+    let y = pow_lift(x) : (b^a)^c;
+    return y;
+}
+
+fn pow_to_tauto_imply a^b -> (b => a)^true {
+    x : a^b;
+
+    use pow_lift;
+    let y = pow_lift(x) : (a^b)^true;
+
+    let z = y() : (b => a)^true;
+    return z;
+}
+
+fn pow_transitivity b^a & c^b -> c^a {
+    x : b^a;
+    y : c^b;
+
+    fn f a -> ((b^a & c^b) => c) {
+        x : a;
+
+        lam g (b^a & c^b) => c {
+            y : b^a;
+            z : c^b;
+
+            let x2 = y(x) : b;
+            let x3 = z(x2) : c;
+            return x3;
+        }
+        return g;
+    }
+
+    use hooo_imply;
+    let x2 = hooo_imply(f) : (b^a & c^b)^a => c^a;
+
+    use pow_lift;
+    let x3 = pow_lift(x) : (b^a)^a;
+    let y3 = pow_lift(y) : (c^b)^a;
+
+    use refl;
+    let x4 = refl(x3, y3) : (b^a)^a & (c^b)^a;
+
+    use hooo_rev_and;
+    let x5 = hooo_rev_and(x4) : (b^a & c^b)^a;
+
+    let x6 = x2(x5) : c^a;
+    return x6;
+}
+
+fn comp c^b & b^a  ->  c^a {
+    use pow_transitivity;
+    use and_symmetry;
+
+    x : b^a;
+    y : c^b;
+    let z = pow_transitivity(x, y) : c^a;
+    return z;
+}
+
+fn tauto_hooo_and (a & b)^c -> (a^c & b^c)^true {
+    use hooo_and;
+    use pow_lift;
+    use pow_transitivity;
+
+    x : (a & b)^c;
+    let x2 = pow_lift(x) : ((a & b)^c)^true;
+    let x3 = hooo_and() : (a & b)^c -> (a^c & b^c);
+    let x4 = pow_transitivity(x2, x3) : (a^c & b^c)^true;
+    return x4;
+}
+
+fn tauto_hooo_imply (a => b)^c  ->  (a^c => b^c)^true {
+    x : (a => b)^c;
+    return x;
+}
+
+fn tauto_hooo_or (a | b)^c  ->  (a^c | b^c)^true {
+    x : (a | b)^c;
+    return x;
+}
+
+fn tauto_hooo_rev_and (a^c & b^c)^true  ->  (a & b)^c {
+    use hooo_rev_and;
+    use triv;
+
+    x : (a^c & b^c)^true;
+    let x2 = triv(x) : a^c & b^c;
+    let x3 = hooo_rev_and(x2) : (a & b)^c;
+    return x3;
+}
+
+fn triv a^true  ->  a {
+    x : a^true;
+    let y = () : true;
+    let r = x(y) : a;
+    return r;
+}
+

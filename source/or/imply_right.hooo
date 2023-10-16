@@ -1,3 +1,0 @@
-use or;
-((a | b) -> c);
-sugg (b -> c);

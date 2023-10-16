@@ -1,9 +1,0 @@
-use qual;
-use and;
-use imply;
-(a = b);
-theory((a = b));
-sugg (((A = B) & theory((A = B))) -> (A ~~ B));
-sugg (((a = b) ⋀ (theory ↞ (a = b))) → (a ~~ b));
-sugg ((a = b) ⋀ (theory ↞ (a = b)));
-sugg (a ~~ b);

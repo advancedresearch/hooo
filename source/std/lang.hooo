@@ -1,0 +1,42 @@
+fn curry (a & b) => c  ->  (a => b => c) {
+    x : (a & b) => c;
+    lam f a => b => c {
+        y : a;
+        lam g b => c {
+            z : b;
+            let r = x(y, z) : c;
+            return r;
+        }
+        return g;
+    }
+    return f;
+}
+
+fn uncurry (a => b => c) -> (a & b) => c {
+    x : a => b => c;
+    lam f (a & b) => c {
+        x2 : a;
+        x3 : b;
+        let x4 = x(x2) : b => c;
+        let x5 = x4(x3) : c;
+        return x5;
+    }
+    return f;
+}
+
+fn modus_ponens a & b^a -> b {
+    x : a;
+    y : b^a;
+
+    let z = y(x) : b;
+    return z;
+}
+
+fn unify (a | b) & ((a => c) & (b => c))  ->  c {
+    x : (a | b);
+    l : a => c;
+    r : b => c;
+    let y = match x (l, r) : c;
+    return y;
+}
+

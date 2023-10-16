@@ -1,0 +1,12 @@
+fn imply_transitivity (a => b) & (b => c) -> (a => c) {
+    x : a => b;
+    y : b => c;
+    lam f (a => c) {
+        arg : a;
+        let x2 = x(arg) : b;
+        let x3 = y(x2) : c;
+        return x3;
+    }
+    return f;
+}
+

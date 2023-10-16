@@ -1,5 +1,0 @@
-use tauto;
-use eq;
-uniform(a);
-sugg ((uniform ↞ A) = ((tauto ↞ A) ⋁ (para ↞ A)));
-sugg ((tauto ↞ a) ⋁ (para ↞ a));

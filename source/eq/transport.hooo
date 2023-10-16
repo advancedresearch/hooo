@@ -1,4 +1,0 @@
-use eq;
-(a = b);
-a;
-sugg b;

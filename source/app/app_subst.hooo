@@ -1,6 +1,0 @@
-use app;
-use imply;
-((a ^ a) ↞ x);
-sugg (((A ^ B) ↞ X) → A[B := X]);
-sugg (((a ^ a) ↞ x) → x);
-sugg x;

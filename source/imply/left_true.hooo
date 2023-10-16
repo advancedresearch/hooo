@@ -1,5 +1,0 @@
-use imply;
-use eq;
-(True -> a);
-sugg ((True -> X) = X);
-sugg a;
