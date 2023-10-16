@@ -1,0 +1,33 @@
+fn eq_symmetry a == b -> b == a {
+    use fst;
+    use snd;
+
+    x : a == b;
+    let y = fst(x) : a => b;
+    let z = snd(x) : b => a;
+
+    use refl;
+    let r = refl(z, y) : b == a;
+    return r;
+}
+
+fn eq_transitivity (a == b) & (b == c)  -> (a == c) {
+    use fst;
+    use snd;
+
+    x : a == b;
+    y : b == c;
+    let x1 = fst(x) : a => b;
+    let x2 = snd(x) : b => a;
+    let x3 = fst(y) : b => c;
+    let x4 = snd(y) : c => b;
+
+    use imply_transitivity;
+    let x5 = imply_transitivity(x1, x3) : a => c;
+    let x6 = imply_transitivity(x4, x2) : c => a;
+
+    use refl;
+    let x7 = refl(x5, x6) : a == c;
+    return x7;
+}
+

@@ -1,1105 +1,1027 @@
-#![deny(missing_docs)]
+/*!
+# Hooo
+Propositional logic with exponentials
 
-//! # hooo
-//! Propositional logic with exponentials
-//!
-//! ```text
-//! === HOOO 0.1 ===
-//! For more information, type `help`
-//! > use silence
-//! > use zero
-//! > use and
-//! > use eq
-//! > use hooo
-//! > ((a = b) ^ True)
-//! (((A □ B) ^ X) = ((A ^ X) □ (B ^ X))) by hooo
-//! ((a ^ ⊤) = (b ^ ⊤)) by eq
-//! ```
-//!
-//! To run hooo from you Terminal, type:
-//!
-//! ```text
-//! cargo install --example hooo hooo
-//! ```
-//!
-//! Then, to run:
-//!
-//! ```text
-//! hooo
-//! ```
-//!
-//! ### Motivation
-//!
-//! The ongoing research on [PSQ](https://advancedresearch.github.io/quality/summary.html#psq---path-semantical-quantum-propositional-logic)
-//! suggests that propositional logic can be extended with [Category Theory Exponentials](https://ncatlab.org/nlab/show/exponential+object).
-//!
-//! The problem is that PSQ contains a qubit operator `~` with the special property
-//! that it has congruence by tautological identity only.
-//! In current theorem provers, it has not been possible to reason about this.
-//!
-//! For example, `a == b` does not imply `~a == ~b`,
-//! only when `a == b` is provable from none assumptions.
-//!
-//! The `(a == b)^true` relation is an *exponential* proposition
-//! which proves that `a == b` from none assumptions.
-//! This gives `a == b` the *tautological identity* needed for substitution in the qubit operator `~`.
-//!
-//! It turns out that this is semantically the same as [Higher Order Operator Overloading](https://github.com/advancedresearch/path_semantics/blob/master/sequences.md#higher-order-operator-overloading).
-//!
-//! Or simply: hooo
+To install Hooo, type:
+
+```text
+cargo install --example hooo hooo
+```
+
+Then, to check a file with Hooo, type:
+
+```text
+hooo <file.hooo>
+```
+
+### Example: Absurd
+
+```text
+fn absurd false -> a {
+    x : false;
+    let r = match x : a;
+    return r;
+}
+```
+
+### Working with projects
+
+To check a whole project, type:
+
+```text
+hooo <project directory>
+```
+
+Hooo will generate a "Hooo.config" file, which you can modify to use other libraries:
+
+```text
+dependencies {
+    path("../my_library");
+}
+```
+
+By default, Hooo adds a "std" library which you can use in the following way:
+
+```text
+use std::not_double;
+```
+
+This will add a term `not_double : a -> !!a`.
+
+## Introduction to Hooo
+
+Intuitionistic Propositional Logic (IPL) is the most important mathematical language
+in the world, because it is the foundation for constructive logic and many type systems.
+
+Usually, IPL is thought of as a "simple language" that generalized in various ways.
+For example, by adding predicates, one gets First Order Logic.
+
+Previously, IPL was thought of as "complete" in the sense that it can derive every
+formula that is true about propositions.
+To reason about IPL at meta-level, mathematicians relied on some meta-language (e.g. sequent calculus)
+or some modal logic.
+
+For example, in provability logic, `□(a => b)` is introduced by `⊢
+
+Recently, I discovered that, while logical implication (`=>`) in IPL corresponds to lambda/closures,
+there is no possible way to express the analogue of function pointers (`->`).
+People thought previously that, since logical implication is a kind of exponential object,
+that IPL covered exponentials in the sense of Category Theory.
+However, there can be more than one kind of exponential!
+The extension of IPL to include function pointers is called "exponential propositions".
+
+Exponential propositions allows a unification of the meta-language of IPL with its object-language.
+This means that IPL in its previous form is "incomplete", in the sense that there are no ways
+to express exponential propositions.
+
+Hooo finalizes intuitionistic logic by introducing exponential propositions (HOOO EP).
+This solves the previous problems of using a separate meta-language.
+Inference rules in Hooo are first-class citizens.
+
+There is no separation between the language and meta-language in Hooo.
+All types, including rules, are constructive propositions.
+
+### Relation to Provability Logic
+
+HOOO EP might sound like Provability Logic, but it is not the same thing.
+Provability Logic is incompatible with HOOO EP, since Löb's axiom is absurd.
+For proof, see `lob` in "source/std/modal.hooo".
+
+# HOOO EP
+
+"HOOO EP" stands for "Higher Order Operator Overloading Exponential Propositions".
+
+HOOO EP was first developed in the [Prop](https://github.com/advancedresearch/prop) library,
+which exploited function pointers in Rust's type system.
+
+There are 3 axioms in HOOO EP:
+
+```text
+pow_lift : a^b -> (a^b)^c
+tauto_hooo_imply : (a => b)^c -> (a^c => a^b)^true
+tauto_hooo_or : (a | b)^c -> (a^c | a^b)^true
+```
+
+The philosophy of HOOO EP is that the axioms are intuitive.
+This is how people can know that the axioms can be trusted.
+
+From these axioms, there are infinitely complex logical consequences.
+It is important to keep the axioms few and simple to not cause trouble later on.
+
+However, some statements many people find "obviously true" can be difficult to prove.
+This is why a library is needed to show how to prove such statements.
+
+For example, in Hooo, one can prove that function composition is possible:
+
+```text
+fn pow_transitivity b^a & c^b -> c^a {
+    x : b^a;
+    y : c^b;
+
+    fn f a -> ((b^a & c^b) => c) {
+        x : a;
+
+        lam g (b^a & c^b) => c {
+            y : b^a;
+            z : c^b;
+
+            let x2 = y(x) : b;
+            let x3 = z(x2) : c;
+            return x3;
+        }
+        return g;
+    }
+
+    use hooo_imply;
+    let x2 = hooo_imply(f) : (b^a & c^b)^a => c^a;
+
+    use pow_lift;
+    let x3 = pow_lift(x) : (b^a)^a;
+    let y3 = pow_lift(y) : (c^b)^a;
+
+    use refl;
+    let x4 = refl(x3, y3) : (b^a)^a & (c^b)^a;
+
+    use hooo_rev_and;
+    let x5 = hooo_rev_and(x4) : (b^a & c^b)^a;
+
+    let x6 = x2(x5) : c^a;
+    return x6;
+}
+```
+
+Notice how complex this proof is compared to proving lambda/closure composition:
+
+```text
+fn imply_transitivity (a => b) & (b => c) -> (a => c) {
+    x : a => b;
+    y : b => c;
+    lam f (a => c) {
+        arg : a;
+        let x2 = x(arg) : b;
+        let x3 = y(x2) : c;
+        return x3;
+    }
+    return f;
+}
+```
+
+Intuitively, function composition is possible, so most people just take it for granted.
+Previously, mathematicians needed a meta-language to prove such properties.
+Now, people can prove these properties directly using Hooo-like languages.
+
+Hooo is designed for meta-theorem proving in constructive/intuitionistic logic.
+This means that Hooo can reason about its own rules.
+From existing rules, you can generate new rules, by leveraging the full
+power of meta-theorem proving in constructive logic.
+
+An exponential proposition is a function pointer, or an inference rule.
+You can write the type of function pointers as `a -> b` or `b^a`.
+
+## Syntax
+
+```text
+a -> b     Exponential/function pointer/inference rule
+b^a        Exponential/function pointer/inference rule
+a => b     Imply (lambda/closure)
+a & b      And (struct type)
+a | b      Or (enum type)
+!a         Not (sugar for `a => false`)
+a == b     Equal (sugar for `(a => b) & (b => a)`)
+true       True (unit type)
+false      False (empty type)
+all(a)     Lifts `a` to matching all types.
+
+x : a      Premise/argument
+let y      Theorem/variable
+
+return x   Helps the solver make a conclusion
+
+axiom foo : a               Introduce axiom `foo` of type `a`
+() : a                      Prove `a`, e.g. `() : true`
+f(x)                        Apply one argument `x` to `f`
+f(x, y, ...)                Apply multiple arguments
+match x : a                 If `x : false`
+match x (l, r) : c          If `x : (a | b)`, `l : a => c` and `r : b => c`
+use <tactic>                Imports tactic
+fn <name> a -> b { ... }    Function
+lam <name> a => b { ... }   Lambda/closure
+```
+
+The `^` operator has high precedence, while `->` has low precedence.
+
+E.g. `b^a => b` is parsed as `(b^a) => b`.
+`b -> a => b` is parsed as `b -> (a => b)`.
+
+*/
 
 use std::sync::Arc;
+use std::collections::HashSet;
+use std::collections::HashMap;
 use std::fmt;
-pub use repl::main as repl;
+use std::path::Path;
+use piston_meta::Range;
 
 pub mod parsing;
-pub mod tactic;
-pub mod context;
-pub mod user_input;
-pub mod transform;
 
-mod repl;
-
-use Expr::*;
-
-/// Represents a Hooo expression.
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum Expr {
-    /// Generic `X`.
-    X,
-    /// Generic `Y`.
-    Y,
-    /// Generic `A`.
-    A,
-    /// Generic `B`.
-    B,
-    /// Generic binary operator `a □ b`.
-    Sq,
-    /// Generic binary operator `a ◇ b`.
-    Di,
-    /// `⊤`.
-    Tr,
-    /// `⊥`.
-    Fa,
-    /// Type `a : b`.
-    Ty,
-    /// Imply `a → b`.
-    Imply,
-    /// Reverse imply `a ← b`.
-    Rimply,
-    /// Pow `a ^ b`.
-    Pow,
-    /// And `a ⋀ b`.
-    And,
-    /// Or `a ⋁ b`.
-    Or,
-    /// Equality `a = b`.
-    Eq,
-    /// Wave `a ~◇~ b`.
-    Wave,
-    /// Qubit `~a`.
-    Qubit,
-    /// Quality `a ~~ b`.
-    Qual,
-    /// Tautology `tauto ↞ a`.
-    Tauto,
-    /// Paradox `para ↞ a`.
-    Para,
-    /// Uniform `uniform ↞ a`.
-    Uniform,
-    /// Theory `theory ↞ a`.
-    Theory,
-    /// First and component.
-    Fst,
-    /// Second and component.
-    Snd,
-    /// Left or constructor.
-    Left,
-    /// Right or constructor.
-    Right,
-    /// Swap or equality proof.
-    SwapOr,
-    /// `[f(x)]`.
-    SubTyFst,
-    /// `[f x]`.
-    SubTySnd,
-    /// Apply.
-    App,
-    /// Hooo equality proof.
-    Hooo,
-    /// Hooo dual equality proof.
-    HoooDual,
-    /// Hooo wave equality proof.
-    HoooWave,
-    /// Swap wave equality proof.
-    SwapWave,
-    /// Pow-mul equality proof.
-    PowMul,
-    /// Variable.
-    Var(Arc<String>),
-    /// Binary operation.
-    ///
-    /// The first expression is the operator,
-    /// followed by the two arguments.
-    Bin(Box<(Expr, Expr, Expr)>),
-    /// Unary operation.
-    Un(Box<(Expr, Expr)>),
-    /// Substitute free occurrences.
-    ///
-    /// The first expression is the one to substitute in,
-    /// followed by the expression to replace with the new expression.
-    Subst(Box<(Expr, Expr, Expr)>),
+/// Used to keep track of how much it costs to prove something.
+pub struct Search {
+    pub n: u64,
+    pub debug: bool,
 }
 
-impl fmt::Display for Expr {
-    fn fmt(&self, w: &mut fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        match self {
-            X => write!(w, "X")?,
-            Y => write!(w, "Y")?,
-            A => write!(w, "A")?,
-            B => write!(w, "B")?,
-            Sq => write!(w, "□")?,
-            Di => write!(w, "◇")?,
-            Tr => write!(w, "⊤")?,
-            Fa => write!(w, "⊥")?,
-            Ty => write!(w, ":")?,
-            Imply => write!(w, "→")?,
-            Rimply => write!(w, "←")?,
-            Pow => write!(w, "^")?,
-            And => write!(w, "⋀")?,
-            Or => write!(w, "⋁")?,
-            Eq => write!(w, "=")?,
-            Wave => write!(w, "~◇~")?,
-            Qubit => write!(w, "~")?,
-            Qual => write!(w, "~~")?,
-            Tauto => write!(w, "tauto")?,
-            Para => write!(w, "para")?,
-            Uniform => write!(w, "uniform")?,
-            Theory => write!(w, "theory")?,
-            Fst => write!(w, "fst")?,
-            Snd => write!(w, "snd")?,
-            Left => write!(w, "left")?,
-            Right => write!(w, "right")?,
-            SwapOr => write!(w, "swap_or")?,
-            SubTyFst => write!(w, "0↞")?,
-            SubTySnd => write!(w, "1↞")?,
-            App => write!(w, "↞")?,
-            Hooo => write!(w, "hooo")?,
-            HoooDual => write!(w, "hooo_dual")?,
-            HoooWave => write!(w, "hooo_wave")?,
-            SwapWave => write!(w, "swap_wave")?,
-            PowMul => write!(w, "pow_mul")?,
-            Var(x) => write!(w, "{}", x)?,
-            Bin(abc) => {
-                write!(w, "(")?;
-                if abc.1.is_bin() {
-                    write!(w, "'{}'", abc.1)?;
-                } else {
-                    write!(w, "{}", abc.1)?;
-                }
-                write!(w, " {} ", abc.0)?;
-                if abc.2.is_bin() {
-                    write!(w, "'{}'", abc.2)?;
-                } else {
-                    write!(w, "{}", abc.2)?;
-                }
-                write!(w, ")")?;
-            }
-            Un(ab) => {
-                write!(w, "{}{}", ab.0, ab.1)?;
-            }
-            Subst(abc) => {
-                write!(w, "{}[{} := {}]", abc.0, abc.1, abc.2)?;
-            }
+impl Search {
+    /// Creates a new search.
+    pub fn new() -> Search {Search {n: 0, debug: false}}
+
+    /// Increase the counter that shows cost.
+    pub fn inc(&mut self) {self.n += 1}
+
+    /// Asserts that length is less or equal than some limit.
+    pub fn le(&self, n: u64) {
+        assert!(self.n <= n, "{} <= {}", self.n, n);
+    }
+
+    /// Beat length.
+    pub fn beat(&self, n: u64) {
+        if self.n >= n {panic!("record attempt failed {} >= {}", self.n, n)}
+        else {panic!("new record {} < {}", self.n, n)}
+    }
+}
+
+#[derive(Clone)]
+pub struct Context {
+    /// Stores the terms.
+    pub terms: Vec<Term>,
+    /// Stores the term names.
+    pub term_names: Vec<Arc<String>>,
+    /// Stores the proofs.
+    pub proofs: Vec<Type>,
+    /// Stores proof cache.
+    pub proof_cache: HashSet<Type>,
+}
+
+impl Context {
+    pub fn new() -> Context {
+        Context {
+            terms: vec![],
+            term_names: vec![],
+            proofs: vec![],
+            proof_cache: HashSet::new(),
+        }
+    }
+
+    pub fn has_term_ty(&self, name: &str, ty: &Type) -> bool {
+        for (term_name, term) in self.term_names.iter().zip(self.terms.iter()) {
+            if &**term_name == name {return term.get_type().has_bound(ty)}
+        }
+        false
+    }
+
+    pub fn has_term(&self, name: &str) -> bool {
+        self.term_names.iter().any(|n| &**n == name)
+    }
+
+    pub fn run_str(
+        &mut self,
+        script: &str,
+        search: &mut Search,
+        loader: &mut Loader,
+    ) -> Result<Option<Arc<String>>, String> {
+        parsing::run_str(self, script, search, loader)
+    }
+
+    pub fn run(
+        &mut self,
+        file: &str,
+        search: &mut Search,
+        loader: &mut Loader,
+    ) -> Result<Option<Arc<String>>, String> {
+        use std::fs::File;
+        use std::io::Read;
+
+        let mut data_file =
+        File::open(file).map_err(|err| format!("Could not open `{}`, {}", file, err))?;
+        let mut data = String::new();
+        data_file.read_to_string(&mut data)
+            .map_err(|err| format!("Could not open `{}`, {}", file, err))?;
+        self.run_str(&data, search, loader)
+    }
+
+    pub fn new_term(
+        &mut self,
+        (name, t): (Arc<String>, Term),
+        search: &mut Search
+    ) -> Result<(), String> {
+        self.proof_cache.insert(t.get_type());
+        self.terms.push(t);
+        self.term_names.push(name.clone());
+        let last = self.terms.last().map(|n| n.clone()).unwrap();
+        if !last.has_type(&last.get_type(), self, search) {
+            return Err(format!("Type mismatch `{}`", name));
         }
         Ok(())
     }
-}
 
-impl From<&str> for Expr {
-    fn from(val: &str) -> Expr {Var(Arc::new(val.into()))}
-}
-
-impl Expr {
-    /// Get `a ⋁ b` info.
-    pub fn or(&self) -> Option<(Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == Or {return Some((abc.1.clone(), abc.2.clone()))}
-        }
-        None
+    #[must_use]
+    pub fn fun<F: FnOnce(&mut Context, &mut Search) -> Result<(), (Range, String)>>(
+        &mut self,
+        range: Range,
+        name: Arc<String>,
+        ty: Type,
+        search: &mut Search,
+        f: F
+    ) -> Result<(), (Range, String)> {
+        if let Type::Pow(_) = &ty {
+            let mut ctx = Context::new();
+            f(&mut ctx, search)?;
+            if ctx.prove(ty.clone(), search) && ctx.safe(&ty) {
+                // Force the proof since it is safe.
+                let ty = ty.lift();
+                self.add_proof(ty.clone());
+                self.new_term((name, Term::FunDecl(ty)), search)
+                    .map_err(|err| (range, err))?;
+                Ok(())
+            } else {Err((range, format!("Could not prove `{}`", ty.to_str(true, None))))}
+        } else {Err((range, "Expected `->`".into()))}
     }
 
-    /// Get `(f ↞ x)` info.
-    pub fn app(&self) -> Option<(Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == App {return Some((abc.1.clone(), abc.2.clone()))}
-        }
-        None
+    #[must_use]
+    pub fn lam<F: FnOnce(&mut Context, &mut Search) -> Result<(), (Range, String)>>(
+        &mut self,
+        range: Range,
+        name: Arc<String>,
+        ty: Type,
+        search: &mut Search,
+        f: F
+    ) -> Result<(), (Range, String)> {
+        if let Type::Imply(_) = ty {
+            let mut ctx = self.clone();
+            f(&mut ctx, search)?;
+            if ctx.prove(ty.clone(), search) {
+                // Force the proof since it is safe.
+                self.add_proof(ty.clone());
+                self.new_term((name, Term::LamDecl(ty)), search)
+                    .map_err(|err| (range, err))?;
+                Ok(())
+            } else {Err((range, format!("Could not prove `{}`", ty.to_str(true, None))))}
+        } else {Err((range, "Expected `=>`".into()))}
     }
 
-    /// Get `¬~A` info.
-    pub fn not_qu(&self) -> Option<Expr> {self.not()?.qu()}
+    // Returns `true` if type is safe to add to list of proofs.
+    //
+    // There are only some exponential propositions (power) that are unsafe.
+    // If every initial term is covered in the assumption, then it is safe.
+    fn safe(&self, ty: &Type) -> bool {
+        if self.terms.len() == 0 {true}
+        else if let Type::Pow(ab) = ty {
+            let mut cover = true;
+            for term in &self.terms {
+                if term.is_safe() {continue};
 
-    /// Get `~¬A` info.
-    pub fn qu_not(&self) -> Option<Expr> {self.qu()?.not()}
-
-    /// Get `~A` info.
-    pub fn qu(&self) -> Option<Expr> {
-        if let Un(ab) = self {
-            if ab.0 == Qubit {return Some(ab.1.clone())}
-        }
-        None
-    }
-
-    /// Get `A ~~ B` info.
-    pub fn qual(&self) -> Option<(Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == Qual {return Some((abc.1.clone(), abc.2.clone()))}
-        }
-        None
-    }
-
-    /// Get `A → ⊥` info.
-    pub fn not(&self) -> Option<Expr> {
-        if let Some((a, Fa)) = self.imply() {Some(a)} else {None}
-    }
-
-    /// Get `(A = B) ^ ⊤` info.
-    pub fn qubit_eq(&self) -> Option<(Expr, Expr)> {
-        if let Some(res) = self.pow() {
-            match res {
-                (Bin(abc), Tr) if abc.0 == Eq => {
-                    return Some((abc.1.clone(), abc.2.clone()));
+                let ty = term.get_type();
+                if !ty.is_covered(&ab.1) {
+                    cover = false;
+                    break;
                 }
-                _ => {}
             }
+            cover
         }
-        None
+        else {true}
     }
 
-    /// Get imply info.
-    pub fn imply(&self) -> Option<(Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == Imply {
-                return Some((abc.1.clone(), abc.2.clone()))
-            }
-        }
-        None
-    }
+    fn fast_proof(&mut self, proof: &Type) -> bool {
+        use Type::*;
 
-    /// Get dual info.
-    pub fn dual(&self) -> Option<(Expr, Expr, Expr)> {
-        if let Bin(abc) = self {
-            if let Some(op) = abc.0.dual_op() {
-                return Some((op, abc.1.clone(), abc.2.clone()))
-            }
-        }
-        None
-    }
+        match proof {
+            True => true,
+            Or(ab) if self.has_proof(&ab.0) || self.has_proof(&ab.1) => true,
+            And(ab) if self.has_proof(&ab.0) && self.has_proof(&ab.1) => true,
+            Imply(ab) if self.has_proof(&ab.1) => true,
+            Pow(ab) => {
+                let has = self.has_proof(&ab.0);
+                if has && self.safe(proof) {return true};
 
-    /// Get eq info.
-    pub fn eq(&self) -> Option<(Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == Eq {
-                return Some((abc.1.clone(), abc.2.clone()))
-            }
-        }
-        None
-    }
+                if let True = ab.1 {
+                    // tauto_hooo_imply `(a => b)^c  ->  (a^c => b^c)^true`.
+                    if let Imply(ab) = &ab.0 {
+                        if let (Pow(ref x), Pow(ref y)) = **ab {
+                            if x.1 == y.1 {
+                                let transform = pow(imply(x.0.clone(), y.0.clone()), x.1.clone());
+                                return self.has_proof(&transform);
+                            }
+                        }
+                    }
 
-    /// Get and info.
-    pub fn and(&self) -> Option<(Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == And {
-                return Some((abc.1.clone(), abc.2.clone()))
-            }
-        }
-        None
-    }
-
-    /// Get wave info.
-    pub fn wave(&self) -> Option<(Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == Wave {
-                return Some((abc.1.clone(), abc.2.clone()))
-            }
-        }
-        None
-    }
-
-    /// Get dual operator info.
-    pub fn dual_op(&self) -> Option<Expr> {
-        if let Some((op, x)) = self.pow() {
-            if op == Fa {return Some(x)}
-        }
-        None
-    }
-
-    /// Get pow info.
-    pub fn pow(&self) -> Option<(Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == Pow {
-                return Some((abc.1.clone(), abc.2.clone()))
-            }
-        }
-        None
-    }
-
-    /// Get and info.
-    pub fn and_ty(&self) -> Option<(Expr, Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == Ty {
-                if let Bin(xyz) = &abc.2 {
-                    if xyz.0 == And {
-                        return Some((abc.1.clone(), xyz.1.clone(), xyz.2.clone()))
+                    // tauto_hooo_or `(a | b)^c  ->  (a^c | b^c)^true`.
+                    if let Or(ab) = &ab.0 {
+                        if let (Pow(ref x), Pow(ref y)) = **ab {
+                            if x.1 == y.1 {
+                                let transform = pow(or(x.0.clone(), y.0.clone()), x.1.clone());
+                                return self.has_proof(&transform);
+                            }
+                        }
                     }
                 }
+                false
             }
+            _ => false,
         }
-        None
     }
 
-    /// Get type info.
-    pub fn ty(&self) -> Option<(Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == Ty {return Some((abc.1.clone(), abc.2.clone()))}
+    pub fn has_proof(&mut self, proof: &Type) -> bool {
+        if self.proof_cache.contains(proof) {return true};
+
+        if self.proofs.iter().any(|n| n.has_bound(proof)) {
+            self.proof_cache.insert(proof.clone());
+            true
+        } else if self.terms.iter().any(|n| n.get_type().has_bound(proof)) {
+            self.proof_cache.insert(proof.clone());
+            true
+        } else if self.fast_proof(proof) {
+            self.proof_cache.insert(proof.clone());
+            true
+        } else {
+            false
         }
-        None
     }
 
-    /// Find item in iterator that equals itself.
-    pub fn find<'a>(&self, facts: impl Iterator<Item = &'a Expr>) -> Option<usize> {
-        let mut found: Option<usize> = None;
-        for (i, f) in facts.enumerate() {
-            if f == self {
-                found = Some(i);
-                break;
+    pub fn proof_has(&self, proof: &Type) -> bool {
+        self.proofs.iter().any(|n| proof.has_bound(n))
+    }
+
+    /// Adds a proof by first checking redundance.
+    pub fn add_proof(&mut self, proof: Type) {
+        if !self.has_proof(&proof) {
+            self.proofs.push(proof.clone());
+            self.proof_cache.insert(proof);
+        }
+    }
+
+    #[must_use]
+    pub fn prove_depth(&mut self, ty: Type, depth: u32, search: &mut Search) -> bool {
+        use Type::*;
+
+        if depth == 0 {return false}
+        if self.has_proof(&ty) {return true}
+
+        // Conclude pow that covers context.
+        if let Pow(ab) = &ty {
+            if self.prove_depth(ab.0.clone(), depth - 1, search) {
+                self.add_proof(ty);
+                return true;
             }
+
+            search.inc();
         }
-        found
+
+        false
     }
 
-    /// Returns `f : A -> B`.
-    pub fn fun_ty(&self) -> Option<(Expr, Expr, Expr)> {
-        if let Bin(abc) = self {
-            if abc.0 == Ty {
-                if let Bin(xyz) = &abc.2 {
-                    if xyz.0 == Imply {
-                        return Some((abc.1.clone(), xyz.1.clone(), xyz.2.clone()))
+    #[must_use]
+    pub fn prove(&mut self, ty: Type, search: &mut Search) -> bool {self.prove_depth(ty, 3, search)}
+}
+
+/// Represents a term.
+#[derive(Clone, Debug)]
+pub enum Term {
+    /// Proof `()` of some statement that can be proved.
+    Check(Type),
+    /// An axiom.
+    Axiom(Type),
+    /// A variable must be covered by context to be lifted.
+    Var(Type),
+    /// Function declaration.
+    FunDecl(Type),
+    /// Lambda declaration.
+    LamDecl(Type),
+    /// Function application.
+    App(Arc<String>, Vec<Arc<String>>, Type),
+    /// Match statement.
+    Match(Vec<Arc<String>>, Type),
+}
+
+impl Term {
+    pub fn is_safe(&self) -> bool {
+        use Term::*;
+
+        match self {
+            Var(_) => false,
+            Check(_) | Axiom(_) | FunDecl(_) | LamDecl(_) | App(..) | Match(..) => true,
+        }
+    }
+
+    pub fn get_type(&self) -> Type {
+        use Term::*;
+
+        match self {
+            Check(t) => t.clone(),
+            Axiom(t) => t.clone(),
+            Var(t) => t.clone(),
+            FunDecl(ty) => ty.clone(),
+            LamDecl(ty) => ty.clone(),
+            App(_, _, t) => t.clone(),
+            Match(_, t) => t.clone(),
+        }
+    }
+
+    pub fn has_type(&self, ty: &Type, ctx: &mut Context, search: &mut Search) -> bool {
+        use Term::*;
+
+        match self {
+            App(f, args, t) if t.has_bound(ty) => {
+                let mut fun_decl: Option<usize> = None;
+                let mut arg_inds: Vec<Option<usize>> = vec![None; args.len()];
+                for (i, term_name) in ctx.term_names.iter().enumerate().rev() {
+                    if term_name == f {
+                        fun_decl = Some(i);
                     }
                 }
+                for (j, arg) in args.iter().enumerate() {
+                    for (i, term_name) in ctx.term_names.iter().enumerate().rev() {
+                        if term_name == arg {
+                            arg_inds[j] = Some(i);
+                            break;
+                        }
+                    }
+                }
+                if arg_inds.iter().any(|n| n.is_none()) {return false};
+
+                if let Some(fun_decl) = fun_decl {
+                    let ty_f = ctx.terms[fun_decl].get_type();
+                    if args.len() == 0 {
+                        return ty_f.has_bound(t);
+                    } else {
+                        let arg_ind = arg_inds.pop().unwrap();
+                        let mut ty_arg = ctx.terms[arg_ind.unwrap()].get_type();
+                        for arg_ind in arg_inds.into_iter().rev() {
+                            ty_arg = and(ctx.terms[arg_ind.unwrap()].get_type(), ty_arg);
+                        }
+                        if let Type::Pow(ab) = ty_f {
+                            let mut bind = vec![];
+                            if ab.1.bind(&ty_arg, &mut bind) {
+                                if ab.0.replace(&bind).has_(t) {return true}
+                            }
+                        } else if let Type::Imply(ab) = ty_f {
+                            let mut bind = vec![];
+                            if ab.0.bind(&ty_arg, &mut bind) {
+                                if ab.1.replace(&bind).has_(t) {return true}
+                            }
+                        }
+                    }
+                }
+                false
             }
-        }
-        None
-    }
+            Match(args, t) if t.has_bound(ty) => {
+                let mut arg_inds: Vec<Option<usize>> = vec![None; args.len()];
+                for (j, arg) in args.iter().enumerate() {
+                    for (i, term_name) in ctx.term_names.iter().enumerate().rev() {
+                        if term_name == arg {
+                            arg_inds[j] = Some(i);
+                            break;
+                        }
+                    }
+                }
+                if arg_inds.iter().any(|n| n.is_none()) {return false};
 
-    /// Substitue this rule using pattern with expression.
-    pub fn subst(&self, pat: &Expr, e: &Expr) -> Result<Self, ()> {
-        transform::substitue(self, pat, e)
-    }
-
-    /// Whether the expression is a binary operator.
-    pub fn is_bin(&self) -> bool {
-        match self {
-            X | Y | A | B => false,
-            Tr | Fa | Qubit => false,
-            Fst | Snd | Left | Right |
-            SwapOr | SubTyFst | SubTySnd |
-            Hooo | HoooDual | HoooWave |
-            SwapWave | PowMul |
-            Tauto | Para | Uniform | Theory => false,
-            Var(_) | Bin(_) | Un(_) | Subst(_) => false,
-            Ty |
-            Imply |
-            Rimply |
-            Pow |
-            And |
-            Or |
-            Eq |
-            Wave |
-            App |
-            Sq |
-            Di |
-            Qual => true,
-        }
-    }
-
-    /// Wether the expression is a symbol.
-    pub fn is_sym(&self) -> bool {
-        match self {
-            X | Y | A | B => false,
-            Var(_) | Bin(_) | Un(_) | Subst(_) => false,
-            Tr |
-            Fa |
-            Ty |
-            Imply |
-            Rimply |
-            Pow |
-            And |
-            Or |
-            Eq |
-            Wave |
-            Fst |
-            Snd |
-            Left |
-            Right |
-            SwapOr |
-            SubTyFst |
-            SubTySnd |
-            App |
-            Hooo |
-            HoooDual |
-            HoooWave |
-            SwapWave |
-            PowMul |
-            Sq |
-            Di |
-            Qubit |
-            Qual |
-            Tauto |
-            Para |
-            Uniform |
-            Theory => true,
-        }
-    }
-
-    /// Whether the expression contains binding symbols.
-    pub fn has_bind_symbol(&self) -> bool {
-        match self {
-            X | Y | A | B | Sq | Di => true,
-            Bin(abc) =>
-                abc.0.has_bind_symbol() |
-                abc.1.has_bind_symbol() |
-                abc.2.has_bind_symbol(),
+                let arg_ind = arg_inds.pop().unwrap();
+                let mut ty_arg = ctx.terms[arg_ind.unwrap()].get_type();
+                for arg_ind in arg_inds.into_iter().rev() {
+                    ty_arg = and(ctx.terms[arg_ind.unwrap()].get_type(), ty_arg);
+                }
+                let ty_f: Type = if args.len() == 1 {"false -> a".try_into().unwrap()}
+                    else {"(a | b) & ((a => c) & (b => c))  ->  c".try_into().unwrap()};
+                if let Type::Pow(ab) = ty_f.lift() {
+                    let mut bind = vec![];
+                    if ab.1.bind(&ty_arg, &mut bind) {
+                        if ab.0.replace(&bind).has_(t) {return true}
+                    }
+                }
+                false
+            }
+            Axiom(t) if t.has_bound(ty) => true,
+            FunDecl(t) if t.has_bound(ty) => true,
+            LamDecl(t) if t.has_bound(ty) => true,
+            Var(t) if t.has_bound(ty) => true,
+            Check(t) if ctx.prove(t.clone(), search) &&
+                ctx.prove(ty.clone(), search) => true,
             _ => false,
         }
     }
 }
 
-/// `a : b`.
-pub fn ty(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((Ty, a, b)))
-}
-
-/// `[f(x)]`.
-pub fn sub_ty_fst(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((SubTyFst, a, b)))
-}
-
-/// `[f x]`.
-pub fn sub_ty_snd(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((SubTySnd, a, b)))
-}
-
-/// `a ↞ b`.
-pub fn app(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((App, a, b)))
-}
-
-/// `(((fst ↞ a_ty) ↞ b_ty) ↞ a)`.
-pub fn fst(a_ty: Expr, b_ty: Expr, a: Expr) -> Expr {
-    app(app(app(Fst, a_ty), b_ty), a)
-}
-
-///  `(((snd ↞ a_ty) ↞ b_ty) ↞ a)`.
-pub fn snd(a_ty: Expr, b_ty: Expr, a: Expr) -> Expr {
-    app(app(app(Snd, a_ty), b_ty), a)
-}
-
-/// `((left ↞ a_ty) ↞ b_ty) ↞ a`.
-pub fn left(a_ty: Expr, b_ty: Expr, a: Expr) -> Expr {
-    app(app(app(Left, a_ty), b_ty), a)
-}
-
-/// `((right ↞ a_ty) ↞ b_ty) ↞ b`.
-pub fn right(a_ty: Expr, b_ty: Expr, b: Expr) -> Expr {
-    app(app(app(Right, a_ty), b_ty), b)
-}
-
-/// `(swap_or ↞ a_ty) ↞ b_ty`.
-pub fn swap_or(a_ty: Expr, b_ty: Expr) -> Expr {
-    app(app(SwapOr, a_ty), b_ty)
-}
-
-/// `a ^ b`.
-pub fn pow(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((Pow, a, b)))
-}
-
-/// `a = b`.
-pub fn eq(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((Eq, a, b)))
-}
-
-/// `a → b`.
-pub fn imply(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((Imply, a, b)))
-}
-
-/// `a ← b`.
-pub fn rimply(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((Rimply, a, b)))
-}
-
-/// `a → ⊥`.
-pub fn not(a: Expr) -> Expr {
-    imply(a, Fa)
-}
-
-/// `~a`.
-pub fn qu(a: Expr) -> Expr {
-    Un(Box::new((Qubit, a)))
-}
-
-/// `a ~~ b`.
-pub fn qual(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((Qual, a, b)))
-}
-
-/// `(tauto ↞ a)`.
-pub fn tauto(a: Expr) -> Expr {
-    app(Tauto, a)
-}
-
-/// `(para ↞ a)`.
-pub fn para(a: Expr) -> Expr {
-    app(Para, a)
-}
-
-/// `(uniform ↞ a)`.
-pub fn uniform(a: Expr) -> Expr {
-    app(Uniform, a)
-}
-
-/// `(theory ↞ a)`.
-pub fn theory(a: Expr) -> Expr {
-    app(Theory, a)
-}
-
-/// `a ⋀ b`.
-pub fn and(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((And, a, b)))
-}
-
-/// `a ⋁ b`.
-pub fn or(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((Or, a, b)))
-}
-
-/// `a □ b`.
-pub fn sq(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((Sq, a, b)))
-}
-
-/// `a ◇ b`.
-pub fn di(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((Di, a, b)))
-}
-
-/// `a ⊥^'op' b`.
-pub fn dual(op: Expr, a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((pow(Fa, op), a, b)))
-}
-
-/// `a ~◇~ b`.
-///
-/// This describes the duality between two operators.
-pub fn wave(a: Expr, b: Expr) -> Expr {
-    Bin(Box::new((Wave, a, b)))
-}
-
-/// `(((A ^ B) ↞ X) → A[B := X])`.
-pub fn app_subst() -> Expr {
-    imply(app(pow(A, B), X), Subst(Box::new((A, B, X))))
-}
-
-/// `(¬~A = ~¬A)`.
-pub fn sesh_qubit_eq() -> Expr {
-    eq(not(qu(A)), qu(not(A)))
-}
-
-/// `(A ~~ A) = ~A`.
-pub fn qual_eq_qubit() -> Expr {
-    eq(qual(A, A), qu(A))
-}
-
-/// `((A ~~ B) = ((A = B) ⋀ (~A ⋀ ~B)))`.
-pub fn qual_def() -> Expr {
-    eq(qual(A, B), and(eq(A, B), and(qu(A), qu(B))))
-}
-
-/// `(A ~~ B) = (B ~~ A)`.
-pub fn qual_symmetry() -> Expr {
-    eq(qual(A, B), qual(B, A))
-}
-
-/// `(((A ~~ B) ⋀ (B ~~ X)) = (A ~~ X))`.
-pub fn qual_transitivity() -> Expr {
-    eq(and(qual(A, B), qual(B, X)), qual(A, X))
-}
-
-/// `(((A = B) ⋀ (theory ↞ (A = B))) → (A ~~ B))`.
-pub fn qual_lift() -> Expr {
-    imply(and(eq(A, B), theory(eq(A, B))), qual(A, B))
-}
-
-/// `((tauto ↞ A) = (A ^ ⊤))`.
-pub fn tauto_def() -> Expr {
-    eq(tauto(A), pow(A, Tr))
-}
-
-/// `((para ↞ A) = (⊥ ^ A))`.
-pub fn para_def() -> Expr {
-    eq(para(A), pow(Fa, A))
-}
-
-/// `((uniform ↞ A) = ((tauto ↞ A) ⋁ (para ↞ a)))`.
-pub fn uniform_def() -> Expr {
-    eq(uniform(A), or(tauto(A), para(A)))
-}
-
-/// `((theory ↞ A) = ((uniform ↞ A) → ⊥))`.
-pub fn theory_def() -> Expr {
-    eq(theory(A), not(uniform(A)))
-}
-
-/// `((A = A) = ((A = A) ^ ⊤))`.
-pub fn hooo_lift_eq_refl() -> Expr {
-    eq(eq(A, A), pow(eq(A, A), Tr))
-}
-
-/// `X^X = ⊤`.
-pub fn hooo_refl() -> Expr {
-    eq(pow(X, X), Tr)
-}
-
-/// `(A : (X ^ X)) = (⊤ : ⊤)`.
-pub fn hooo_refl_red() -> Expr {
-    eq(ty(A, pow(X, X)), ty(Tr, Tr))
-}
-
-/// `((⊥ ^ ⊤) = ⊥)`.
-pub fn hooo_false_from_true() -> Expr {
-    eq(pow(Fa, Tr), Fa)
-}
-
-/// `X^⊥ = ⊤`.
-pub fn absurd() -> Expr {
-    eq(pow(X, Fa), Tr)
-}
-
-/// `(A : (X ^ ⊥)) = (⊤ : ⊤)`.
-pub fn absurd_red() -> Expr {
-    eq(ty(A, pow(X, Fa)), ty(Tr, Tr))
-}
-
-/// `⊤^X = ⊤`
-pub fn htrue() -> Expr {
-    eq(pow(Tr, X), Tr)
-}
-
-/// `(A : (⊤ ^ X)) = (⊤ : ⊤)`.
-pub fn htrue_red() -> Expr {
-    eq(ty(A, pow(Tr, X)), ty(Tr, Tr))
-}
-
-/// `(A □ B)^X = (A^X □ B^X)`.
-pub fn hooo() -> Expr {
-    eq(pow(sq(A, B), X), sq(pow(A, X), pow(B, X)))
-}
-
-/// `(Y : ((A □ B) ^ X)) = (((((fst ↞ ((A □ B) ^ X)) ↞ ((A ^ X) □ (B ^ X))) ↞ hooo) ↞ Y) : ((A ^ X) □ (B ^ X)))`.
-pub fn hooo_red() -> Expr {
-    let a = pow(sq(A, B), X);
-    let b = sq(pow(A, X), pow(B, X));
-    eq(
-        ty(Y, pow(sq(A, B), X)),
-        ty(app(fst(a, b, Hooo), Y), sq(pow(A, X), pow(B, X)))
-    )
-}
-
-/// `hooo : (A □ B)^X = (A^X □ B^X)`.
-pub fn hooo_def() -> Expr {
-    ty(Hooo, hooo())
-}
-
-/// `X^(A □ B) = (X^A ⊥^'□' X^B)`.
-pub fn hooo_dual() -> Expr {
-    eq(pow(X, sq(A, B)), dual(Sq, pow(X, A), pow(X, B)))
-}
-
-/// `(Y : (X ^ (A □ B))) = (((((fst ↞ (X ^ (A □ B))) ↞ ((X ^ A) (⊥ ^ □) (X ^ B))) ↞ hooo_dual) ↞ Y) : ((X ^ A) (⊥ ^ □) (X ^ B)))`.
-pub fn hooo_dual_red() -> Expr {
-    let a = pow(X, sq(A, B));
-    let b = dual(Sq, pow(X, A), pow(X, B));
-    eq(
-        ty(Y, a.clone()),
-        ty(app(fst(a, b.clone(), HoooDual), Y), b)
-    )
-}
-
-/// `(□ ~ ◇) = (((⊥ ^ □) = ◇) ⋀ ((⊥ ^ ◇) = □))`.
-pub fn hooo_wave() -> Expr {
-    eq(wave(Sq, Di), and(eq(pow(Fa, Sq), Di), eq(pow(Fa, Di), Sq)))
-}
-
-/// `(Y : (□ ~ ◇)) = (((((fst ↞ (□ ~ ◇)) ↞ (((⊥ ^ □) = ◇) ⋀ ((⊥ ^ ◇) = □))) ↞ hooo_wave) ↞ Y) : (((⊥ ^ □) = ◇) ⋀ ((⊥ ^ ◇) = □)))`.
-pub fn hooo_wave_red() -> Expr {
-    let a = wave(Sq, Di);
-    let b = and(eq(pow(Fa, Sq), Di), eq(pow(Fa, Di), Sq));
-    eq(
-        ty(Y, a.clone()),
-        ty(app(fst(a, b.clone(), HoooWave), Y), b)
-    )
-}
-
-/// `(A ~◇~ B) = (B ~◇~ A)`.
-pub fn wave_symmetry() -> Expr {
-    eq(wave(A, B), wave(B, A))
-}
-
-/// `(Y : (A ~◇~ B)) = (((((fst ↞ (A ~◇~ B)) ↞ (B ~◇~ A)) ↞ swap_wave) ↞ Y) : (B ~◇~ A))`.
-pub fn wave_red_symmetry() -> Expr {
-    let a = wave(A, B);
-    let b = wave(B, A);
-    eq(
-        ty(Y, a.clone()),
-        ty(app(fst(a, b.clone(), SwapWave), Y), b)
-    )
-}
-
-/// `'⋀' ~◇~ '⋁'`.
-pub fn wave_and_or() -> Expr {wave(And, Or)}
-
-/// `'→' ~◇~ '←'`.
-pub fn wave_imply_rimply() -> Expr {wave(Imply, Rimply)}
-
-/// `':' ~◇~ ':'`.
-pub fn wave_ty() -> Expr {wave(Ty, Ty)}
-
-/// `'=' ~◇~ '='`.
-pub fn wave_eq() -> Expr {wave(Eq, Eq)}
-
-/// `(A ⋀ (A → ⊥)) = ⊥`.
-pub fn paradox_eq() -> Expr {
-    eq(and(A, imply(A, Fa)), Fa)
-}
-
-/// `(A ⋀ (B → A)) → B`.
-pub fn modus_ponens() -> Expr {
-    imply(and(A, imply(A, B)), B)
-}
-
-/// `((A → B) → ((B → ⊥) → (A → ⊥)))`.
-pub fn modus_tollens() -> Expr {
-    imply(imply(A, B), imply(not(B), not(A)))
-}
-
-/// `(A = B) = ((A → B) ⋀ (B → A))`.
-pub fn eq_def() -> Expr {
-    eq(eq(A, B), and(imply(A, B), imply(B, A)))
-}
-
-/// `(X : (A = B)) = (X : ((A → B) ⋀ (B → A)))`.
-pub fn eq_red_def() -> Expr {
-    let a = eq(A, B);
-    let b = and(imply(A, B), imply(B, A));
-    eq(ty(X, a), ty(X, b))
-}
-
-/// `((A ^ X) ^ Y) = (A ^ (X ⋀ Y))`.
-pub fn exp_def() -> Expr {
-    eq(pow(pow(A, X), Y), pow(A, and(X, Y)))
-}
-
-/// `(B : ((A ^ X) ^ Y)) = (((((fst ↞ ((A ^ X) ^ Y)) ↞ (A ^ (X ⋀ Y))) ↞ pow_mul) ↞ B) : (A ^ (X ⋀ Y)))`.
-pub fn exp_red_def() -> Expr {
-    let a = pow(pow(A, X), Y);
-    let b = pow(A, and(X, Y));
-    eq(ty(B, a.clone()), ty(app(fst(a, b.clone(), PowMul), B), b))
-}
-
-/// `fst : ((A ⋀ B) → A)`.
-pub fn fst_ty() -> Expr {
-    ty(Fst, imply(and(A, B), A))
-}
-
-/// `snd : ((A ⋀ B) → B)`.
-pub fn snd_ty() -> Expr {
-    ty(Snd, imply(and(A, B), B))
-}
-
-/// `((f ↞ x) ⋀ ((f : (A → B)) ⋀ (x : A))) = ((f ↞ x) : B)`.
-pub fn app_ty(f: Expr, x: Expr) -> Expr {
-    eq(
-        and(app(f.clone(), x.clone()),
-            and(ty(f.clone(), imply(A, B)),
-                ty(x.clone(), A))), ty(app(f, x), B))
-}
-
-/// `(A ⋀ B) = (B ⋀ A)`
-pub fn and_symmetry() -> Expr {
-    eq(and(A, B), and(B, A))
-}
-
-/// `(X : (A ⋀ B)) = (((((fst ↞ A) ↞ B) ↞ X) ⋀ (((snd ↞ A) ↞ B) ↞ X)) : (B ⋀ A))`.
-pub fn and_red_symmetry() -> Expr {
-    eq(ty(X, and(A, B)), ty(and(fst(A, B, X), snd(A, B, X)), and(B, A)))
-}
-
-/// `(A ⋁ B) = (B ⋁ A)`.
-pub fn or_symmetry() -> Expr {
-    eq(or(A, B), or(B, A))
-}
-
-/// `(X : (A ⋁ B)) = (((swap_or ↞ A) ↞ B) : (B ⋁ A))`.
-pub fn or_red_symmetry() -> Expr {
-    eq(ty(X, or(A, B)), ty(swap_or(A, B), or(B, A)))
-}
-
-/// `(A = B) = (B = A)`.
-pub fn eq_symmetry() -> Expr {
-    eq(eq(A, B), eq(B, A))
-}
-
-/// `(X : (A = B)) = (((((fst ↞ A) ↞ B) ↞ X) ⋀ (((snd ↞ A) ↞ B) ↞ X)) : (B = A))`.
-pub fn eq_red_symmetry() -> Expr {
-    eq(ty(X, eq(A, B)), ty(and(fst(A, B, X), snd(A, B, X)), eq(B, A)))
-}
-
-/// `(A → B) = (B ← A)`.
-pub fn imply_symmetry() -> Expr {
-    eq(imply(A, B), rimply(B, A))
-}
-
-/// `(((A → B) ⋀ (B → X)) → (A → X))`.
-pub fn imply_transitivity() -> Expr {
-    imply(and(imply(A, B), imply(B, X)), imply(A, X))
-}
-
-/// `(⊤ ⋀ X) = X`.
-pub fn and_left_tr() -> Expr {
-    eq(and(Tr, X), X)
-}
-
-/// `(X ⋀ ⊤) = X`.
-pub fn and_right_tr() -> Expr {
-    eq(and(X, Tr), X)
-}
-
-/// `(⊥ ⋀ X) = ⊥`.
-pub fn and_left_fa() -> Expr {
-    eq(and(Fa, X), Fa)
-}
-
-/// `(X ⋀ ⊥) = ⊥`.
-pub fn and_right_fa() -> Expr {
-    eq(and(X, Fa), Fa)
-}
-
-/// `(⊤ ⋁ X) = ⊤`.
-pub fn or_left_tr() -> Expr {
-    eq(or(Tr, X), Tr)
-}
-
-/// `(X ⋁ ⊤) = ⊤`.
-pub fn or_right_tr() -> Expr {
-    eq(or(X, Tr), Tr)
-}
-
-/// `(⊥ ⋁ X) = X`.
-pub fn or_left_fa() -> Expr {
-    eq(or(Fa, X), X)
-}
-
-/// `(X ⋁ ⊥) = X`.
-pub fn or_right_fa() -> Expr {
-    eq(or(X, Fa), X)
-}
-
-/// `(A : (⊤ ⋀ X)) = ((((snd ↞ ⊤) ↞ X) ↞ A) : X)`.
-pub fn and_red_left_tr() -> Expr {
-    eq(ty(A, and(Tr, X)), ty(snd(Tr, X, A), X))
-}
-
-/// `(A : (X ⋀ ⊤)) = ((((fst ↞ X) ↞ ⊤) ↞ A) : X)`.
-pub fn and_red_right_tr() -> Expr {
-    eq(ty(A, and(X, Tr)), ty(fst(X, Tr, A), X))
-}
-
-/// `(A : (⊥ ⋀ X)) = ((((fst ↞ ⊥) ↞ X) ↞ A) : ⊥)`.
-pub fn and_red_left_fa() -> Expr {
-    eq(ty(A, and(Fa, X)), ty(fst(Fa, X, A), Fa))
-}
-
-/// `(A : (X ⋀ ⊥)) = ((((snd ↞ X) ↞ ⊥) ↞ A) : ⊥)`.
-pub fn and_red_right_fa() -> Expr {
-    eq(ty(A, and(X, Fa)), ty(snd(X, Fa, A), Fa))
-}
-
-/// `(A : (⊤ ⋁ X)) = (⊤ : ⊤)`.
-pub fn or_red_left_tr() -> Expr {
-    eq(ty(A, or(Tr, X)), ty(Tr, Tr))
-}
-
-/// `(A : (X ⋁ ⊤)) = (⊤ : ⊤)`.
-pub fn or_red_right_tr() -> Expr {
-    eq(ty(A, or(X, Tr)), ty(Tr, Tr))
-}
-
-/// `((((right ↞ ⊥) ↞ X) ↞ A) : (⊥ ⋁ X)) = (A : X)`.
-pub fn or_red_left_fa() -> Expr {
-    eq(ty(right(Fa, X, A), or(Fa, X)), ty(A, X))
-}
-
-/// `((((left ↞ X) ↞ ⊥) ↞ A) : (X ⋁ ⊥)) = (A : X)`.
-pub fn or_red_right_fa() -> Expr {
-    eq(ty(left(X, Fa, A), or(X, Fa)), ty(A, X))
-}
-
-/// `(X → ⊤) = ⊤`.
-pub fn imply_right_tr() -> Expr {
-    eq(imply(X, Tr), Tr)
-}
-
-/// `(A : (X → ⊤)) = (⊤ : ⊤)`.
-pub fn imply_red_right_tr() -> Expr {
-    eq(ty(A, imply(X, Tr)), ty(Tr, Tr))
-}
-
-/// `(⊥ → X) = ⊤`.
-pub fn imply_left_fa() -> Expr {
-    eq(imply(Fa, X), Tr)
-}
-
-/// `(A : (⊥ → X)) = (⊤ : ⊤)`.
-pub fn imply_red_left_fa() -> Expr {
-    eq(ty(A, imply(Fa, X)), ty(Tr, Tr))
-}
-
-/// `((⊤ → X) = X)`.
-pub fn imply_left_tr() -> Expr {
-    eq(imply(Tr, X), X)
-}
-
-/// `((A : x) ⋀ (B : y)) = ((A ⋀ B) : (x ⋀ y))`.
-pub fn and_intro(ty_a: Expr, ty_b: Expr) -> Expr {
-    eq(and(ty(A, ty_a.clone()), ty(B, ty_b.clone())), ty(and(A, B), and(ty_a, ty_b)))
-}
-
-/// `((A : x) ⋁ (B : y)) = ((((left ↞ x) ↞ y) ↞ A) : (x ⋁ y))`.
-pub fn or_intro_left(ty_a: Expr, ty_b: Expr) -> Expr {
-    eq(or(ty(A, ty_a.clone()), ty(B, ty_b.clone())),
-       ty(left(ty_a.clone(), ty_b.clone(), A), or(ty_a, ty_b)))
-}
-
-/// `((A : x) ⋁ (B : y)) = ((((right ↞ x) ↞ y) ↞ B) : (x ⋁ y))`.
-pub fn or_intro_right(ty_a: Expr, ty_b: Expr) -> Expr {
-    eq(or(ty(A, ty_a.clone()), ty(B, ty_b.clone())),
-       ty(right(ty_a.clone(), ty_b.clone(), B), or(ty_a, ty_b)))
-}
-
-/// `((A = B) ^ ⊤) = ((A ^ ⊤) = (B ^ ⊤))`.
-pub fn hooo_tauto_eq() -> Expr {
-    hooo().subst(&Sq, &Eq).unwrap().subst(&X, &Tr).unwrap()
-}
-
-/// Checks that type level equality matches equality with proofs.
-pub fn check_eq(eq_ab: &Expr, proof_eq_ab: &Expr) -> bool {
-    match (eq_ab, proof_eq_ab) {
-        (Bin(abc), Bin(xyz)) if (abc.0 == Eq) && (xyz.0 == Eq) => {
-            match (&xyz.1, &xyz.2) {
-                (Bin(ty_a), Bin(ty_b)) if (ty_a.0 == Ty) && (ty_b.0 == Ty) => {
-                    (abc.1 == ty_a.2) && (abc.2 == ty_b.2)
-                }
-                _ => false
+/// Represent types.
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Type {
+    /// Unit type.
+    True,
+    /// Empty type.
+    False,
+    /// A type variable that binds to expressions of same name.
+    Ty(Arc<String>),
+    /// A type variable that can bind to any expression.
+    AllTy(Arc<String>),
+    /// Exponential type (function pointer).
+    Pow(Box<(Type, Type)>),
+    /// Tuple.
+    And(Box<(Type, Type)>),
+    /// Or.
+    Or(Box<(Type, Type)>),
+    /// Imply.
+    Imply(Box<(Type, Type)>),
+}
+
+#[derive(Copy, Clone)]
+pub enum Op {
+    Pow,
+    And,
+    Or,
+    Imply,
+}
+
+fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
+    use Type::*;
+
+    match ty {
+        True | False | Ty(_) | AllTy(_) => false,
+        _ => {
+            match (ty.op(), parent_op) {
+                (Some(Op::Pow), Some(Op::And) | Some(Op::Or) | Some(Op::Imply)) => false,
+                _ => true,
             }
         }
-        _ => false,
     }
 }
 
-/*
-/// `(A ^ (: 0↞ B)) = (B : A)`
-pub fn pow_sub_ty() -> Expr {
-    eq(pow(A, sub_ty_fst(Ty, B)), ty(B, A))
+impl Type {
+    pub fn op(&self) -> Option<Op> {
+        use Type::*;
+
+        match self {
+            True | False | Ty(_) | AllTy(_) => None,
+            Pow(_) => Some(Op::Pow),
+            And(_) => Some(Op::And),
+            Or(_) => Some(Op::Or),
+            Imply(_) => Some(Op::Imply),
+        }
+    }
+
+    pub fn to_str(&self, top: bool, parent_op: Option<Op>) -> String {
+        if top {
+            if let Type::Pow(ab) = self {
+                let op = self.op();
+                format!("{} -> {}", ab.1.to_str(false, op), ab.0.to_str(false, op))
+            } else {
+                format!("{}", self)
+            }
+        } else {
+            if needs_parens(self, parent_op) {format!("({})", self)}
+            else {format!("{}", self)}
+        }
+    }
 }
 
-// `(X : (A □ B)) = ((X : A) □ (X : B))`.
-pub fn ty_hooo() -> Expr {
-    // `((A □ B) ^ X) = ((A ^ X) □ (B ^ X))`.
-    let e = hooo();
-    // `((A □ B) ^ (: 0↞ X)) = ((A ^ (: 0↞ X)) □ (B ^ (: 0↞ X)))`.
-    let e = e.subst(&X, &sub_ty_fst(Ty, X)).unwrap();
-    // `(X : (A □ B)) = ((A ^ (: 0↞ X)) □ (B ^ (: 0↞ X)))`.
-    let e = rewrite_left(&pow_sub_ty(), &e).unwrap();
-    // `(X : (A □ B)) = ((X : A) □ (B ^ (: 0↞ X)))`.
-    let e = in_right(&e, |e| rewrite_left(&pow_sub_ty(), &e)).unwrap();
-    // `(X : (A □ B)) = ((X : A) □ (X : B))`.
-    let e = in_right(&e, |e| rewrite_right(&pow_sub_ty(), &e)).unwrap();
-    e
+impl fmt::Display for Type {
+    fn fmt(&self, w: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        use Type::*;
+
+        let op = self.op();
+        match self {
+            True => write!(w, "true")?,
+            False => write!(w, "false")?,
+            Ty(a) => write!(w, "{}", a)?,
+            AllTy(a) => write!(w, "{}", a)?,
+            Pow(ab) => write!(w, "{}^{}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
+            And(ab) => write!(w, "{} & {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
+            Or(ab) => write!(w, "{} | {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
+            Imply(ab) if ab.1 == False => write!(w, "!{}", ab.0.to_str(false, op))?,
+            Imply(ab) => write!(w, "{} => {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
+        }
+        Ok(())
+    }
 }
-*/
+
+impl TryFrom<&str> for Type {
+    type Error = String;
+    fn try_from(s: &str) -> Result<Type, String> {
+        parsing::parse_ty_str(s)
+    }
+}
+
+impl Type {
+    pub fn is_covered(&self, other: &Type) -> bool {
+        use Type::*;
+
+        if self.has_bound(other) {return true};
+
+        match other {
+            And(ab) => self.is_covered(&ab.0) || self.is_covered(&ab.1),
+            _ => false,
+        }
+    }
+
+    pub fn lift(self) -> Type {
+        use Type::*;
+
+        match self {
+            True => True,
+            False => False,
+            Ty(a) => AllTy(a),
+            AllTy(a) => AllTy(a),
+            And(ab) => and(ab.0.lift(), ab.1.lift()),
+            Imply(ab) => imply(ab.0.lift(), ab.1.lift()),
+            Pow(ab) => pow(ab.0.lift(), ab.1.lift()),
+            Or(ab) => or(ab.0.lift(), ab.1.lift()),
+        }
+    }
+
+    #[must_use]
+    pub fn bind(&self, val: &Type, bind: &mut Vec<(Type, Type)>) -> bool {
+        use Type::*;
+
+        match (self, val) {
+            (True, True) => true,
+            (False, False) => true,
+            (Ty(a), Ty(b)) => a == b,
+            (AllTy(a), _) => {
+                for (name, v) in bind.iter() {
+                    if let AllTy(name) = name {
+                        if name == a && val != v {return false}
+                    }
+                }
+                bind.push((self.clone(), val.clone()));
+                true
+            }
+            (And(ab), And(cd)) |
+            (Or(ab), Or(cd)) |
+            (Pow(ab), Pow(cd)) |
+            (Imply(ab), Imply(cd)) => {
+                if !ab.0.bind(&cd.0, bind) {return false};
+                if !ab.1.bind(&cd.1, bind) {return false};
+                true
+            }
+            (Pow(ab), Imply(cd)) => {
+                if !ab.1.bind(&cd.0, bind) {return false};
+                if !ab.0.bind(&cd.1, bind) {return false};
+                true
+            }
+            _ => false,
+        }
+    }
+
+    pub fn replace(&self, bind: &[(Type, Type)]) -> Type {
+        use Type::*;
+
+        for (arg, val) in bind {
+            if arg == self {return val.clone()}
+        }
+        match self {
+            True => self.clone(),
+            False => self.clone(),
+            Ty(_) => self.clone(),
+            AllTy(_) => self.clone(),
+            Pow(ab) => pow(ab.0.replace(bind), ab.1.replace(bind)),
+            Imply(ab) => imply(ab.0.replace(bind), ab.1.replace(bind)),
+            And(ab) => and(ab.0.replace(bind), ab.1.replace(bind)),
+            Or(ab) => or(ab.0.replace(bind), ab.1.replace(bind)),
+        }
+    }
+
+    pub fn has_bound(&self, other: &Type) -> bool {
+        let mut bind = vec![];
+        if self.bind(other, &mut bind) {
+            self.replace(&bind).has_(other)
+        } else {false}
+    }
+
+    pub fn has_(&self, other: &Type) -> bool {
+        use Type::*;
+
+        match (self, other) {
+            (False, False) => true,
+            (True, True) => true,
+            (Ty(a), Ty(b)) if a == b => true,
+            (AllTy(_), _) => true,
+            (And(ab), And(cd)) if ab.0.has_(&cd.0) && ab.1.has_(&cd.1) => true,
+            (Or(ab), Or(cd)) if ab.0.has_(&cd.0) && ab.1.has_(&cd.1) => true,
+            (Pow(ab), Imply(cd)) if ab.0.has_(&cd.1) && ab.0.has_(&cd.1) => true,
+            (Pow(ab), Pow(cd)) if ab.1.has_(&cd.1) && ab.0.has_(&cd.0) => true,
+            (Imply(ab), Imply(cd)) if ab.0.has_(&cd.0) && ab.1.has_(&cd.1) => true,
+            (x, Or(ab)) if x.has_(&ab.0) || x.has_(&ab.1) => dbg!(true),
+            _ => false,
+        }
+    }
+}
+
+/// Loads function types.
+pub struct Loader {
+    /// The working directory.
+    pub dir: Arc<String>,
+    /// Function type cache.
+    pub functions: HashMap<Arc<String>, Type>,
+    /// Whether to execute script when parsing.
+    ///
+    /// First time when traversing a project,
+    /// this is set to `false` in order to extract function definitions.
+    pub run: bool,
+    /// Library dependencies.
+    pub dependencies: Vec<LibInfo>,
+    /// Stores trace to avoid cyclic proofs.
+    pub trace: Vec<Arc<String>>,
+}
+
+impl Loader {
+    pub fn new(dir: Arc<String>) -> Result<Loader, String> {
+        let mut loader = Loader {
+            dir: dir.clone(),
+            functions: HashMap::new(),
+            run: false,
+            dependencies: vec![],
+            trace: vec![],
+        };
+
+        let std = parsing::lib_str(include_str!("../source/std/Hooo.config"))?;
+        loader.dependencies.push(std);
+
+        // Extract all functions.
+        for entry in std::fs::read_dir(&**dir).unwrap() {
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                if path.is_file() {
+                    if let Some(ext) = path.extension() {
+                        if ext == "hooo" {
+                            let mut ctx = Context::new();
+                            let mut search = Search::new();
+                            let file = path.to_str().unwrap();
+                            match ctx.run(&file, &mut search, &mut loader) {
+                                Ok(_) => {}
+                                Err(err) => return Err(
+                                    format!("Load error #100\nIn file `{}`\n{}", file, err)),
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        loader.run = true;
+
+        Ok(loader)
+    }
+
+    pub fn load_info(&mut self) -> Result<Option<LibInfo>, String> {
+        let path = Path::new(&**self.dir).join("Hooo.config");
+        if path.exists() {
+            match LibInfo::from_path(&path) {
+                Ok(x) => {
+                    for dep in &x.dependencies {
+                        match dep {
+                            Dep::Path(p) => {
+                                let dep_path = Path::new(&**self.dir).join(&**p).join("Hooo.config");
+                                match LibInfo::from_path(&dep_path) {
+                                    Ok(x) => self.dependencies.push(x),
+                                    Err(err) => return Err(err),
+                                }
+                            }
+                        }
+                    }
+                    Ok(Some(x))
+                }
+                Err(err) => Err(err),
+            }
+        } else {Ok(None)}
+    }
+
+    pub fn load_fun(&mut self, ns: &[Arc<String>], f: &Arc<String>) -> Result<Type, String> {
+        let this_lib = ns.len() == 0 || &**ns[0] == "crate";
+
+        if this_lib {
+            for tr in &self.trace {
+                if &**tr == &**f {
+                    return Err(format!("Cyclic proof, `{}` uses `{}`", tr, f));
+                }
+            }
+        }
+
+        let functions = if this_lib {&self.functions}
+            else {
+                let mut found: Option<usize> = None;
+                for (i, lib) in self.dependencies.iter().enumerate() {
+                    if &lib.name == &ns[0] {
+                        found = Some(i);
+                        break;
+                    }
+                }
+                if let Some(i) = found {
+                    &self.dependencies[i].functions
+                } else {
+                    return Err(format!("Could not load namespace `{}`", ns[0]))
+                }
+            };
+
+        if let Some(ty) = functions.get(f) {
+            return Ok(ty.clone());
+        } else {
+            return Err(format!("Could not find `{}`", f));
+        }
+    }
+}
+
+pub enum Dep {
+    Path(Arc<String>),
+}
+
+/// Stores library information.
+pub struct LibInfo {
+    pub name: Arc<String>,
+    pub version: Arc<String>,
+    pub description: Arc<String>,
+    pub functions: HashMap<Arc<String>, Type>,
+    pub dependencies: Vec<Dep>,
+}
+
+impl LibInfo {
+    pub fn from_path(path: &Path) -> Result<LibInfo, String> {
+        use std::fs::File;
+        use std::io::Read;
+
+        let file = path.to_str().unwrap();
+        let mut data_file =
+        File::open(path).map_err(|err| format!("Could not open `{}`, {}", file, err))?;
+        let mut data = String::new();
+        data_file.read_to_string(&mut data)
+            .map_err(|err| format!("Could not open `{}`, {}", file, err))?;
+        parsing::lib_str(&data)
+    }
+}
+
+pub fn var(a: &str, t: Type) -> (Arc<String>, Term) {(Arc::new(a.into()), Term::Var(t))}
+
+pub fn ty(a: &str) -> Type {Type::Ty(Arc::new(a.into()))}
+pub fn pow(a: Type, b: Type) -> Type {Type::Pow(Box::new((a, b)))}
+pub fn and(a: Type, b: Type) -> Type {Type::And(Box::new((a, b)))}
+pub fn or(a: Type, b: Type) -> Type {Type::Or(Box::new((a, b)))}
+pub fn imply(a: Type, b: Type) -> Type {Type::Imply(Box::new((a, b)))}
+pub fn not(a: Type) -> Type {imply(a, Type::False)}
+pub fn eq(a: Type, b: Type) -> Type {and(imply(a.clone(), b.clone()), imply(b, a))}
+pub fn tauto(a: Type) -> Type {pow(a, Type::True)}
+pub fn para(a: Type) -> Type {pow(Type::False, a)}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use transform::*;
 
     #[test]
-    fn test_refl() {
-        assert_eq!(
-            rewrite(&hooo_refl(), &pow(Tr, Tr)),
-            Ok(Tr)
-        );
-    }
-
-    // `(a ⋀ b → a)^⊤ = ((a ⋀ b)^⊤ → a^⊤`.
-    #[test]
-    fn test_fst() {
-        let e = pow(imply(and("a".into(), "b".into()), "a".into()), Tr);
-        let e = rewrite(&hooo(), &e).unwrap();
-        assert!(!e.has_bind_symbol());
-        assert_eq!(e, imply(pow(and("a".into(), "b".into()), Tr), pow("a".into(), Tr)));
+    fn test_pow() {
+        let mut ctx = Context::new();
+        ctx.new_term(var("true", ty("Bool")), &mut Search::new()).unwrap();
+        assert!(ctx.prove(ty("Bool"), &mut Search::new()));
+        assert!(ctx.prove(pow(ty("Bool"), ty("Bool")), &mut Search::new()));
+        ctx.new_term(var("x", pow(ty("Bool"), ty("Bool"))), &mut Search::new()).unwrap();
+        assert!(ctx.prove(imply(ty("Bool"), ty("Bool")), &mut Search::new()));
     }
 
     #[test]
-    fn test_rewrite() {
-        let ty_x_a = ty("x".into(), "a".into());
-        let eq_ab = eq("a".into(), "b".into());
-        let e = rewrite_right(&eq_ab, &ty_x_a).unwrap();
-        assert_eq!(format!("{}", e), "(x : b)".to_string());
+    fn test_and() {
+        let mut ctx = Context::new();
+        ctx.new_term(var("x", ty("A")), &mut Search::new()).unwrap();
+        ctx.new_term(var("y", ty("B")), &mut Search::new()).unwrap();
+        assert!(ctx.prove(and(ty("A"), ty("B")), &mut Search::new()));
     }
 
     #[test]
-    fn test_proofs() {
-        assert!(check_eq(&and_symmetry(), &and_red_symmetry()));
-        assert!(check_eq(&or_symmetry(), &or_red_symmetry()));
-        assert!(check_eq(&eq_symmetry(), &eq_red_symmetry()));
-        assert!(check_eq(&wave_symmetry(), &wave_red_symmetry()));
-        assert!(check_eq(&and_left_tr(), &and_red_left_tr()));
-        assert!(check_eq(&and_right_tr(), &and_red_right_tr()));
-        assert!(check_eq(&and_left_fa(), &and_red_left_fa()));
-        assert!(check_eq(&and_right_fa(), &and_red_right_fa()));
-        assert!(check_eq(&or_left_tr(), &or_red_left_tr()));
-        assert!(check_eq(&or_right_tr(), &or_red_right_tr()));
-        assert!(check_eq(&or_left_fa(), &or_red_left_fa()));
-        assert!(check_eq(&or_right_fa(), &or_red_right_fa()));
-        assert!(check_eq(&imply_right_tr(), &imply_red_right_tr()));
-        assert!(check_eq(&imply_left_fa(), &imply_red_left_fa()));
-        assert!(check_eq(&hooo(), &hooo_red()));
-        assert!(check_eq(&hooo_dual(), &hooo_dual_red()));
-        assert!(check_eq(&hooo_wave(), &hooo_wave_red()));
-        assert!(check_eq(&htrue(), &htrue_red()));
-        assert!(check_eq(&absurd(), &absurd_red()));
-        assert!(check_eq(&hooo_refl(), &hooo_refl_red()));
-        assert!(check_eq(&eq_def(), &eq_red_def()));
-        assert!(check_eq(&exp_def(), &exp_red_def()));
+    fn test_anti_pow() {
+        let mut ctx = Context::new();
+        assert!(ctx.fun(Range::empty(0), Arc::new("foo".into()), "a^b -> a^b".try_into().unwrap(),
+        &mut Search::new(), |ctx, search| {
+            ctx.new_term(var("x", "a^b".try_into().unwrap()), &mut Search::new()).unwrap();
+            if ctx.prove("a^b".try_into().unwrap(), search) {Ok(())} else {Err((Range::empty(0), "error".into()))}
+        }).is_ok());
+        assert!(!ctx.prove("a^b".try_into().unwrap(), &mut Search::new()));
     }
 
     #[test]
-    fn test() {
-        println!("{}", exp_red_def());
-        // assert!(false);
+    fn test_replace() {
+        let mut ctx = Context::new();
+        ctx.new_term(var("x", "a^b".try_into().unwrap()), &mut Search::new()).unwrap();
+        assert!(!ctx.prove("d^c".try_into().unwrap(), &mut Search::new()));
+    }
+
+    #[test]
+    fn test_parse_pow() {
+        let a: Type = "a -> b".try_into().unwrap();
+        assert_eq!(a, "b^a".try_into().unwrap());
+
+        let a: Type = "a -> b -> c".try_into().unwrap();
+        assert_eq!(a, "(c^b)^a".try_into().unwrap());
+
+        let a: Type = "a => b -> c => d".try_into().unwrap();
+        assert_eq!(a, "(c => d)^(a => b)".try_into().unwrap());
+    }
+
+    #[test]
+    fn test_parse_all() {
+        let a: Type = "all(a)".try_into().unwrap();
+        assert_eq!(a, Type::AllTy(Arc::new("a".into())));
     }
 }

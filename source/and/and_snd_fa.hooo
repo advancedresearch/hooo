@@ -1,3 +1,0 @@
-use and;
-(a & False);
-sugg False;

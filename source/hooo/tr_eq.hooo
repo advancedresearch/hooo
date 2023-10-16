@@ -1,5 +1,0 @@
-use hooo;
-use eq;
-((a = b) ^ True);
-sugg (((A □ B) ^ X) = ((A ^ X) □ (B ^ X)));
-sugg ((a ^ True) = (b ^ True));

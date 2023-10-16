@@ -1,5 +1,0 @@
-use tauto;
-use eq;
-tauto(a);
-sugg (tauto(A) = (A ^ True));
-sugg (a ^ True);

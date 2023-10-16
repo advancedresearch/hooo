@@ -1,0 +1,53 @@
+fn absurd false -> a {
+    x : false;
+    let r = match x : a;
+    return r;
+}
+
+fn not_double a -> !!a {
+    x : a;
+
+    fn f (a & !a) -> false {
+        use modus_ponens;
+
+        x : a;
+        y : !a;
+        let x2 = modus_ponens(x, y) : false;
+        return x2;
+    }
+
+    use curry;
+    let f2 = f() : (a & !a) => false;
+    let x2 = curry(f2) : a => !a => false;
+    use modus_ponens;
+    let x3 = modus_ponens(x, x2) : !!a;
+
+    return x3;
+}
+
+fn not_rev_double_excm !!a & excm(a) -> a {
+    use absurd;
+    use unify;
+    use refl;
+    use imply_transitivity;
+
+    x : !!a;
+    y : excm(a);
+    let z = refl() : a => a;
+    let x1 = absurd() : false => a;
+    let x2 = imply_transitivity(x, x1) : !a => a;
+    let x3 = unify(y, z, x2) : a;
+    return x3;
+}
+
+fn not_rev_triple !!!a -> !a {
+    use not_double;
+    use imply_transitivity;
+
+    x : !!!a;
+
+    let x2 = not_double() : a => !!a;
+    let x3 = imply_transitivity(x2, x) : !a;
+    return x3;
+}
+

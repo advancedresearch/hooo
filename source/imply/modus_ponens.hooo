@@ -1,4 +1,0 @@
-use imply;
-(a -> b);
-a;
-sugg b;

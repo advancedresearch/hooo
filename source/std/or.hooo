@@ -1,0 +1,24 @@
+fn or_symmetry a | b -> b | a {
+    use unify;
+    use left;
+    use right;
+
+    x : a | b;
+
+    let x2 = right() : a => (b | a);
+    let x3 = left() : b => (b | a);
+
+    let x4 = unify(x, x2, x3) : (b | a);
+    return x4;
+}
+
+fn left a -> a | b {
+    x : a;
+    return x;
+}
+
+fn right b -> a | b {
+    x : b;
+    return x;
+}
+

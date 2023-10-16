@@ -1,5 +1,0 @@
-use hooo;
-use eq;
-(a = a);
-sugg ((A = A) = ((A = A) ^ True));
-sugg ((a = a) ^ ⊤);
