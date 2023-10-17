@@ -53,7 +53,7 @@ This will add a term `not_double : a -> !!a`.
 Intuitionistic Propositional Logic (IPL) is the most important mathematical language
 in the world, because it is the foundation for constructive logic and many type systems.
 
-Usually, IPL is thought of as a "simple language" that generalized in various ways.
+Usually, IPL is thought of as a "simple language" that is generalized in various ways.
 For example, by adding predicates, one gets First Order Logic.
 
 Previously, IPL was thought of as "complete" in the sense that it can derive every
@@ -85,7 +85,7 @@ All types, including rules, are constructive propositions.
 
 HOOO EP might sound like Provability Logic, but it is not the same thing.
 Provability Logic is incompatible with HOOO EP, since Löb's axiom is absurd.
-For proof, see `lob` in "source/std/modal.hooo".
+For proof, see `lob_absurd` in "source/std/modal.hooo".
 
 # HOOO EP
 
