@@ -58,10 +58,10 @@ For example, by adding predicates, one gets First Order Logic.
 
 Previously, IPL was thought of as "complete" in the sense that it can derive every
 formula that is true about propositions.
-To reason about IPL at meta-level, mathematicians relied on some meta-language (e.g. sequent calculus)
+To reason about IPL at meta-level, mathematicians relied on some meta-language (e.g. Sequent Calculus)
 or some modal logic.
 
-For example, in provability logic, `□(a => b)` is introduced by `⊢
+For example, in Provability Logic, `□(a => b)` is introduced by proving `⊢ a => b` in Sequent Calculus.
 
 Recently, I discovered that, while logical implication (`=>`) in IPL corresponds to lambda/closures,
 there is no possible way to express the analogue of function pointers (`->`).
