@@ -278,3 +278,27 @@ fn tauto_eq_to_pow_eq (a == b)^true  ->  a =^= b {
     return r;
 }
 
+fn tauto_nnexcm true  ->  !!excm(a) {
+    x : true;
+    lam f !!excm(a) {
+        y : !excm(a);
+        lam g !a {
+            x2 : a;
+            use left;
+            let x3 = left(x2) : excm(a);
+            let r = y(x3) : false;
+            return r;
+        }
+        lam h !!a {
+            x4 : !a;
+            use right;
+            let x5 = right(x4) : excm(a);
+            let r = y(x5) : false;
+            return r;
+        }
+        let r = h(g) : false;
+        return r;
+    }
+    return f;
+}
+
