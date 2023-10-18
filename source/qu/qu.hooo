@@ -42,3 +42,29 @@ fn q_to_q q(a, a)  ->  qu(a) {
     let r = snd(y2) : qu(a);
     return r;
 }
+
+fn q_left q(a, b)  ->  q(a, a) {
+    x : q(a, b);
+    use q_to;
+    let y = q_to(x) : (a == b) & qu(a) & qu(b);
+    use std::snd;
+    let y2 = snd(y) : qu(a) & qu(b);
+    use std::fst;
+    let y3 = fst(y2) : qu(a);
+    use qu_to_q;
+    let r = qu_to_q(y3) : q(a, a);
+    return r;
+}
+
+fn q_right q(a, b)  ->  q(b, b) {
+    x : q(a, b);
+    use q_to;
+    let y = q_to(x) : (a == b) & qu(a) & qu(b);
+    use std::snd;
+    let y2 = snd(y) : qu(a) & qu(b);
+    let y3 = snd(y2) : qu(b);
+    use qu_to_q;
+    let r = qu_to_q(y3) : q(b, b);
+    return r;
+}
+
