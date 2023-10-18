@@ -642,9 +642,10 @@ pub enum Op {
 fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
     use Type::*;
 
+    if ty.as_not().is_some() {return false};
+    if ty.as_excm().is_some() {return false};
     match ty {
         True | False | Ty(_) | AllTy(_) => false,
-        Imply(ab) if ab.1 == False => false,
         _ => {
             match (ty.op(), parent_op) {
                 (Some(Op::Pow), Some(Op::And) | Some(Op::Or) | Some(Op::Imply)) => false,
@@ -667,6 +668,28 @@ impl Type {
         }
     }
 
+    pub fn as_not(&self) -> Option<&Type> {
+        if let Type::Imply(ab) = self {
+            if let Type::False = ab.1 {Some(&ab.0)} else {None}
+        } else {None}
+    }
+
+    pub fn as_eq(&self) -> Option<(&Type, &Type)> {
+        if let Type::And(ab) = self {
+            if let (Type::Imply(ab), Type::Imply(cd)) = &**ab {
+                if ab.0 == cd.1 && ab.1 == cd.0 {Some((&ab.0, &ab.1))} else {None}
+            } else {None}
+        } else {None}
+    }
+
+    pub fn as_excm(&self) -> Option<&Type> {
+        if let Type::Or(ab) = self {
+            if let Some(b) = ab.1.as_not() {
+                if &ab.0 == b {return Some(&ab.0)} else {None}
+            } else {None}
+        } else {None}
+    }
+
     pub fn to_str(&self, top: bool, parent_op: Option<Op>) -> String {
         if top {
             if let Type::Pow(ab) = self {
@@ -687,23 +710,23 @@ impl fmt::Display for Type {
         use Type::*;
 
         let op = self.op();
+        if let Some(a) = self.as_not() {
+            return write!(w, "!{}", a.to_str(false, op));
+        }
+        if let Some((a, b)) = self.as_eq() {
+            return write!(w, "{} == {}", a.to_str(false, op), b.to_str(false, op));
+        }
+        if let Some(a) = self.as_excm() {
+            return write!(w, "excm({})", a);
+        }
         match self {
             True => write!(w, "true")?,
             False => write!(w, "false")?,
             Ty(a) => write!(w, "{}", a)?,
             AllTy(a) => write!(w, "{}", a)?,
             Pow(ab) => write!(w, "{}^{}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
-            And(ab) => {
-                if let (Imply(ab), Imply(cd)) = &**ab {
-                    if ab.0 == cd.1 && ab.1 == cd.0 {
-                        return write!(w, "{} == {}",
-                            ab.0.to_str(false, op), ab.1.to_str(false, op))
-                    }
-                }
-                write!(w, "{} & {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?
-            },
+            And(ab) => write!(w, "{} & {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             Or(ab) => write!(w, "{} | {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
-            Imply(ab) if ab.1 == False => write!(w, "!{}", ab.0.to_str(false, op))?,
             Imply(ab) => write!(w, "{} => {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
         }
         Ok(())
@@ -1047,5 +1070,12 @@ mod tests {
 
         let a: Type = "a == b".try_into().unwrap();
         assert_eq!(format!("{}", a), "a == b".to_string());
+
+        let a: Type = "excm(a)".try_into().unwrap();
+        assert_eq!(format!("{}", a), "excm(a)".to_string());
+
+        let a: Type = "a & excm(b)".try_into().unwrap();
+        assert_eq!(format!("{}", a), "a & excm(b)".to_string());
     }
 }
+
