@@ -1197,6 +1197,21 @@ mod tests {
 
         let a: Type = "a =^= b".try_into().unwrap();
         assert_eq!(format!("{}", a), "a =^= b".to_string());
+    
+        let a: Type = "!a == !b".try_into().unwrap();
+        assert_eq!(format!("{}", a), "!a == !b".to_string());
+    
+        let a: Type = "!a => !b".try_into().unwrap();
+        assert_eq!(format!("{}", a), "!a => !b".to_string());
+    
+        let a: Type = "!a & !b".try_into().unwrap();
+        assert_eq!(format!("{}", a), "!a & !b".to_string());
+    
+        let a: Type = "!a | !b".try_into().unwrap();
+        assert_eq!(format!("{}", a), "!a | !b".to_string());
+    
+        let a: Type = "!a =^= !b".try_into().unwrap();
+        assert_eq!(format!("{}", a), "!a =^= !b".to_string());
     }
 
     #[test]

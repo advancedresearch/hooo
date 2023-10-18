@@ -1,6 +1,6 @@
 _seps: "(){}=<>^&|!->"
 
-15 pow_eq = [typeleft:"left" .w? "=^=" .w? typeleft:"right"]
+15 pow_eq = [typeleft_or_not:"left" .w? "=^=" .w? typeleft_or_not:"right"]
 14 all = ["all(" .w? type_or_fun:"arg" .w? ")"]
 13 type_or_fun = {fun:"pow" type}
 12 type_or_pow = {pow_ty typeleft_or_not}
@@ -8,7 +8,7 @@ _seps: "(){}=<>^&|!->"
 10 excm = ["excm(" .w? type:"arg" .w? ")"]
 9 not = ["!" typeleft_or_not:"arg"]
 8 or = [type_or_pow:"left" .w? "|" .w? type_or_pow:"right"]
-7 eq = [typeleft:"left" .w? "==" .w? typeleft:"right"]
+7 eq = [typeleft_or_not:"left" .w? "==" .w? typeleft_or_not:"right"]
 6 and = [type_or_pow:"left" .w? "&" .w? type_or_pow:"right"]
 5 pow_ty = pow:"pow"
 4 pow = [typeleft:"left" .w? "^" .w? typeleft:"right"]
