@@ -7,3 +7,38 @@ fn qu_in_arg qu(a) & (a == b)^true  ->  qu(b) {
     return r;
 }
 
+fn q_from (a == b) & qu(a) & qu(b)  ->  q(a, b) {
+    axiom q_from : (a == b) & qu(a) & qu(b)  ->  q(a, b);
+    x : a == b;
+    y : qu(a);
+    z : qu(b);
+    let r = q_from(x, y, z) : q(a, b);
+    return r;
+}
+
+fn q_to q(a, b)  ->  (a == b) & qu(a) & qu(b) {
+    axiom q_to : q(a, b)  ->  (a == b) & qu(a) & qu(b);
+    x : q(a, b);
+    let r = q_to(x) : (a == b) & qu(a) & qu(b);
+    return r;
+}
+
+fn qu_to_q qu(a)  ->  q(a, a) {
+    x : qu(a);
+    use std::refl;
+    let y = refl() : a => a;
+    let y2 = refl(y, y) : a == a;
+    use q_from;
+    let r = q_from(y2, x, x) : q(a, a);
+    return r;
+}
+
+fn q_to_q q(a, a)  ->  qu(a) {
+    x : q(a, a);
+    use q_to;
+    let y = q_to(x) : (a == a) & qu(a) & qu(a);
+    use std::snd;
+    let y2 = snd(y) : qu(a) & qu(a);
+    let r = snd(y2) : qu(a);
+    return r;
+}
