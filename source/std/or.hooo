@@ -22,3 +22,21 @@ fn right b -> a | b {
     return x;
 }
 
+fn nleft !(a | b) -> !a {
+    x : !(a | b);
+    use left;
+    use modus_tollens;
+    let y = modus_tollens(left) : !(a | b) => !a;
+    let r = y(x) : !a;
+    return r;
+}
+
+fn nright !(a | b) -> !b {
+    x : !(a | b);
+    use right;
+    use modus_tollens;
+    let y = modus_tollens(right) : !(a | b) => !b;
+    let r = y(x) : !b;
+    return r;
+}
+
