@@ -6,22 +6,23 @@ _ty: ";{}"
 }) "*/"]
 201 comment = {multi_line_comment ["//" ..."\n"?]}
 
-14 use = ["use" .w! .r?([.._seps!:"ns" "::"]) .._seps!:"fun"]
-13 check = ["let" .w! .._seps!:"name" .w? "=" .w? "()" .w? ":" .w? ..._ty!:"ty"]
-12 match = ["let" .w! .._seps!:"name" .w? "=" .w? "match" .w! .._seps!:"arg" .w? ?["(" .w?
+13 let = ["let" .w! .._seps!:"name" .w? "=" .w?]
+12 use = ["use" .w! .r?([.._seps!:"ns" "::"]) .._seps!:"fun"]
+11 check = [let "()" .w? ":" .w? ..._ty!:"ty"]
+10 match = [let "match" .w! .._seps!:"arg" .w? ?["(" .w?
     .._seps!:"arg" , .._seps!:"arg"
 .w? ")" .w?] ":" ..._ty!:"ty"]
-11 return = ["return" .w! .._seps!:"return"]
-10 lam_decl = ["lam" .w! .._seps!:"name" .w? ..._ty!:"ty"]
-9 app = ["let" .w! .._seps!:"name" .w? "=" .w? .._seps!:"arg" "(" .w? .s?.(, .._seps!:"arg") .w? ")" .w? ":" ..._ty!:"ty"]
-8 fun_decl = ["fn" .w! .._seps!:"name" .w? ..._ty!:"ty"]
-7 , = [.w? "," .w?]
-5 fn = [{
+9 return = ["return" .w! .._seps!:"return"]
+8 lam_decl = ["lam" .w! .._seps!:"name" .w? ..._ty!:"ty"]
+7 app = [let .._seps!:"arg" "(" .w? .s?.(, .._seps!:"arg") .w? ")" .w? ":" ..._ty!:"ty"]
+6 fun_decl = ["fn" .w! .._seps!:"name" .w? ..._ty!:"ty"]
+5 , = [.w? "," .w?]
+4 fn = [{
     fun_decl:"fun_decl"
     lam_decl:"lam_decl"
 } "{" .w? script:"script" .w? "}"]
-4 var = [.._seps!:"name" .w? ":" .w? ..._ty!:"ty"]
-3 command = {
+3 var = [.._seps!:"name" .w? ":" .w? ..._ty!:"ty"]
+2 command = {
     return
     use:"use"
     ["axiom " var:"axiom"]
@@ -31,7 +32,7 @@ _ty: ";{}"
     app:"app"
     ..._ty!:"prove"
 }
-2 script = [.w? .l([.w? {
+1 script = [.w? .l([.w? {
     comment
     fn
     [command ";"]
