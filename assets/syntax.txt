@@ -1,5 +1,6 @@
 _seps: "(){}=<>^&|!->"
 
+15 pow_eq = [typeleft:"left" .w? "=^=" .w? typeleft:"right"]
 14 all = ["all(" .w? type_or_fun:"arg" .w? ")"]
 13 type_or_fun = {fun:"pow" type}
 12 type_or_pow = {pow_ty typeleft_or_not}
@@ -30,6 +31,7 @@ _seps: "(){}=<>^&|!->"
     imply:"imply"
     pow:"pow"
     eq:"eq"
+    pow_eq:"pow_eq"
     typeleft_or_not
 }
 0 doc = [.w? type_or_fun:"type" .w?]

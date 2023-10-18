@@ -187,6 +187,7 @@ a & b      And (struct type)
 a | b      Or (enum type)
 !a         Not (sugar for `a => false`)
 a == b     Equal (sugar for `(a => b) & (b => a)`)
+a =^= b    Pow equal (sugar for `b^a & a^b`)
 true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types.

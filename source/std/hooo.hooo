@@ -253,7 +253,7 @@ fn pow_in_right_arg a^b & (b == c)^true  ->  a^c {
     return r;
 }
 
-fn pow_eq_to_tauto_eq b^a & a^b  ->  (a == b)^true {
+fn pow_eq_to_tauto_eq b =^= a  ->  (a == b)^true {
     x : b^a;
     y : a^b;
     
@@ -266,7 +266,7 @@ fn pow_eq_to_tauto_eq b^a & a^b  ->  (a == b)^true {
     return r;
 }
 
-fn tauto_eq_to_pow_eq (a == b)^true  ->  b^a & a^b {
+fn tauto_eq_to_pow_eq (a == b)^true  ->  a =^= b {
     x : (a == b)^true;
     use refl;
     let x2 = refl() : a^a;
