@@ -40,3 +40,9 @@ fn unify (a | b) & ((a => c) & (b => c))  ->  c {
     return y;
 }
 
+fn all_pow_absurd all(a -> b) -> c {
+    x : all(a -> b);
+    let y = () : true;
+    let z = x(y) : c;
+    return z;
+}
