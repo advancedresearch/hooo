@@ -109,6 +109,7 @@ fn run_ctx(
                     return Err((range, "Parsing application: Expected arguments".into()));
                 }
             }
+            continue;
         } else if let Ok((range, (name, args, ty))) = parse_var("match", convert, ignored) {
             convert.update(range);
             if loader.run {
@@ -118,11 +119,13 @@ fn run_ctx(
                     return Err((range, "Parsing application".into()));
                 }
             }
+            continue;
         } else if let Ok((range, (name, _, ty))) = parse_var("check", convert, ignored) {
             convert.update(range);
             if loader.run {
                 ctx.new_term((name, Term::Check(ty)), search).map_err(|err| (range, err))?;
             }
+            continue;
         } else if let Ok((range, val)) = convert.meta_string("prove") {
             convert.update(range);
             if loader.run {
@@ -132,39 +135,49 @@ fn run_ctx(
                     return Err((range, format!("{}", val)));
                 }
             }
-        } else if let Ok((range, (name, _, ty))) = parse_var("fun_decl", convert, ignored) {
-            convert.update(range);
-            if loader.run {
-                let n = loader.trace.len();
-                loader.trace.push(name.clone());
-                println!("fn {}", name);
-                ctx.fun(range, name.clone(), ty.clone(), search, |ctx, search| {
-                    match run_ctx(ctx, search, loader, "script", convert, ignored) {
-                        Ok((range, ret)) => {
-                            convert.update(range);
-                            if let Some(ret) = ret {
-                                if let Type::Pow(ab) = &ty {
-                                    if ctx.has_term_ty(&ret, &ab.0) {
-                                        ctx.add_proof(ty.clone());
+            continue;
+        }
+
+        match parse_var("fun_decl", convert, ignored) {
+            Ok((range, (name, _, ty))) => {
+                convert.update(range);
+                if loader.run {
+                    let n = loader.trace.len();
+                    loader.trace.push(name.clone());
+                    println!("fn {}", name);
+                    ctx.fun(range, name.clone(), ty.clone(), search, |ctx, search| {
+                        match run_ctx(ctx, search, loader, "script", convert, ignored) {
+                            Ok((range, ret)) => {
+                                convert.update(range);
+                                if let Some(ret) = ret {
+                                    if let Type::Pow(ab) = &ty {
+                                        if ctx.has_term_ty(&ret, &ab.0) {
+                                            ctx.add_proof(ty.clone());
+                                        }
                                     }
                                 }
+                                Ok(())
                             }
-                            Ok(())
+                            Err(err) => Err(err),
                         }
-                        Err(err) => Err(err),
-                    }
-                })?;
-                loader.trace.truncate(n);
-            } else {
-                if let Type::Pow(_) = &ty {
-                    if loader.functions.contains_key(&name) {
-                        return Err((range, format!("Already has function `{}`", name)));
-                    }
+                    })?;
+                    loader.trace.truncate(n);
+                } else {
+                    if let Type::Pow(_) = &ty {
+                        if loader.functions.contains_key(&name) {
+                            return Err((range, format!("Already has function `{}`", name)));
+                        }
 
-                    loader.functions.insert(name, ty.lift());
+                        loader.functions.insert(name, ty.lift());
+                    }
                 }
+                continue;
             }
-        } else if let Ok((range, (name, _, ty))) = parse_var("lam_decl", convert, ignored) {
+            Err(Some(err)) => return Err((start_range, err)),
+            Err(None) => {}
+        }
+
+        if let Ok((range, (name, _, ty))) = parse_var("lam_decl", convert, ignored) {
             convert.update(range);
             if loader.run {
                 println!("lam {}", name);
@@ -309,9 +322,13 @@ fn parse_ty(
         } else if let Ok((range, val)) = parse_bin("pow_eq", convert, ignored) {
             convert.update(range);
             ty = Some(pow_eq(val.0, val.1));
-        } else if let Ok((range, val)) = parse_bin("app", convert, ignored) {
+        } else if let Ok((range, (f, args))) = parse_app("app", convert, ignored) {
             convert.update(range);
-            ty = Some(app(val.0, val.1));
+            let mut val = f;
+            for arg in args.into_iter() {
+                val = app(val, arg);
+            }
+            ty = Some(val);
         } else if let Ok((range, val)) = parse_un("not", convert, ignored) {
             convert.update(range);
             ty = Some(Type::Imply(Box::new((val, Type::False))));
@@ -342,6 +359,38 @@ fn parse_ty(
 
     let ty = ty.ok_or(())?;
     Ok((convert.subtract(start), ty))
+}
+
+fn parse_app(
+    node: &str,
+    mut convert: Convert,
+    ignored: &mut Vec<Range>
+) -> Result<(Range, (Type, Vec<Type>)), ()> {
+    let start = convert;
+    let start_range = convert.start_node(node)?;
+    convert.update(start_range);
+
+    let mut left: Option<Type> = None;
+    let mut args: Vec<Type> = vec![];
+    loop {
+        if let Ok(range) = convert.end_node(node) {
+            convert.update(range);
+            break;
+        } else if let Ok((range, val)) = parse_ty("left", convert, ignored) {
+            convert.update(range);
+            left = Some(val);
+        } else if let Ok((range, val)) = parse_ty("arg", convert, ignored) {
+            convert.update(range);
+            args.push(val);
+        } else {
+            let range = convert.ignore();
+            convert.update(range);
+            ignored.push(range);
+        }
+    }
+
+    let left = left.ok_or(())?;
+    Ok((convert.subtract(start), (left, args)))
 }
 
 fn parse_bin(
