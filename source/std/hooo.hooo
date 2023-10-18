@@ -302,3 +302,18 @@ fn tauto_nnexcm true  ->  !!excm(a) {
     return f;
 }
 
+fn tauto_imply_refl true  ->  (a => a) {
+    x : true;
+    use refl;
+    let y = refl() : a => a;
+    return y;
+}
+
+fn tauto_eq_refl true  ->  (a == a) {
+    x : true;
+    use refl;
+    let y = refl() : a => a;
+    let r = refl(y, y) : a == a;
+    return r;
+}
+
