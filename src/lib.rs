@@ -693,7 +693,15 @@ impl fmt::Display for Type {
             Ty(a) => write!(w, "{}", a)?,
             AllTy(a) => write!(w, "{}", a)?,
             Pow(ab) => write!(w, "{}^{}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
-            And(ab) => write!(w, "{} & {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
+            And(ab) => {
+                if let (Imply(ab), Imply(cd)) = &**ab {
+                    if ab.0 == cd.1 && ab.1 == cd.0 {
+                        return write!(w, "{} == {}",
+                            ab.0.to_str(false, op), ab.1.to_str(false, op))
+                    }
+                }
+                write!(w, "{} & {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?
+            },
             Or(ab) => write!(w, "{} | {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             Imply(ab) if ab.1 == False => write!(w, "!{}", ab.0.to_str(false, op))?,
             Imply(ab) => write!(w, "{} => {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
@@ -1036,5 +1044,8 @@ mod tests {
  
         let a: Type = "!(a & b)".try_into().unwrap();
         assert_eq!(format!("{}", a), "!(a & b)".to_string());
+
+        let a: Type = "a == b".try_into().unwrap();
+        assert_eq!(format!("{}", a), "a == b".to_string());
     }
 }
