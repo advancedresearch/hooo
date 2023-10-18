@@ -332,6 +332,10 @@ impl Context {
         search: &mut Search,
         f: F
     ) -> Result<(), (Range, String)> {
+        if !ty.is_safe_to_prove() {
+            return Err((range, format!("Not safe to prove `{}`", ty.to_str(true, None))));
+        }
+
         if let Type::Pow(_) = &ty {
             let mut ctx = Context::new();
             f(&mut ctx, search)?;
@@ -355,6 +359,10 @@ impl Context {
         search: &mut Search,
         f: F
     ) -> Result<(), (Range, String)> {
+        if !ty.is_safe_to_prove() {
+            return Err((range, format!("Not safe to prove `{}`", ty.to_str(true, None))));
+        }
+
         if let Type::Imply(_) = ty {
             let mut ctx = self.clone();
             f(&mut ctx, search)?;
@@ -549,8 +557,13 @@ impl Term {
 
                 if let Some(fun_decl) = fun_decl {
                     let ty_f = ctx.terms[fun_decl].get_type();
+                    let ty_f = if let Type::All(x) = ty_f {(*x).clone()} else {ty_f};
                     if args.len() == 0 {
-                        return ty_f.has_bound(t);
+                        if ty_f.has_bound(t) {return true}
+                        else {
+                            if let Type::All(_) = ty_f {return false}
+                            else {return Type::All(Box::new(ty_f)).has_bound(ty)}
+                        }
                     } else {
                         let arg_ind = arg_inds.pop().unwrap();
                         let mut ty_arg = ctx.terms[arg_ind.unwrap()].get_type();
@@ -558,15 +571,9 @@ impl Term {
                             ty_arg = and(ctx.terms[arg_ind.unwrap()].get_type(), ty_arg);
                         }
                         if let Type::Pow(ab) = ty_f {
-                            let mut bind = vec![];
-                            if ab.1.bind(&ty_arg, &mut bind) {
-                                if ab.0.replace(&bind).has_(t) {return true}
-                            }
+                            return ty_arg.app_to_has_bound(&ab.1, &ab.0, t);
                         } else if let Type::Imply(ab) = ty_f {
-                            let mut bind = vec![];
-                            if ab.0.bind(&ty_arg, &mut bind) {
-                                if ab.1.replace(&bind).has_(t) {return true}
-                            }
+                            return ty_arg.app_to_has_bound(&ab.0, &ab.1, t);
                         }
                     }
                 }
@@ -629,6 +636,8 @@ pub enum Type {
     Or(Box<(Type, Type)>),
     /// Imply.
     Imply(Box<(Type, Type)>),
+    /// For-all.
+    All(Box<Type>),
 }
 
 #[derive(Copy, Clone)]
@@ -640,6 +649,7 @@ pub enum Op {
     Not,
     Eq,
     Excm,
+    All,
 }
 
 fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
@@ -652,7 +662,7 @@ fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
     }
     if ty.as_excm().is_some() {return false};
     match ty {
-        True | False | Ty(_) | AllTy(_) => false,
+        True | False | Ty(_) | AllTy(_) | All(_) => false,
         _ => {
             match (ty.op(), parent_op) {
                 (Some(Op::Pow), Some(Op::And) | Some(Op::Or) | Some(Op::Imply)) => false,
@@ -675,6 +685,7 @@ impl Type {
             And(_) => Some(Op::And),
             Or(_) => Some(Op::Or),
             Imply(_) => Some(Op::Imply),
+            All(_) => Some(Op::All),
         }
     }
 
@@ -736,6 +747,7 @@ impl fmt::Display for Type {
             And(ab) => write!(w, "{} & {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             Or(ab) => write!(w, "{} | {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             Imply(ab) => write!(w, "{} => {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
+            All(a) => write!(w, "all({})", a)?,
         }
         Ok(())
     }
@@ -749,6 +761,19 @@ impl TryFrom<&str> for Type {
 }
 
 impl Type {
+    pub fn is_safe_to_prove(&self) -> bool {
+        use Type::*;
+
+        match self {
+            True | False | Ty(_) => true,
+            And(ab) => ab.0.is_safe_to_prove() && ab.1.is_safe_to_prove(),
+            Or(ab) => ab.0.is_safe_to_prove() && ab.1.is_safe_to_prove(),
+            Imply(ab) => ab.1.is_safe_to_prove(),
+            Pow(ab) => ab.0.is_safe_to_prove(),
+            AllTy(_) | All(_) => false,
+        }
+    }
+
     pub fn is_covered(&self, other: &Type) -> bool {
         use Type::*;
 
@@ -772,6 +797,7 @@ impl Type {
             Imply(ab) => imply(ab.0.lift(), ab.1.lift()),
             Pow(ab) => pow(ab.0.lift(), ab.1.lift()),
             Or(ab) => or(ab.0.lift(), ab.1.lift()),
+            All(_) => self,
         }
     }
 
@@ -805,6 +831,13 @@ impl Type {
                 if !ab.0.bind(&cd.1, bind) {return false};
                 true
             }
+            (All(a), All(b)) => {
+                let mut bind = vec![];
+                if a.bind(b, &mut bind) {
+                    bind.push((self.clone(), All(Box::new(a.replace(&bind)))));
+                    true
+                } else {false}
+            }
             _ => false,
         }
     }
@@ -824,7 +857,23 @@ impl Type {
             Imply(ab) => imply(ab.0.replace(bind), ab.1.replace(bind)),
             And(ab) => and(ab.0.replace(bind), ab.1.replace(bind)),
             Or(ab) => or(ab.0.replace(bind), ab.1.replace(bind)),
+            All(a) => All(Box::new(a.replace(bind))),
         }
+    }
+
+    /// Whether application type checks.
+    pub fn app_to_has_bound(&self, a: &Type, b: &Type, t: &Type) -> bool {
+        if let (Type::All(_), Type::All(_)) = (self, a) {
+            let mut bind = vec![];
+            if self.bind(a, &mut bind) {
+                return b.has_(t);
+            } else {return false}
+        }
+
+        let mut bind = vec![];
+        if a.bind(self, &mut bind) {
+            if b.replace(&bind).has_(t) {return true} else {false}
+        } else {false}
     }
 
     pub fn has_bound(&self, other: &Type) -> bool {
@@ -847,7 +896,8 @@ impl Type {
             (Pow(ab), Imply(cd)) if ab.0.has_(&cd.1) && ab.0.has_(&cd.1) => true,
             (Pow(ab), Pow(cd)) if ab.1.has_(&cd.1) && ab.0.has_(&cd.0) => true,
             (Imply(ab), Imply(cd)) if ab.0.has_(&cd.0) && ab.1.has_(&cd.1) => true,
-            (x, Or(ab)) if x.has_(&ab.0) || x.has_(&ab.1) => dbg!(true),
+            (x, Or(ab)) if x.has_(&ab.0) || x.has_(&ab.1) => true,
+            (All(a), All(b)) if a.has_(b) => true,
             _ => false,
         }
     }
@@ -1060,9 +1110,19 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_all() {
+    fn test_all() {
         let a: Type = "all(a)".try_into().unwrap();
-        assert_eq!(a, Type::AllTy(Arc::new("a".into())));
+        assert_eq!(a, Type::All(Box::new(Type::AllTy(Arc::new("a".into())))));
+    
+        let b: Type = "all(b)".try_into().unwrap();
+        assert!(a.has_bound(&b));
+
+        let a: Type = "all(a -> a)".try_into().unwrap();
+        assert!(a.has_bound(&a));
+
+        let b: Type = "all(a -> b)".try_into().unwrap();
+        assert!(b.has_bound(&a));
+        assert!(!a.has_bound(&b));
     }
 
     #[test]
@@ -1099,6 +1159,34 @@ mod tests {
 
         let a: Type = "(!a)^true".try_into().unwrap();
         assert_eq!(format!("{}", a), "(!a)^true".to_string());
+    }
+
+    #[test]
+    fn test_safe_to_prove() {
+        let a: Type = "all(a -> b)".try_into().unwrap();
+        assert!(!a.is_safe_to_prove());
+
+        let a: Type = "all(a) -> b".try_into().unwrap();
+        assert!(a.is_safe_to_prove());
+    }
+
+    #[test]
+    fn test_app_to_has_bound() {
+        let a: Type = "a".try_into().unwrap();
+        let b: Type = "b".try_into().unwrap();
+        assert!(a.app_to_has_bound(&a, &b, &b));
+        assert!(a.app_to_has_bound(&a, &b.clone().lift(), &b));
+        assert!(a.app_to_has_bound(&a.clone().lift(), &b, &b));
+
+        let all_a: Type = "all(a)".try_into().unwrap();
+        assert!(!a.app_to_has_bound(&all_a, &b, &b));
+        assert!(all_a.app_to_has_bound(&all_a, &b, &b));
+    
+        let all_ab: Type = "all(a -> b)".try_into().unwrap();
+        let all_aa: Type = "all(a -> a)".try_into().unwrap();
+        assert!(all_ab.has_bound(&all_aa));
+        assert!(all_ab.app_to_has_bound(&all_aa, &b, &b));
+        assert!(!all_aa.app_to_has_bound(&all_ab, &b, &b));
     }
 }
 

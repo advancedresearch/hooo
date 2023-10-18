@@ -31,7 +31,7 @@ fn parse_lib(
             description = Some(val);
         } else if let Ok((range, (name, _, ty))) = parse_var("fun", convert, ignored) {
             convert.update(range);
-            functions.insert(name, ty);
+            functions.insert(name, ty.lift());
         } else if let Ok((range, val)) = convert.meta_string("dep_path") {
             convert.update(range);
             dependencies.push(Dep::Path(val));
@@ -302,7 +302,7 @@ fn parse_ty(
             ty = Some(or(val.clone(), not(val)));    
         } else if let Ok((range, val)) = parse_un("all", convert, ignored) {
             convert.update(range);
-            ty = Some(val.lift());
+            ty = Some(Type::All(Box::new(val.lift())));
         } else if let Ok((range, _)) = convert.meta_bool("true") {
             convert.update(range);
             ty = Some(Type::True);
