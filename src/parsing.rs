@@ -78,16 +78,25 @@ fn run_ctx(
                     return Err((range, "Parsing axiom".into()));
                 }
             }
-        } else if let Ok((range, (name, args, ty))) = parse_var("var", convert, ignored) {
-            convert.update(range);
-            if loader.run {
-                if args.len() == 0 {
-                    ctx.new_term((name, Term::Var(ty)), search).map_err(|err| (range, err))?;
-                } else {
-                    return Err((range, "Parsing variable".into()));
+        } else {
+            match parse_var("var", convert, ignored) {
+                Ok((range, (name, args, ty))) => {
+                    convert.update(range);
+                    if loader.run {
+                        if args.len() == 0 {
+                            ctx.new_term((name, Term::Var(ty)), search).map_err(|err| (range, err))?;
+                        } else {
+                            return Err((range, "Parsing variable".into()));
+                        }
+                    }
+                    continue;
                 }
+                Err(Some(err)) => return Err((start_range, err)),
+                Err(None) => {}
             }
-        } else if let Ok((range, (name, args, ty))) = parse_var("app", convert, ignored) {
+        }
+
+        if let Ok((range, (name, args, ty))) = parse_var("app", convert, ignored) {
             convert.update(range);
             if loader.run {
                 if args.len() >= 1 {
@@ -232,9 +241,9 @@ fn parse_var(
     node: &str,
     mut convert: Convert,
     ignored: &mut Vec<Range>
-) -> Result<(Range, (Arc<String>, Vec<Arc<String>>, Type)), ()> {
+) -> Result<(Range, (Arc<String>, Vec<Arc<String>>, Type)), Option<String>> {
     let start = convert;
-    let start_range = convert.start_node(node)?;
+    let start_range = convert.start_node(node).map_err(|_| None)?;
     convert.update(start_range);
 
     let mut name: Option<Arc<String>> = None;
@@ -252,7 +261,7 @@ fn parse_var(
             args.push(val);
         } else if let Ok((range, val)) = convert.meta_string("ty") {
             convert.update(range);
-            ty = Some((&**val).try_into().map_err(|_| ())?);
+            ty = Some((&**val).try_into().map_err(|err| Some(format!("```\n{}\n```\n{}", val, err)))?);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -260,8 +269,8 @@ fn parse_var(
         }
     }
 
-    let name = name.ok_or(())?;
-    let ty = ty.ok_or(())?;
+    let name = name.ok_or(None)?;
+    let ty = ty.ok_or(None)?;
     Ok((convert.subtract(start), (name, args, ty)))
 }
 
