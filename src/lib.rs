@@ -636,6 +636,10 @@ pub enum Type {
     Imply(Box<(Type, Type)>),
     /// For-all.
     All(Box<Type>),
+    /// Symbol.
+    Sym(Arc<String>),
+    /// Application.
+    App(Box<(Type, Type)>),
 }
 
 #[derive(Copy, Clone)]
@@ -649,6 +653,7 @@ pub enum Op {
     Excm,
     PowEq,
     All,
+    App,
 }
 
 fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
@@ -661,7 +666,7 @@ fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
     }
     if ty.as_excm().is_some() {return false};
     match ty {
-        True | False | Ty(_) | AllTy(_) | All(_) => false,
+        True | False | Ty(_) | AllTy(_) | All(_) | App(_) => false,
         _ => {
             match (ty.op(), parent_op) {
                 (Some(Op::Pow), Some(Op::And) | Some(Op::Or) | Some(Op::Imply)) => false,
@@ -686,6 +691,8 @@ impl Type {
             Or(_) => Some(Op::Or),
             Imply(_) => Some(Op::Imply),
             All(_) => Some(Op::All),
+            Sym(_) => None,
+            App(_) => Some(Op::App),
         }
     }
 
@@ -715,6 +722,14 @@ impl Type {
         if let Type::And(ab) = self {
             if let (Type::Pow(ab), Type::Pow(cd)) = &**ab {
                 if ab.1 == cd.0 && ab.0 == cd.1 {Some((&ab.1, &ab.0))} else {None}
+            } else {None}
+        } else {None}
+    }
+
+    pub fn as_app_sym(&self) -> Option<(&Arc<String>, &Type)> {
+        if let Type::App(ab) = self {
+            if let Type::Sym(s) = &ab.0 {
+                return Some((s, &ab.1));
             } else {None}
         } else {None}
     }
@@ -749,6 +764,9 @@ impl fmt::Display for Type {
         if let Some((a, b)) = self.as_pow_eq() {
             return write!(w, "{} =^= {}", a, b);
         }
+        if let Some((a, b)) = self.as_app_sym() {
+            return write!(w, "{}({})", a, b);
+        }
         match self {
             True => write!(w, "true")?,
             False => write!(w, "false")?,
@@ -759,6 +777,8 @@ impl fmt::Display for Type {
             Or(ab) => write!(w, "{} | {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             Imply(ab) => write!(w, "{} => {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             All(a) => write!(w, "all({})", a)?,
+            Sym(a) => write!(w, "{}'", a)?,
+            App(ab) => write!(w, "{}({})", ab.0.to_str(false, op), ab.1)?,
         }
         Ok(())
     }
@@ -782,6 +802,8 @@ impl Type {
             Imply(ab) => ab.1.is_safe_to_prove(),
             Pow(ab) => ab.0.is_safe_to_prove(),
             AllTy(_) | All(_) => false,
+            Sym(_) => true,
+            App(_) => true,
         }
     }
 
@@ -809,6 +831,8 @@ impl Type {
             Pow(ab) => pow(ab.0.lift(), ab.1.lift()),
             Or(ab) => or(ab.0.lift(), ab.1.lift()),
             All(_) => self,
+            Sym(_) => self,
+            App(ab) => app(ab.0.lift(), ab.1.lift()),
         }
     }
 
@@ -820,6 +844,7 @@ impl Type {
             (True, True) => true,
             (False, False) => true,
             (Ty(a), Ty(b)) => a == b,
+            (Sym(a), Sym(b)) => a == b,
             (_, AllTy(a)) if contra => {
                 for (name, v) in bind.iter() {
                     if let AllTy(name) = name {
@@ -839,7 +864,8 @@ impl Type {
                 true
             }
             (And(ab), And(cd)) |
-            (Or(ab), Or(cd)) => {
+            (Or(ab), Or(cd)) |
+            (App(ab), App(cd)) => {
                 let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
                 if !ab.0.bind(contra, &cd.0, bind) {return false};
                 if !ab.1.bind(contra, &cd.1, bind) {return false};
@@ -888,11 +914,13 @@ impl Type {
             True => self.clone(),
             False => self.clone(),
             Ty(_) => self.clone(),
+            Sym(_) => self.clone(),
             AllTy(_) => self.clone(),
             Pow(ab) => pow(ab.0.replace(bind), ab.1.replace(bind)),
             Imply(ab) => imply(ab.0.replace(bind), ab.1.replace(bind)),
             And(ab) => and(ab.0.replace(bind), ab.1.replace(bind)),
             Or(ab) => or(ab.0.replace(bind), ab.1.replace(bind)),
+            App(ab) => app(ab.0.replace(bind), ab.1.replace(bind)),
             All(a) => All(Box::new(a.replace(bind))),
         }
     }
@@ -932,6 +960,8 @@ impl Type {
             // TODO: Add unit tests for this case.
             (x, Or(ab)) if x.has_(contra, &ab.0) || x.has_(contra, &ab.1) => true,
             (All(a), All(b)) if a.has_(contra, b) => true,
+            (Sym(a), Sym(b)) if a == b => true,
+            (App(ab), App(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             _ => false,
         }
     }
@@ -1091,6 +1121,8 @@ pub fn eq(a: Type, b: Type) -> Type {and(imply(a.clone(), b.clone()), imply(b, a
 pub fn pow_eq(a: Type, b: Type) -> Type {and(pow(b.clone(), a.clone()), pow(a, b))}
 pub fn tauto(a: Type) -> Type {pow(a, Type::True)}
 pub fn para(a: Type) -> Type {pow(Type::False, a)}
+pub fn app(a: Type, b: Type) -> Type {Type::App(Box::new((a, b)))}
+pub fn sym(a: &str) -> Type {Type::Sym(Arc::new(a.into()))}
 
 #[cfg(test)]
 mod tests {
@@ -1263,6 +1295,11 @@ mod tests {
         assert!(!x.bind(false, &x.clone().lift(), &mut bind));
         let mut bind = vec![];
         assert!(!x.bind(true, &x.clone().lift(), &mut bind));
+    
+        let x: Type = "qu(a)".try_into().unwrap();
+        let y: Type = "qu(true)".try_into().unwrap();
+        let mut bind = vec![];
+        assert!(x.lift().bind(false, &y, &mut bind));
     }
 
     #[test]
@@ -1286,6 +1323,23 @@ mod tests {
         let ab: Type = "a => b".try_into().unwrap();
         let fun_ab: Type = "a -> b".try_into().unwrap();
         assert!(fun_ab.app_to_has_bound(&ab, &b, &b));
+    }
+
+    #[test]
+    fn test_sym() {
+        let a: Type = "qu'".try_into().unwrap();
+        assert_eq!(a, sym("qu"));
+    
+        let a: Type = "qu(a)".try_into().unwrap();
+        assert_eq!(a, app(sym("qu"), ty("a")));
+        assert!(a.has_bound(&a));
+
+        let a: Type = "qu'(a)".try_into().unwrap();
+        assert_eq!(a, app(sym("qu"), ty("a")));
+
+        let a: Type = "qu(a) & (a == b)^true  ->  qu(b)".try_into().unwrap();
+        assert_eq!(a, pow(app(sym("qu"), ty("b")),
+            and(app(sym("qu"), ty("a")), tauto(eq(ty("a"), ty("b"))))));
     }
 }
 

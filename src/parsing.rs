@@ -69,7 +69,9 @@ fn run_ctx(
         if let Ok(range) = convert.end_node(node) {
             convert.update(range);
             break;
-        } else if let Ok((range, (name, args, ty))) = parse_var("axiom", convert, ignored) {
+        }
+        
+        if let Ok((range, (name, args, ty))) = parse_var("axiom", convert, ignored) {
             convert.update(range);
             if loader.run {
                 if args.len() == 0 {
@@ -78,22 +80,23 @@ fn run_ctx(
                     return Err((range, "Parsing axiom".into()));
                 }
             }
-        } else {
-            match parse_var("var", convert, ignored) {
-                Ok((range, (name, args, ty))) => {
-                    convert.update(range);
-                    if loader.run {
-                        if args.len() == 0 {
-                            ctx.new_term((name, Term::Var(ty)), search).map_err(|err| (range, err))?;
-                        } else {
-                            return Err((range, "Parsing variable".into()));
-                        }
+            continue;
+        }
+        
+        match parse_var("var", convert, ignored) {
+            Ok((range, (name, args, ty))) => {
+                convert.update(range);
+                if loader.run {
+                    if args.len() == 0 {
+                        ctx.new_term((name, Term::Var(ty)), search).map_err(|err| (range, err))?;
+                    } else {
+                        return Err((range, "Parsing variable".into()));
                     }
-                    continue;
                 }
-                Err(Some(err)) => return Err((start_range, err)),
-                Err(None) => {}
+                continue;
             }
+            Err(Some(err)) => return Err((start_range, err)),
+            Err(None) => {}
         }
 
         if let Ok((range, (name, args, ty))) = parse_var("app", convert, ignored) {
@@ -306,6 +309,9 @@ fn parse_ty(
         } else if let Ok((range, val)) = parse_bin("pow_eq", convert, ignored) {
             convert.update(range);
             ty = Some(pow_eq(val.0, val.1));
+        } else if let Ok((range, val)) = parse_bin("app", convert, ignored) {
+            convert.update(range);
+            ty = Some(app(val.0, val.1));
         } else if let Ok((range, val)) = parse_un("not", convert, ignored) {
             convert.update(range);
             ty = Some(Type::Imply(Box::new((val, Type::False))));
@@ -321,6 +327,9 @@ fn parse_ty(
         } else if let Ok((range, _)) = convert.meta_bool("false") {
             convert.update(range);
             ty = Some(Type::False);
+        } else if let Ok((range, val)) = convert.meta_string("sym") {
+            convert.update(range);
+            ty = Some(Type::Sym(val));
         } else if let Ok((range, val)) = convert.meta_string("name") {
             convert.update(range);
             ty = Some(Type::Ty(val));

@@ -1,5 +1,9 @@
-_seps: "(){}=<>^&|!->"
+_seps: "'(){}=<>^&|!->"
 
+17 app_left = {
+    [.._seps!:"sym" ?"'"]
+}
+16 app = [!"all(" !"excm(" app_left:"left" "(" .w? type:"right" .w? ")"]
 15 pow_eq = [typeleft_or_not:"left" .w? "=^=" .w? typeleft_or_not:"right"]
 14 all = ["all(" .w? type_or_fun:"arg" .w? ")"]
 13 type_or_fun = {fun:"pow" type}
@@ -23,6 +27,8 @@ _seps: "(){}=<>^&|!->"
     all:"all"
     "true":"true"
     "false":"false"
+    app:"app"
+    [.._seps!:"sym" "'"]
     .._seps!:"name"
 }
 1 type = {
