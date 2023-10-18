@@ -637,12 +637,19 @@ pub enum Op {
     And,
     Or,
     Imply,
+    Not,
+    Eq,
+    Excm,
 }
 
 fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
     use Type::*;
 
-    if ty.as_not().is_some() {return false};
+    if ty.as_not().is_some() {
+        if let Some(Op::Pow) = parent_op {return true};
+
+        return false;
+    }
     if ty.as_excm().is_some() {return false};
     match ty {
         True | False | Ty(_) | AllTy(_) => false,
@@ -659,6 +666,9 @@ impl Type {
     pub fn op(&self) -> Option<Op> {
         use Type::*;
 
+        if self.as_not().is_some() {return Some(Op::Not)};
+        if self.as_eq().is_some() {return Some(Op::Eq)};
+        if self.as_excm().is_some() {return Some(Op::Excm)};
         match self {
             True | False | Ty(_) | AllTy(_) => None,
             Pow(_) => Some(Op::Pow),
@@ -694,14 +704,12 @@ impl Type {
         if top {
             if let Type::Pow(ab) = self {
                 let op = self.op();
-                format!("{} -> {}", ab.1.to_str(false, op), ab.0.to_str(false, op))
-            } else {
-                format!("{}", self)
+                return format!("{} -> {}", ab.1.to_str(false, op), ab.0.to_str(false, op));
             }
-        } else {
-            if needs_parens(self, parent_op) {format!("({})", self)}
-            else {format!("{}", self)}
         }
+        
+        if needs_parens(self, parent_op) {format!("({})", self)}
+        else {format!("{}", self)}
     }
 }
 
@@ -1076,6 +1084,21 @@ mod tests {
 
         let a: Type = "a & excm(b)".try_into().unwrap();
         assert_eq!(format!("{}", a), "a & excm(b)".to_string());
+
+        let a: Result<Type, String> = "false^true^true".try_into();
+        assert!(a.is_err());
+    
+        let a: Type = "!((false^true)^true)".try_into().unwrap();
+        assert_eq!(format!("{}", a), "!((false^true)^true)".to_string());
+
+        let a: Type = "!((false^true)^true) => false^true".try_into().unwrap();
+        assert_eq!(format!("{}", a), "!((false^true)^true) => false^true".to_string());
+
+        let a: Result<Type, String> = "!a^true".try_into();
+        assert!(a.is_err());
+
+        let a: Type = "(!a)^true".try_into().unwrap();
+        assert_eq!(format!("{}", a), "(!a)^true".to_string());
     }
 }
 
