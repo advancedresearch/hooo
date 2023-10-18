@@ -644,6 +644,7 @@ fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
 
     match ty {
         True | False | Ty(_) | AllTy(_) => false,
+        Imply(ab) if ab.1 == False => false,
         _ => {
             match (ty.op(), parent_op) {
                 (Some(Op::Pow), Some(Op::And) | Some(Op::Or) | Some(Op::Imply)) => false,
@@ -1023,5 +1024,17 @@ mod tests {
     fn test_parse_all() {
         let a: Type = "all(a)".try_into().unwrap();
         assert_eq!(a, Type::AllTy(Arc::new("a".into())));
+    }
+
+    #[test]
+    fn test_display() {
+        let a: Type = "!a".try_into().unwrap();
+        assert_eq!(format!("{}", a), "!a".to_string());
+   
+        let a: Type = "!!a".try_into().unwrap();
+        assert_eq!(format!("{}", a), "!!a".to_string());
+ 
+        let a: Type = "!(a & b)".try_into().unwrap();
+        assert_eq!(format!("{}", a), "!(a & b)".to_string());
     }
 }
