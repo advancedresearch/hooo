@@ -1174,6 +1174,12 @@ mod tests {
 
         let a: Type = "a => b -> c => d".try_into().unwrap();
         assert_eq!(a, "(c => d)^(a => b)".try_into().unwrap());
+    
+        let a: Type = "a & b -> c".try_into().unwrap();
+        assert_eq!(a, pow(ty("c"), and(ty("a"), ty("b"))));
+    
+        let a: Type = "a & b & c -> d".try_into().unwrap();
+        assert_eq!(a, pow(ty("d"), and(ty("a"), and(ty("b"), ty("c")))));
     }
 
     #[test]
@@ -1340,6 +1346,9 @@ mod tests {
         let a: Type = "qu(a) & (a == b)^true  ->  qu(b)".try_into().unwrap();
         assert_eq!(a, pow(app(sym("qu"), ty("b")),
             and(app(sym("qu"), ty("a")), tauto(eq(ty("a"), ty("b"))))));
+
+        let a: Type = "q(a, b)".try_into().unwrap();
+        assert_eq!(a, app(app(sym("q"), ty("a")), ty("b")));
     }
 }
 

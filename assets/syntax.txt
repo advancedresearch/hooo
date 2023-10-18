@@ -1,9 +1,14 @@
-_seps: "'(){}=<>^&|!->"
+_seps: "',(){}=<>^&|!->"
 
+19 and_right = {
+    and:"and"
+    type_or_pow
+}
+18 , = [.w? "," .w?]
 17 app_left = {
     [.._seps!:"sym" ?"'"]
 }
-16 app = [!"all(" !"excm(" app_left:"left" "(" .w? type:"right" .w? ")"]
+16 app = [!"all(" !"excm(" app_left:"left" "(" .w? .s!(, type:"arg") .w? ")"]
 15 pow_eq = [typeleft_or_not:"left" .w? "=^=" .w? typeleft_or_not:"right"]
 14 all = ["all(" .w? type_or_fun:"arg" .w? ")"]
 13 type_or_fun = {fun:"pow" type}
@@ -13,7 +18,7 @@ _seps: "'(){}=<>^&|!->"
 9 not = ["!" typeleft_or_not:"arg"]
 8 or = [type_or_pow:"left" .w? "|" .w? type_or_pow:"right"]
 7 eq = [typeleft_or_not:"left" .w? "==" .w? typeleft_or_not:"right"]
-6 and = [type_or_pow:"left" .w? "&" .w? type_or_pow:"right"]
+6 and = [type_or_pow:"left" .w? "&" .w? and_right:"right"]
 5 pow_ty = pow:"pow"
 4 pow = [typeleft:"left" .w? "^" .w? typeleft:"right"]
 3 imply = [type_or_pow:"left" .w? "=>" .w? type:"right"]
