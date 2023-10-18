@@ -734,6 +734,22 @@ impl Type {
         } else {None}
     }
 
+    pub fn as_multi_app_sym(&self) -> Option<(&Arc<String>, Vec<&Type>)> {
+        let mut args: Vec<&Type> = vec![];
+        let mut ty = self;
+        loop {
+            if let Type::App(ab) = ty {
+                args.push(&ab.1);
+                ty = &ab.0;
+            } else if let Type::Sym(f) = ty {
+                args.reverse();
+                return Some((f, args));
+            } else {
+                return None;
+            }
+        }
+    }
+
     pub fn to_str(&self, top: bool, parent_op: Option<Op>) -> String {
         if top {
             if let Type::Pow(ab) = self {
@@ -766,6 +782,18 @@ impl fmt::Display for Type {
         }
         if let Some((a, b)) = self.as_app_sym() {
             return write!(w, "{}({})", a, b);
+        }
+        if let Some((f, args)) = self.as_multi_app_sym() {
+            write!(w, "{}(", f)?;
+            let mut first = true;
+            for arg in args {
+                if !first {
+                    write!(w, ", ")?;
+                }
+                first = false;
+                write!(w, "{}", arg)?;
+            }
+            return write!(w, ")");
         }
         match self {
             True => write!(w, "true")?,
@@ -1250,6 +1278,9 @@ mod tests {
     
         let a: Type = "!a =^= !b".try_into().unwrap();
         assert_eq!(format!("{}", a), "!a =^= !b".to_string());
+    
+        let a: Type = "q(a, b)".try_into().unwrap();
+        assert_eq!(format!("{}", a), "q(a, b)".to_string());
     }
 
     #[test]
