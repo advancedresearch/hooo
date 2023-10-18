@@ -599,10 +599,7 @@ impl Term {
                 let ty_f: Type = if args.len() == 1 {"false -> a".try_into().unwrap()}
                     else {"(a | b) & ((a => c) & (b => c))  ->  c".try_into().unwrap()};
                 if let Type::Pow(ab) = ty_f.lift() {
-                    let mut bind = vec![];
-                    if ab.1.bind(&ty_arg, &mut bind) {
-                        if ab.0.replace(&bind).has_(t) {return true}
-                    }
+                    return ty_arg.app_to_has_bound(&ab.1, &ab.0, t);
                 }
                 false
             }
@@ -802,14 +799,23 @@ impl Type {
     }
 
     #[must_use]
-    pub fn bind(&self, val: &Type, bind: &mut Vec<(Type, Type)>) -> bool {
+    pub fn bind(&self, contra: bool, val: &Type, bind: &mut Vec<(Type, Type)>) -> bool {
         use Type::*;
 
-        match (self, val) {
+        match if contra {(val, self)} else {(self, val)} {
             (True, True) => true,
             (False, False) => true,
             (Ty(a), Ty(b)) => a == b,
-            (AllTy(a), _) => {
+            (_, AllTy(a)) if contra => {
+                for (name, v) in bind.iter() {
+                    if let AllTy(name) = name {
+                        if name == a && val != v {return false}
+                    }
+                }
+                bind.push((self.clone(), val.clone()));
+                true
+            }
+            (AllTy(a), _) if !contra => {
                 for (name, v) in bind.iter() {
                     if let AllTy(name) = name {
                         if name == a && val != v {return false}
@@ -819,21 +825,37 @@ impl Type {
                 true
             }
             (And(ab), And(cd)) |
-            (Or(ab), Or(cd)) |
-            (Pow(ab), Pow(cd)) |
+            (Or(ab), Or(cd)) => {
+                let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
+                if !ab.0.bind(contra, &cd.0, bind) {return false};
+                if !ab.1.bind(contra, &cd.1, bind) {return false};
+                true
+            }
+            (Pow(ab), Pow(cd)) => {
+                let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
+                if !ab.0.bind(contra, &cd.0, bind) {return false};
+                if !ab.1.bind(!contra, &cd.1, bind) {return false};
+                true
+            }
             (Imply(ab), Imply(cd)) => {
-                if !ab.0.bind(&cd.0, bind) {return false};
-                if !ab.1.bind(&cd.1, bind) {return false};
+                let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
+                if !ab.0.bind(!contra, &cd.0, bind) {return false};
+                if !ab.1.bind(contra, &cd.1, bind) {return false};
                 true
             }
             (Pow(ab), Imply(cd)) => {
-                if !ab.1.bind(&cd.0, bind) {return false};
-                if !ab.0.bind(&cd.1, bind) {return false};
+                if contra {
+                    if !cd.0.bind(!contra, &ab.1, bind) {return false};
+                    if !cd.1.bind(contra, &ab.0, bind) {return false};
+                } else {
+                    if !ab.1.bind(!contra, &cd.0, bind) {return false};
+                    if !ab.0.bind(contra, &cd.1, bind) {return false};
+                }
                 true
             }
             (All(a), All(b)) => {
                 let mut bind = vec![];
-                if a.bind(b, &mut bind) {
+                if a.bind(contra, b, &mut bind) {
                     bind.push((self.clone(), All(Box::new(a.replace(&bind)))));
                     true
                 } else {false}
@@ -863,41 +885,39 @@ impl Type {
 
     /// Whether application type checks.
     pub fn app_to_has_bound(&self, a: &Type, b: &Type, t: &Type) -> bool {
-        if let (Type::All(_), Type::All(_)) = (self, a) {
-            let mut bind = vec![];
-            if self.bind(a, &mut bind) {
-                return b.has_(t);
-            } else {return false}
-        }
-
         let mut bind = vec![];
-        if a.bind(self, &mut bind) {
-            if b.replace(&bind).has_(t) {return true} else {false}
+        let contra = true;
+        if a.bind(contra, self, &mut bind) {
+            if b.replace(&bind).has_(false, t) {return true} else {false}
         } else {false}
     }
 
     pub fn has_bound(&self, other: &Type) -> bool {
         let mut bind = vec![];
-        if self.bind(other, &mut bind) {
-            self.replace(&bind).has_(other)
+        let contra = false;
+        if self.bind(contra, other, &mut bind) {
+            self.replace(&bind).has_(contra, other)
         } else {false}
     }
 
-    pub fn has_(&self, other: &Type) -> bool {
+    pub fn has_(&self, contra: bool, other: &Type) -> bool {
         use Type::*;
 
         match (self, other) {
             (False, False) => true,
             (True, True) => true,
             (Ty(a), Ty(b)) if a == b => true,
-            (AllTy(_), _) => true,
-            (And(ab), And(cd)) if ab.0.has_(&cd.0) && ab.1.has_(&cd.1) => true,
-            (Or(ab), Or(cd)) if ab.0.has_(&cd.0) && ab.1.has_(&cd.1) => true,
-            (Pow(ab), Imply(cd)) if ab.0.has_(&cd.1) && ab.0.has_(&cd.1) => true,
-            (Pow(ab), Pow(cd)) if ab.1.has_(&cd.1) && ab.0.has_(&cd.0) => true,
-            (Imply(ab), Imply(cd)) if ab.0.has_(&cd.0) && ab.1.has_(&cd.1) => true,
-            (x, Or(ab)) if x.has_(&ab.0) || x.has_(&ab.1) => true,
-            (All(a), All(b)) if a.has_(b) => true,
+            (_, AllTy(_)) if contra => true,
+            (AllTy(_), _) if !contra => true,
+            (And(ab), And(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
+            (Or(ab), Or(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
+            (Pow(ab), Imply(cd)) if cd.0.has_(!contra, &ab.1) && ab.0.has_(contra, &cd.1) => true,
+            (Pow(ab), Pow(cd)) if cd.1.has_(!contra, &ab.1) &&
+                                  ab.0.has_(contra, &cd.0) => true,
+            (Imply(ab), Imply(cd)) if cd.0.has_(!contra, &ab.0) && ab.1.has_(contra, &cd.1) => true,
+            // TODO: Add unit tests for this case.
+            (x, Or(ab)) if x.has_(contra, &ab.0) || x.has_(contra, &ab.1) => true,
+            (All(a), All(b)) if a.has_(contra, b) => true,
             _ => false,
         }
     }
@@ -1171,6 +1191,48 @@ mod tests {
     }
 
     #[test]
+    fn test_has() {
+        let fun_ab: Type = "a -> b".try_into().unwrap();
+        let ab: Type = "a => b".try_into().unwrap();
+        assert!(fun_ab.has_bound(&ab));
+
+        let x: Type = "(a => b) -> c".try_into().unwrap();
+        let y: Type = "(a -> b) -> c".try_into().unwrap();
+        assert!(x.has_bound(&y));
+    
+        let x: Type = pow(ty("a"), Type::AllTy(Arc::new("b".into())));
+        let y: Type = "a^b".try_into().unwrap();
+        assert!(x.has_(false, &y));
+    }
+
+    #[test]
+    fn test_bind() {
+        let mut bind = vec![];
+        let a: Type = "a".try_into().unwrap();
+        assert!(a.bind(false, &a, &mut bind));
+    
+        let mut bind = vec![];
+        assert!(a.bind(true, &a, &mut bind));
+    
+        let mut bind = vec![];
+        assert!(a.clone().lift().bind(false, &a, &mut bind));
+        let mut bind = vec![];
+        assert!(a.clone().lift().bind(true, &a, &mut bind));
+        let mut bind = vec![];
+        assert!(!a.bind(false, &a.clone().lift(), &mut bind));
+    
+        let x: Type = "a^b".try_into().unwrap();
+        let mut bind = vec![];
+        assert!(x.clone().lift().bind(false, &x, &mut bind));
+        let mut bind = vec![];
+        assert!(x.clone().lift().bind(true, &x, &mut bind));
+        let mut bind = vec![];
+        assert!(!x.bind(false, &x.clone().lift(), &mut bind));
+        let mut bind = vec![];
+        assert!(!x.bind(true, &x.clone().lift(), &mut bind));
+    }
+
+    #[test]
     fn test_app_to_has_bound() {
         let a: Type = "a".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
@@ -1187,6 +1249,10 @@ mod tests {
         assert!(all_ab.has_bound(&all_aa));
         assert!(all_ab.app_to_has_bound(&all_aa, &b, &b));
         assert!(!all_aa.app_to_has_bound(&all_ab, &b, &b));
+
+        let ab: Type = "a => b".try_into().unwrap();
+        let fun_ab: Type = "a -> b".try_into().unwrap();
+        assert!(fun_ab.app_to_has_bound(&ab, &b, &b));
     }
 }
 

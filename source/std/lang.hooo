@@ -24,9 +24,9 @@ fn uncurry (a => b => c) -> (a & b) => c {
     return f;
 }
 
-fn modus_ponens a & b^a -> b {
+fn modus_ponens a & (a => b) -> b {
     x : a;
-    y : b^a;
+    y : a => b;
 
     let z = y(x) : b;
     return z;
