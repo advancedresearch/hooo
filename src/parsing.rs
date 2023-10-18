@@ -1,6 +1,7 @@
 use crate::*;
 
-use piston_meta::{Convert, Range};
+use piston_meta::{syntax_errstr, Convert, Range, Syntax};
+use lazy_static::lazy_static;
 
 fn parse_lib(
     node: &str,
@@ -454,12 +455,18 @@ fn parse_un(
     Ok((convert.subtract(start), arg))
 }
 
+lazy_static! {
+    static ref TYPE_SYNTAX_RULES: Result<Syntax, String> = {
+        let syntax = include_str!("../assets/syntax.txt");
+        syntax_errstr(syntax)
+    };
+}
+
 /// Parses a type string.
 pub fn parse_ty_str(data: &str) -> Result<Type, String> {
-    use piston_meta::{parse_errstr, syntax_errstr};
+    use piston_meta::{parse_errstr};
 
-    let syntax_src = include_str!("../assets/syntax.txt");
-    let syntax = syntax_errstr(syntax_src)?;
+    let syntax = TYPE_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
 
     let mut meta_data = vec![];
     parse_errstr(&syntax, &data, &mut meta_data)?;
@@ -474,6 +481,13 @@ pub fn parse_ty_str(data: &str) -> Result<Type, String> {
     }
 }
 
+lazy_static! {
+    static ref SCRIPT_SYNTAX_RULES: Result<Syntax, String> = {
+        let syntax = include_str!("../assets/syntax-script.txt");
+        syntax_errstr(syntax)
+    };
+}
+
 /// Executes a string as script.
 pub fn run_str(
     ctx: &mut Context,
@@ -481,10 +495,9 @@ pub fn run_str(
     search: &mut Search,
     loader: &mut Loader,
 ) -> Result<Option<Arc<String>>, String> {
-    use piston_meta::{parse_errstr, syntax_errstr, ParseErrorHandler};
+    use piston_meta::{parse_errstr, ParseErrorHandler};
 
-    let syntax_src = include_str!("../assets/syntax-script.txt");
-    let syntax = syntax_errstr(syntax_src)?;
+    let syntax = SCRIPT_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
 
     let mut meta_data = vec![];
     parse_errstr(&syntax, &data, &mut meta_data)?;
@@ -505,15 +518,20 @@ pub fn run_str(
     }
 }
 
+lazy_static! {
+    static ref LIB_SYNTAX_RULES: Result<Syntax, String> = {
+        let syntax = include_str!("../assets/syntax-lib.txt");
+        syntax_errstr(syntax)
+    };
+}
 
 /// Parses library format.
 pub fn lib_str(
     data: &str,
 ) -> Result<LibInfo, String> {
-    use piston_meta::{parse_errstr, syntax_errstr};
+    use piston_meta::parse_errstr;
 
-    let syntax_src = include_str!("../assets/syntax-lib.txt");
-    let syntax = syntax_errstr(syntax_src)?;
+    let syntax = LIB_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
 
     let mut meta_data = vec![];
     parse_errstr(&syntax, &data, &mut meta_data)?;
