@@ -317,3 +317,25 @@ fn tauto_eq_refl true  ->  (a == a) {
     return r;
 }
 
+fn tauto_not_to_para (!a)^true  ->  false^a {
+    x : (!a)^true;
+    fn f a -> (!a)^true => false {
+        y : a;
+        lam g (!a)^true => false {
+            x : (!a)^true;
+            use triv;
+            let x2 = triv(x) : !a;
+            let r = x2(y) : false;
+            return r;
+        }
+        return g;
+    }
+    
+    use hooo_imply;
+    let y2 = hooo_imply(f) : ((!a)^true)^a => false^a;
+    use pow_lift;
+    let y3 = pow_lift(x) : ((!a)^true)^a;
+    let r = y2(y3) : false^a;
+    return r;
+}
+

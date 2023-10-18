@@ -86,3 +86,46 @@ fn theory_to_npara theory(a)  ->  !(false^a) {
     return r;
 }
 
+fn uniform_to_tauto_excm uniform(a)  ->  excm(a)^true {
+    x : uniform(a);
+    lam g a^true => excm(a)^true {
+        y : a^true;
+        use left;
+        use pow_transitivity;
+        let f = pow_transitivity() : a^true & excm(a)^a -> excm(a)^true;
+        let l = left() : excm(a)^a;
+        let r = f(y, l) : excm(a)^true;
+        return r;
+    }
+    lam h false^a => excm(a)^true {
+        y : false^a;
+        use pow_to_imply_lift;
+        let x2 = pow_to_imply_lift(y) : (!a)^true;
+        use right;
+        use pow_transitivity;
+        let y2 = right() : excm(a)^(!a);
+        let r = pow_transitivity(x2, y2) : excm(a)^true;
+        return r;
+    }
+    use uniform_to;
+    let x2 = uniform_to(x) : a^true | false^a;
+    let r = match x2 (g, h) : excm(a)^true;
+    return r;
+}
+
+fn tauto_excm_to_uniform excm(a)^true  ->  uniform(a) {
+    x : excm(a)^true;
+    use hooo_or;
+    let x2 = hooo_or(x) : a^true | (!a)^true;
+    use tauto_to_uniform;
+    let y = tauto_to_uniform() : a^true => uniform(a);
+    use tauto_not_to_para;
+    let tnp = tauto_not_to_para() : (!a)^true => false^a;
+    use para_to_uniform;
+    let ptu = para_to_uniform() : false^a => uniform(a);
+    use imply_transitivity;
+    let y2 = imply_transitivity(tnp, ptu) : (!a)^true => uniform(a); 
+    let r = match x2 (y, y2) : uniform(a);
+    return r;
+}
+
