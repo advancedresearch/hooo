@@ -33,7 +33,7 @@ fn qu_to_q qu(a)  ->  q(a, a) {
     return r;
 }
 
-fn q_to_q q(a, a)  ->  qu(a) {
+fn q_to_qu q(a, a)  ->  qu(a) {
     x : q(a, a);
     use q_to;
     let y = q_to(x) : (a == a) & qu(a) & qu(a);
@@ -65,6 +65,52 @@ fn q_right q(a, b)  ->  q(b, b) {
     let y3 = snd(y2) : qu(b);
     use qu_to_q;
     let r = qu_to_q(y3) : q(b, b);
+    return r;
+}
+
+fn q_to_eq q(a, b)  ->  (a == b) {
+    x : q(a, b);
+    use q_to;
+    let y = q_to(x) : (a == b) & qu(a) & qu(b);
+    use std::fst;
+    let r = fst(y) : (a == b);
+    return r;
+}
+
+fn neq_to_sesh !(a == b)  ->  !q(a, b) {
+    x : !(a == b);
+    use q_to_eq;
+    let y = q_to_eq() : q(a, b) => (a == b);
+    use std::modus_tollens;
+    let y2 = modus_tollens(y) : !(a == b) => !q(a, b);
+    let r = y2(x) : !q(a, b);
+    return r;
+}
+
+fn nqu_to_sesh !qu(a)  ->  !q(a, a) {
+    x: !qu(a);
+    use q_to_qu;
+    use std::modus_tollens;
+    let y = modus_tollens(q_to_qu) : !qu(a) => !q(a, a);
+    let r = y(x) : !q(a, a);
+    return r;
+}
+
+fn sesh_left !q(a, a)  ->  !q(a, b) {
+    x : !q(a, a);
+    use std::modus_tollens;
+    use q_left;
+    let y = modus_tollens(q_left) : !q(a, a) => !q(a, b);
+    let r = y(x) : !q(a, b);
+    return r;
+}
+
+fn sesh_right !q(b, b)  ->  !q(a, b) {
+    x : !q(b, b);
+    use std::modus_tollens;
+    use q_right;
+    let y = modus_tollens(q_right) : !q(b, b) => !q(a, b);
+    let r = y(x) : !q(a, b);
     return r;
 }
 
