@@ -1,0 +1,9 @@
+
+fn qu_in_arg qu(a) & (a == b)^true  ->  qu(b) {
+    axiom qu_in_arg : qu(a) & (a == b)^true  ->  qu(b);
+    x : qu(a);
+    y : (a == b)^true;
+    let r = qu_in_arg(x, y) : qu(b);
+    return r;
+}
+
