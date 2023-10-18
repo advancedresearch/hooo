@@ -1,5 +1,9 @@
 _seps: "',(){}=<>^&|!->"
 
+20 imply_left = {
+    and:"and"
+    type_or_pow
+}
 19 and_right = {
     and:"and"
     type_or_pow
@@ -12,16 +16,18 @@ _seps: "',(){}=<>^&|!->"
 15 pow_eq = [typeleft_or_not:"left" .w? "=^=" .w? typeleft_or_not:"right"]
 14 all = ["all(" .w? type_or_fun:"arg" .w? ")"]
 13 type_or_fun = {fun:"pow" type}
-12 type_or_pow = {pow_ty typeleft_or_not}
+12 type_or_pow = {
+    pow:"pow"
+    typeleft_or_not
+}
 11 fun = [type:"right" .w? "->" .w? type_or_fun:"left"]
 10 excm = ["excm(" .w? type:"arg" .w? ")"]
 9 not = ["!" typeleft_or_not:"arg"]
 8 or = [type_or_pow:"left" .w? "|" .w? type_or_pow:"right"]
-7 eq = [typeleft_or_not:"left" .w? "==" .w? typeleft_or_not:"right"]
+7 eq = [type_or_pow:"left" .w? "==" .w? type_or_pow:"right"]
 6 and = [type_or_pow:"left" .w? "&" .w? and_right:"right"]
-5 pow_ty = pow:"pow"
-4 pow = [typeleft:"left" .w? "^" .w? typeleft:"right"]
-3 imply = [type_or_pow:"left" .w? "=>" .w? type:"right"]
+5 pow = [typeleft:"left" .w? "^" .w? typeleft:"right"]
+4 imply = [imply_left:"left" .w? "=>" .w? type:"right"]
 3 typeleft_or_not = {
     not:"not"
     typeleft
@@ -37,12 +43,12 @@ _seps: "',(){}=<>^&|!->"
     .._seps!:"name"
 }
 1 type = {
+    imply:"imply"
     and:"and"
     or:"or"
-    imply:"imply"
-    pow:"pow"
     eq:"eq"
     pow_eq:"pow_eq"
+    pow:"pow"
     typeleft_or_not
 }
 0 doc = [.w? type_or_fun:"type" .w?]

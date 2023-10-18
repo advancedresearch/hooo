@@ -1208,6 +1208,24 @@ mod tests {
     
         let a: Type = "a & b & c -> d".try_into().unwrap();
         assert_eq!(a, pow(ty("d"), and(ty("a"), and(ty("b"), ty("c")))));
+    
+        let a: Type = "a^c == b^c".try_into().unwrap();
+        assert_eq!(a, eq(pow(ty("a"), ty("c")), pow(ty("b"), ty("c"))));
+    }
+
+    #[test]
+    fn test_parse_imply() {
+        let a: Type = "a => b".try_into().unwrap();
+        assert_eq!(a, imply(ty("a"), ty("b")));
+
+        let a: Type = match "a & b => c".try_into() {
+            Ok(x) => x,
+            Err(err) => {
+                eprintln!("{}", err);
+                panic!();
+            }
+        };
+        assert_eq!(a, imply(and(ty("a"), ty("b")), ty("c")));
     }
 
     #[test]
