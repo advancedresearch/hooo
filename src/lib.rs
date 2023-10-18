@@ -188,6 +188,7 @@ a & b      And (struct type)
 a | b      Or (enum type)
 !a         Not (sugar for `a => false`)
 a == b     Equal (sugar for `(a => b) & (b => a)`)
+a =^= b    Pow equal (sugar for `b^a & a^b`)
 true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types.
@@ -646,6 +647,7 @@ pub enum Op {
     Not,
     Eq,
     Excm,
+    PowEq,
     All,
 }
 
@@ -676,6 +678,7 @@ impl Type {
         if self.as_not().is_some() {return Some(Op::Not)};
         if self.as_eq().is_some() {return Some(Op::Eq)};
         if self.as_excm().is_some() {return Some(Op::Excm)};
+        if self.as_pow_eq().is_some() {return Some(Op::PowEq)};
         match self {
             True | False | Ty(_) | AllTy(_) => None,
             Pow(_) => Some(Op::Pow),
@@ -708,6 +711,14 @@ impl Type {
         } else {None}
     }
 
+    pub fn as_pow_eq(&self) -> Option<(&Type, &Type)> {
+        if let Type::And(ab) = self {
+            if let (Type::Pow(ab), Type::Pow(cd)) = &**ab {
+                if ab.1 == cd.0 && ab.0 == cd.1 {Some((&ab.1, &ab.0))} else {None}
+            } else {None}
+        } else {None}
+    }
+
     pub fn to_str(&self, top: bool, parent_op: Option<Op>) -> String {
         if top {
             if let Type::Pow(ab) = self {
@@ -734,6 +745,9 @@ impl fmt::Display for Type {
         }
         if let Some(a) = self.as_excm() {
             return write!(w, "excm({})", a);
+        }
+        if let Some((a, b)) = self.as_pow_eq() {
+            return write!(w, "{} =^= {}", a, b);
         }
         match self {
             True => write!(w, "true")?,
@@ -1074,6 +1088,7 @@ pub fn or(a: Type, b: Type) -> Type {Type::Or(Box::new((a, b)))}
 pub fn imply(a: Type, b: Type) -> Type {Type::Imply(Box::new((a, b)))}
 pub fn not(a: Type) -> Type {imply(a, Type::False)}
 pub fn eq(a: Type, b: Type) -> Type {and(imply(a.clone(), b.clone()), imply(b, a))}
+pub fn pow_eq(a: Type, b: Type) -> Type {and(pow(b.clone(), a.clone()), pow(a, b))}
 pub fn tauto(a: Type) -> Type {pow(a, Type::True)}
 pub fn para(a: Type) -> Type {pow(Type::False, a)}
 
@@ -1179,6 +1194,9 @@ mod tests {
 
         let a: Type = "(!a)^true".try_into().unwrap();
         assert_eq!(format!("{}", a), "(!a)^true".to_string());
+
+        let a: Type = "a =^= b".try_into().unwrap();
+        assert_eq!(format!("{}", a), "a =^= b".to_string());
     }
 
     #[test]

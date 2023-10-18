@@ -303,6 +303,9 @@ fn parse_ty(
         } else if let Ok((range, val)) = parse_bin("eq", convert, ignored) {
             convert.update(range);
             ty = Some(eq(val.0, val.1));
+        } else if let Ok((range, val)) = parse_bin("pow_eq", convert, ignored) {
+            convert.update(range);
+            ty = Some(pow_eq(val.0, val.1));
         } else if let Ok((range, val)) = parse_un("not", convert, ignored) {
             convert.update(range);
             ty = Some(Type::Imply(Box::new((val, Type::False))));
