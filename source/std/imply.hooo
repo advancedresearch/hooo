@@ -25,3 +25,23 @@ fn modus_tollens (a => b)  ->  (!b => !a) {
     return f;
 }
 
+fn imply_in_left_arg (a => b) & (a == c)  ->  (c => b) {
+    x : a => b;
+    y : a == c;
+    use snd;
+    let y2 = snd(y) : c => a;
+    use imply_transitivity;
+    let r = imply_transitivity(y2, x) : c => b;
+    return r;
+}
+
+fn imply_in_right_arg (a => b) & (b == c)  ->  (a => c) {
+    x : a => b;
+    y : b == c;
+    use fst;
+    let y2 = fst(y) : b => c;
+    use imply_transitivity;
+    let r = imply_transitivity(x, y2) : a => c;
+    return r;
+}
+
