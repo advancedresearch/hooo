@@ -10,3 +10,18 @@ fn imply_transitivity (a => b) & (b => c) -> (a => c) {
     return f;
 }
 
+fn modus_tollens (a => b)  ->  (!b => !a) {
+    x : a => b;
+    lam f !b => !a {
+        y : !b;
+        lam g !a {
+            z : a;
+            let x2 = x(z) : b;
+            let r = y(x2) : false;
+            return r;
+        }
+        return g;
+    }
+    return f;
+}
+
