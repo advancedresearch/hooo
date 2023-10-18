@@ -197,3 +197,84 @@ fn triv a^true  ->  a {
     return r;
 }
 
+fn pow_in_left_arg a^b & (a == c)^true  ->  c^b {
+    x : a^b;
+    y : (a == c)^true;
+
+    use pow_lift;
+    let y2 = pow_lift(y) : ((a == c)^true)^b;
+    use hooo_rev_and;
+    let y3 = hooo_rev_and(x, y2) : (a & (a == c)^true)^b;
+
+    fn f a & (a == c)^true  ->  c {
+        x : a;
+        y : (a == c)^true;
+
+        use triv;
+        let x2 = triv(y) : a == c;
+        use fst;
+        let x3 = fst(x2) : a => c;
+        let r = x3(x) : c;
+        return r;
+    }
+
+    use pow_transitivity;
+    let y4 = pow_transitivity() : (a & (a == c)^true)^b & c^(a & (a == c)^true) -> c^b;
+    let f2 = f() : a & (a == c)^true -> c;
+    let r = y4(y3, f2) : c^b;
+    return r;
+}
+
+fn pow_in_right_arg a^b & (b == c)^true  ->  a^c {
+    x : a^b;
+    y : (b == c)^true;
+
+    fn f c  ->  (b == c)^true => b {
+        x : c;
+        lam g (b == c)^true => b {
+            y : (b == c)^true;
+            use triv;
+            let y2 = triv(y) : b == c;
+            use snd;
+            let y3 = snd(y2) : c => b;
+            let r = y3(x) : b;
+            return r;
+        }
+        return g;
+    }
+
+    use hooo_imply;
+    let x2 = hooo_imply(f) : ((b == c)^true)^c => b^c;
+    use pow_lift;
+    let x3 = pow_lift(y) : ((b == c)^true)^c;
+    let x4 = x2(x3) : b^c;
+    use pow_transitivity;
+    let r = pow_transitivity(x4, x) : a^c;
+    return r;
+}
+
+fn pow_eq_to_tauto_eq b^a & a^b  ->  (a == b)^true {
+    x : b^a;
+    y : a^b;
+    
+    use pow_to_imply_lift;
+    let x2 = pow_to_imply_lift(x) : (a => b)^true;
+    let y2 = pow_to_imply_lift(y) : (b => a)^true;
+
+    use hooo_rev_and;
+    let r = hooo_rev_and(x2, y2) : (a == b)^true;
+    return r;
+}
+
+fn tauto_eq_to_pow_eq (a == b)^true  ->  b^a & a^b {
+    x : (a == b)^true;
+    use refl;
+    let x2 = refl() : a^a;
+    use pow_in_left_arg;
+    let x3 = pow_in_left_arg(x2, x) : b^a;
+    use pow_in_right_arg;
+    let x4 = pow_in_right_arg(x2, x) : a^b;
+    let r = refl(x3, x4) : b^a & a^b;
+    return r;
+}
+

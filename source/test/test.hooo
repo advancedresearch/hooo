@@ -5,14 +5,3 @@ fn test_refl a -> a {
     return y;
 }
 
-fn test_absurd true -> b {
-    use std::refl;
-
-    let x = refl() : all(a -> a);
-
-    use std::all_pow_absurd;
-    let y = all_pow_absurd(x) : b;
-
-    return y;
-}
-
