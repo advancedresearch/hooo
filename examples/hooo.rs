@@ -1,6 +1,7 @@
 use hooo::*;
 
 use std::sync::Arc;
+use rayon::prelude::*;
 
 fn main() {
     println!("==== Hooo 0.2 ====");
@@ -22,7 +23,7 @@ fn main() {
             match lib_check(loader) {
                 Ok(()) => {}
                 Err(err) => {
-                    eprintln!("ERROR:\n{}", err);
+                    eprintln!("\nERROR:\n{}", err);
                     return;
                 }
             }
@@ -53,22 +54,24 @@ fn lib_check(loader: &mut Loader) -> Result<(), String> {
     use std::path::Path;
     use std::fs::File;
     use std::io::Write as OtherWrite;
+    use std::sync::Mutex;
 
     let path = Path::new(&**loader.dir).join("Hooo.config");
     let lib: Option<LibInfo> = loader.load_info()?;
-    
-    for entry in std::fs::read_dir(&**loader.dir).unwrap() {
-        if let Ok(entry) = entry {
-            let path = entry.path();
-            if path.is_file() {
-                if let Some(ext) = path.extension() {
-                    if ext == "hooo" {
-                        proof_check(path.to_str().unwrap().into(), loader)?;
-                    }
-                }
-            }
-        }
-    }
+  
+    let files = loader.files.clone(); 
+ 
+    loader.silent = true;
+    let error: Arc<Mutex<Result<(), String>>> = Arc::new(Ok(()).into());
+    let _ = (0..files.len()).into_par_iter().map(|i| {
+        if let Err(err) = proof_check(files[i].clone(), &mut loader.clone()) {
+            let mut error = error.lock().unwrap();
+            *error = Err(format!("In `{}`:\n{}", files[i], err));
+            None
+        } else {Some(i)}
+    }).while_some().max();
+    let error = error.lock().unwrap();
+    let _ = error.as_ref().map_err(|err| err.clone())?;
 
     let mut s = String::new();
     // Extract functions and generate library format.
@@ -153,8 +156,10 @@ fn proof_check(file: String, loader: &mut Loader) -> Result<(), String> {
     let mut ctx = Context::new();
     let mut search = Search::new();
     let _ = ctx.run(&file, &mut search, loader)?;
-    println!("\nProof check completed successfully.");
-    println!("Search effort: {}", search.n);
+    if !loader.silent {
+        println!("\nProof check completed successfully.");
+        println!("Search effort: {}", search.n);
+    }
     Ok(())
 }
 

@@ -15,4 +15,5 @@ exclude = ["source/test/*"]
 [dependencies]
 piston_meta = "2.0.1"
 lazy_static = "1.4.0"
+rayon = "1.8.0"
 

@@ -996,6 +996,7 @@ impl Type {
 }
 
 /// Loads function types.
+#[derive(Clone)]
 pub struct Loader {
     /// The working directory.
     pub dir: Arc<String>,
@@ -1010,41 +1011,76 @@ pub struct Loader {
     pub dependencies: Vec<LibInfo>,
     /// Stores trace to avoid cyclic proofs.
     pub trace: Vec<Arc<String>>,
+    pub silent: bool,
+    pub files: Vec<String>,
 }
 
 impl Loader {
     pub fn new(dir: Arc<String>) -> Result<Loader, String> {
+        use rayon::prelude::*;
+        use std::sync::Mutex;
+
         let mut loader = Loader {
             dir: dir.clone(),
             functions: HashMap::new(),
             run: false,
             dependencies: vec![],
             trace: vec![],
+            silent: false,
+            files: vec![],
         };
 
         let std = parsing::lib_str(include_str!("../source/std/Hooo.config"))?;
         loader.dependencies.push(std);
 
+        let files: Vec<String> = std::fs::read_dir(&**loader.dir).unwrap()
+            .filter(|entry| {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    if path.is_file() {
+                        if let Some(ext) = path.extension() {
+                            ext == "hooo"
+                        } else {false}
+                    } else {false}
+                } else {false}
+            })
+            .map(|entry| entry.unwrap().path().to_str().unwrap().into())
+        .collect();
+
+        let (tx, rx) = std::sync::mpsc::channel();
+        let error: Arc<Mutex<Result<(), String>>> = Arc::new(Ok(()).into());        
+
         // Extract all functions.
-        for entry in std::fs::read_dir(&**dir).unwrap() {
-            if let Ok(entry) = entry {
-                let path = entry.path();
-                if path.is_file() {
-                    if let Some(ext) = path.extension() {
-                        if ext == "hooo" {
-                            let mut ctx = Context::new();
-                            let mut search = Search::new();
-                            let file = path.to_str().unwrap();
-                            match ctx.run(&file, &mut search, &mut loader) {
-                                Ok(_) => {}
-                                Err(err) => return Err(
-                                    format!("Load error #100\nIn file `{}`\n{}", file, err)),
-                            }
-                        }
-                    }
+        let _ = (0..files.len()).into_par_iter().map(|i| {
+            let mut ctx = Context::new();
+            let mut search = Search::new();
+            let mut loader = loader.clone();
+            let file = &files[i];
+            match ctx.run(file, &mut search, &mut loader) {
+                Ok(_) => {}
+                Err(err) => {
+                    let mut error = error.lock().unwrap();
+                    *error = Err(
+                        format!("Load error #100\nIn file `{}`\n{}", file, err));
+                    return None;
                 }
             }
+            for fun in loader.functions.into_iter() {
+                tx.send(fun).unwrap();
+            }
+            Some(i)
+        }).while_some().max();
+
+        drop(tx);
+ 
+        let error = error.lock().unwrap();
+        let _ = error.as_ref().map_err(|err| err.clone())?;
+
+        while let Ok(x) = rx.recv() {
+            loader.functions.insert(x.0, x.1);
         }
+
+        loader.files = files;
 
         loader.run = true;
 
@@ -1109,11 +1145,13 @@ impl Loader {
     }
 }
 
+#[derive(Clone)]
 pub enum Dep {
     Path(Arc<String>),
 }
 
 /// Stores library information.
+#[derive(Clone)]
 pub struct LibInfo {
     pub name: Arc<String>,
     pub version: Arc<String>,

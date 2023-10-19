@@ -145,7 +145,7 @@ fn run_ctx(
                 if loader.run {
                     let n = loader.trace.len();
                     loader.trace.push(name.clone());
-                    println!("fn {}", name);
+                    if !loader.silent {println!("fn {}", name)};
                     ctx.fun(range, name.clone(), ty.clone(), search, |ctx, search| {
                         match run_ctx(ctx, search, loader, "script", convert, ignored) {
                             Ok((range, ret)) => {
@@ -181,7 +181,7 @@ fn run_ctx(
         if let Ok((range, (name, _, ty))) = parse_var("lam_decl", convert, ignored) {
             convert.update(range);
             if loader.run {
-                println!("lam {}", name);
+                if !loader.silent {println!("lam {}", name)};
                 ctx.lam(range, name.clone(), ty.clone(), search, |ctx, search| {
                     match run_ctx(ctx, search, loader, "script", convert, ignored) {
                         Ok((range, ret)) => {
