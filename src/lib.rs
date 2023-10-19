@@ -222,6 +222,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::path::Path;
 use piston_meta::Range;
+use lazy_static::lazy_static;
 
 pub mod parsing;
 
@@ -510,6 +511,12 @@ pub enum Term {
     Match(Vec<Arc<String>>, Type),
 }
 
+lazy_static! {
+    static ref MATCH_TYPE: Result<Type, String> = {
+        "(a | b) & ((a => c) & (b => c))  ->  c".try_into()
+    };
+}
+
 impl Term {
     pub fn is_safe(&self) -> bool {
         use Term::*;
@@ -598,7 +605,7 @@ impl Term {
                     ty_arg = and(ctx.terms[arg_ind.unwrap()].get_type(), ty_arg);
                 }
                 let ty_f: Type = if args.len() == 1 {"false -> a".try_into().unwrap()}
-                    else {"(a | b) & ((a => c) & (b => c))  ->  c".try_into().unwrap()};
+                    else {MATCH_TYPE.as_ref().unwrap().clone()};
                 if let Type::Pow(ab) = ty_f.lift() {
                     return ty_arg.app_to_has_bound(&ab.1, &ab.0, t);
                 }
