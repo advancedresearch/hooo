@@ -30,3 +30,110 @@ fn lob_absurd all((p^true => p)^true => p^true)  ->  false {
     return x3;
 }
 
+/*
+N axiom: `□a => a^true`
+Formal expression `all(N(a))`
+*/
+
+/// Reduction of N relation.
+fn modal_n_to N(a)  ->  nec(a) => a^true {
+    axiom modal_n_to : N(a) -> nec(a) => a^true;
+    x : N(a);
+    let r = modal_n_to(x) : nec(a) => a^true;
+    return r;
+}
+
+/// Construction of N relation.
+fn modal_n_from N(a)  ->  a^true => nec(a) {
+    axiom modal_n_from : N(a) -> a^true => nec(a);
+    x : N(a);
+    let r = modal_n_from(x) : a^true => nec(a);
+    return r;
+}
+
+/*
+K axiom: `□(a => b) => (□a => □b)`
+Formal expression: `all(K(a, b))`
+*/
+
+/// Reduction of K relation.
+fn modal_k_to K(a, b)  ->  nec(a => b) => (nec(a) => nec(b)) {
+    axiom modal_k_to : K(a, b) -> nec(a => b) => (nec(a) => nec(b));
+    x : K(a, b);
+    let r = modal_k_to(x) : nec(a => b) => (nec(a) => nec(b));
+    return r;
+}
+
+/// Construction of K relation.
+fn modal_k_from nec(a => b) => (nec(a) => nec(b))  ->  K(a, b) {
+    axiom modal_k_from : nec(a => b) => (nec(a) => nec(b)) -> K(a, b);
+    x : nec(a => b) => (nec(a) => nec(b));
+    let r = modal_k_from(x) : K(a, b);
+    return r;
+}
+
+/*
+T axiom: `□a => a`
+Formal expression: `all(T(a))`
+*/
+
+/// Reduction of T relation.
+fn modal_t_to T(a)  ->  nec(a) => a {
+    axiom modal_t_to : T(a) -> nec(a) => a;
+    x : T(a);
+    let r = modal_t_to(x) : nec(a) => a;
+    return r;
+}
+
+/// Construction of T relation.
+fn modal_t_from nec(a) => a  ->  T(a) {
+    axiom modal_t_from : nec(a) => a -> T(a);
+    x : nec(a) => a;
+    let r = modal_t_from(x) : T(a);
+    return r;
+}
+
+/// Axiom N implies axiom K.
+fn modal_n_to_k all(N(a))  ->  K(a, b) {
+    x : all(N(a));
+    let xa = x() : N(a);
+    let xb = x() : N(b);
+    let xab = x() : N(a => b);
+    use modal_n_to;
+    let nec_a_to_tauto_a = modal_n_to(xa) : nec(a) => a^true;
+    let nec_ab_to_tauto_ab = modal_n_to(xab) : nec(a => b) => (a => b)^true;
+    use modal_n_from;
+    let tauto_b_to_nec_b = modal_n_from(xb) : b^true => nec(b);
+    use hooo_imply;
+    let f = hooo_imply() : (a => b)^true => (a^true => b^true);
+    use imply_transitivity;
+    let f2 = imply_transitivity(nec_ab_to_tauto_ab, f) : nec(a => b) => (a^true => b^true);
+    lam g (a^true => b^true) => (nec(a) => nec(b)) {
+        x : a^true => b^true;
+        use imply_transitivity;
+        let x2 = imply_transitivity(nec_a_to_tauto_a, x) : nec(a) => b^true;
+        let r = imply_transitivity(x2, tauto_b_to_nec_b) : nec(a) => nec(b);
+        return r;
+    }
+    let f3 = imply_transitivity(f2, g) : nec(a => b) => (nec(a) => nec(b));
+    use modal_k_from;
+    let r = modal_k_from(f3) : K(a, b);
+    return r;
+}
+
+/// Axiom N implies axiom T.
+fn modal_n_to_t all(N(a))  ->  T(a) {
+    x : all(N(a));
+    let x2 = x() : N(a);
+    use modal_n_to;
+    use triv;
+    let f = triv() : a^true => a;
+    let x3 = modal_n_to(x2) : nec(a) => a^true;
+    use imply_transitivity;
+    let x4 = imply_transitivity(x3, f) : nec(a) => a;
+    use modal_t_from;
+    let r = modal_t_from(x4) : T(a);
+    return r;
+}
+
+
