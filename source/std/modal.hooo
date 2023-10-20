@@ -144,44 +144,44 @@ fn modal_n_to_t all(N(a))  ->  T(a) {
 }
 
 /*
-NToPos axiom: `□a => !◇!a`
-Formal expression: `all(NToPos(a))`
+NecToPos axiom: `□a == !◇!a`
+Formal expression: `all(NecToPos(a))`
 */
 
-/// Reduction of NToPos relation.
-fn modal_n_to_pos_to NToPos(a)  ->  nec(a) => !pos(!a) {
-    axiom modal_n_to_pos_to : NToPos(a) -> nec(a) => !pos(!a);
-    x : NToPos(a);
-    let r = modal_n_to_pos_to(x) : nec(a) => !pos(!a);
+/// Reduction of NecToPos relation.
+fn modal_nec_to_pos_to NecToPos(a)  ->  nec(a) == !pos(!a) {
+    axiom modal_nec_to_pos_to : NecToPos(a) -> nec(a) == !pos(!a);
+    x : NecToPos(a);
+    let r = modal_nec_to_pos_to(x) : nec(a) == !pos(!a);
     return r;
 }
 
-/// Construction of NToPos relation.
-fn modal_n_to_pos_from nec(a) => !pos(!a)  ->  NToPos(a) {
-    axiom modal_n_to_pos_from : nec(a) => !pos(!a) -> NToPos(a);
-    x : nec(a) => !pos(!a);
-    let r = modal_n_to_pos_from(x) : NToPos(a);
+/// Construction of NecToPos relation.
+fn modal_nec_to_pos_from nec(a) == !pos(!a)  ->  NecToPos(a) {
+    axiom modal_nec_to_pos_from : nec(a) == !pos(!a) -> NecToPos(a);
+    x : nec(a) == !pos(!a);
+    let r = modal_nec_to_pos_from(x) : NecToPos(a);
     return r;
 }
 
 /*
-PosToN axiom: `◇a => !□!a`
-Formal expression: `all(PosToN(a))`
+PosToNec axiom: `◇a == !□!a`
+Formal expression: `all(PosToNec(a))`
 */
 
-/// Reduction of PosToN relation.
-fn modal_pos_to_n_to PosToN(a)  ->  pos(a) => !nec(!a) {
-    axiom modal_pos_to_n_to : PosToN(a) -> pos(a) => !nec(!a);
-    x : PosToN(a);
-    let r = modal_pos_to_n_to(x) : pos(a) => !nec(!a);
+/// Reduction of PosToNec relation.
+fn modal_pos_to_nec_to PosToNec(a)  ->  pos(a) == !nec(!a) {
+    axiom modal_pos_to_nec_to : PosToNec(a) -> pos(a) == !nec(!a);
+    x : PosToNec(a);
+    let r = modal_pos_to_nec_to(x) : pos(a) == !nec(!a);
     return r;
 }
 
-/// Construction of PosToN relation.
-fn modal_pos_to_n_from pos(a) => !nec(!a)  ->  PosToN(a) {
-    axiom modal_pos_to_n_from : pos(a) => !nec(!a) -> PosToN(a);
-    x : pos(a) => !nec(!a);
-    let r = modal_pos_to_n_from(x) : PosToN(a);
+/// Construction of PosToNec relation.
+fn modal_pos_to_nec_from pos(a) == !nec(!a)  ->  PosToNec(a) {
+    axiom modal_pos_to_nec_from : pos(a) == !nec(!a) -> PosToNec(a);
+    x : pos(a) == !nec(!a);
+    let r = modal_pos_to_nec_from(x) : PosToNec(a);
     return r;
 }
 
@@ -202,4 +202,119 @@ fn modal_pos_cong pos(a) & (a == b)  ->  pos(b) {
     let r = modal_pos_cong(x, y) : pos(b);
     return r;
 }
+
+fn modal_nec_eq (a == b)  ->  nec(a) == nec(b) {
+    x : a == b;
+    lam f nec(a) => nec(b) {
+        y : nec(a);
+        use modal_nec_cong;
+        let r = modal_nec_cong(y, x) : nec(b);
+        return r;
+    }
+    lam g nec(b) => nec(a) {
+        y : nec(b);
+        use eq_symmetry;
+        let x2 = eq_symmetry(x) : b == a;
+        use modal_nec_cong;
+        let r = modal_nec_cong(y, x2) : nec(a);
+        return r;
+    }
+    use refl;
+    let r = refl(f, g) : nec(a) == nec(b);
+    return r;
+}
+
+fn modal_pos_eq (a == b)  ->  pos(a) == pos(b) {
+    x : a == b;
+    lam f pos(a) => pos(b) {
+        y : pos(a);
+        use modal_pos_cong;
+        let r = modal_pos_cong(y, x) : pos(b);
+        return r;
+    }
+    lam g pos(b) => pos(a) {
+        y : pos(b);
+        use eq_symmetry;
+        let x2 = eq_symmetry(x) : b == a;
+        use modal_pos_cong;
+        let r = modal_pos_cong(y, x2) : pos(a);
+        return r;
+    }
+    use refl;
+    let r = refl(f, g) : pos(a) == pos(b);
+    return r;
+}
+
+fn modal_tauto_excm_to_imply_nec_to_pos_pos_to_nec
+all(excm(a)^true)  ->  all(NecToPos(a)) => PosToNec(a) {
+    x : all(excm(a)^true);
+    lam f all(NecToPos(a)) => PosToNec(a) {
+        use eq_modus_tollens;
+        use eq_symmetry;
+        use eq_transitivity;
+        use modal_nec_to_pos_to;
+        use modal_pos_eq;
+        use modal_pos_to_nec_from;
+        use not_excm_to_eq_nn;
+        use triv;
+        
+        let x2 = x() : excm(pos(!!a))^true;
+        let x3 = triv(x2) : excm(pos(!!a));
+        let x4 = not_excm_to_eq_nn(x3) : pos(!!a) == !!pos(!!a);
+        let x5 = eq_symmetry(x4) : !!pos(!!a) == pos(!!a);
+        
+        let x6 = x() : excm(a)^true;
+        let x7 = triv(x6) : excm(a);
+        let x8 = not_excm_to_eq_nn(x7) : a == !!a;
+        
+        y : all(NecToPos(a));
+        let y1 = y() : NecToPos(!a);
+        let y2 = modal_nec_to_pos_to(y1) : nec(!a) == !pos(!!a);
+        let y3 = eq_modus_tollens(y2) : !nec(!a) == !!pos(!!a);
+        let y4 = eq_transitivity(y3, x5) : !nec(!a) == pos(!!a);
+        let y6 = eq_symmetry(y4) : pos(!!a) == !nec(!a);
+        let y7 = modal_pos_eq(x8) : pos(a) == pos(!!a);
+        let y8 = eq_transitivity(y7, y6) : pos(a) == !nec(!a);
+        let r = modal_pos_to_nec_from(y8) : PosToNec(a);
+        return r;
+    }
+    return f;
+}
+
+fn modal_tauto_excm_to_imply_pos_to_nec_nec_to_pos
+all(excm(a)^true)  ->  all(PosToNec(a)) => NecToPos(a) {
+    x : all(excm(a)^true);
+    lam f all(PosToNec(a)) => NecToPos(a) {
+        use eq_modus_tollens;
+        use eq_symmetry;
+        use eq_transitivity;
+        use modal_nec_eq;
+        use modal_nec_to_pos_from;
+        use modal_pos_to_nec_to;
+        use not_excm_to_eq_nn;
+        use triv;
+
+        let x2 = x() : excm(nec(!!a))^true;
+        let x3 = triv(x2) : excm(nec(!!a));
+        let x4 = not_excm_to_eq_nn(x3) : nec(!!a) == !!nec(!!a);
+        let x5 = eq_symmetry(x4) : !!nec(!!a) == nec(!!a);
+
+        let x6 = x() : excm(a)^true;
+        let x7 = triv(x6) : excm(a);
+        let x8 = not_excm_to_eq_nn(x7) : a == !!a;
+
+        y : all(PosToNec(a));
+        let y2 = y() : PosToNec(!a);
+        let y3 = modal_pos_to_nec_to(y2) : pos(!a) == !nec(!!a);
+        let y4 = eq_modus_tollens(y3) : !pos(!a) == !!nec(!!a);
+        let y5 = eq_transitivity(y4, x5) : !pos(!a) == nec(!!a);
+        let y6 = eq_symmetry(y5) : nec(!!a) == !pos(!a);
+        let y7 = modal_nec_eq(x8) : nec(a) == nec(!!a);
+        let y8 = eq_transitivity(y7, y6) : nec(a) == !pos(!a);
+        let r = modal_nec_to_pos_from(y8) : NecToPos(a);
+        return r;
+    }
+    return f;
+}
+
 

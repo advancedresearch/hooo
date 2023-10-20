@@ -51,3 +51,18 @@ fn not_rev_triple !!!a -> !a {
     return x3;
 }
 
+fn not_excm_to_eq_nn excm(a)  ->  a == !!a {
+    x : excm(a);
+    use not_double;
+    let f = not_double() : a => !!a;
+    lam g !!a => a {
+        y : !!a;
+        use not_rev_double_excm;
+        let r = not_rev_double_excm(y, x) : a;
+        return r;
+    }
+    use refl;
+    let r = refl(f, g) : a == !!a;
+    return r;
+}
+

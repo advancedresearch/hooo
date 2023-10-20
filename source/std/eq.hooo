@@ -31,3 +31,17 @@ fn eq_transitivity (a == b) & (b == c)  -> (a == c) {
     return x7;
 }
 
+fn eq_modus_tollens (a == b)  ->  (!a == !b) {
+    x : a == b;
+    use fst;
+    let x2 = fst(x) : a => b;
+    use snd;
+    let x3 = snd(x) : b => a; 
+    use modus_tollens;
+    let x4 = modus_tollens(x2) : !b => !a;
+    let x5 = modus_tollens(x3) : !a => !b;
+    use refl;
+    let r = refl(x5, x4) : !a == !b;
+    return r;
+}
+

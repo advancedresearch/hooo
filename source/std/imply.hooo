@@ -25,6 +25,20 @@ fn modus_tollens (a => b)  ->  (!b => !a) {
     return f;
 }
 
+fn rev_modus_tollens_nn (!!a => !!b)  ->  (!b => !a) {
+    x : !!a => !!b;
+    use modus_tollens;
+    let y = modus_tollens(x) : !!!b => !!!a;
+    use not_double;
+    use imply_transitivity;
+    let f = not_double() : !b => !!!b;
+    let y2 = imply_transitivity(f, y) : !b => !!!a;
+    use not_rev_triple;
+    let g = not_rev_triple() : !!!a => !a;    
+    let r = imply_transitivity(y2, g) : !b => !a;
+    return r;
+}
+
 fn imply_in_left_arg (a => b) & (a == c)  ->  (c => b) {
     x : a => b;
     y : a == c;
