@@ -36,18 +36,18 @@ Formal expression `all(N(a))`
 */
 
 /// Reduction of N relation.
-fn modal_n_to N(a)  ->  nec(a) => a^true {
-    axiom modal_n_to : N(a) -> nec(a) => a^true;
+fn modal_n_to N(a)  ->  nec(a) == a^true {
+    axiom modal_n_to : N(a) -> nec(a) == a^true;
     x : N(a);
-    let r = modal_n_to(x) : nec(a) => a^true;
+    let r = modal_n_to(x) : nec(a) == a^true;
     return r;
 }
 
 /// Construction of N relation.
-fn modal_n_from N(a)  ->  a^true => nec(a) {
-    axiom modal_n_from : N(a) -> a^true => nec(a);
-    x : N(a);
-    let r = modal_n_from(x) : a^true => nec(a);
+fn modal_n_from nec(a) == a^true  ->  N(a) {
+    axiom modal_n_from : nec(a) == a^true -> N(a);
+    x : nec(a) == a^true;
+    let r = modal_n_from(x) : N(a);
     return r;
 }
 
@@ -100,10 +100,15 @@ fn modal_n_to_k all(N(a))  ->  K(a, b) {
     let xb = x() : N(b);
     let xab = x() : N(a => b);
     use modal_n_to;
-    let nec_a_to_tauto_a = modal_n_to(xa) : nec(a) => a^true;
-    let nec_ab_to_tauto_ab = modal_n_to(xab) : nec(a => b) => (a => b)^true;
+    let eq_nec_a_tauto_a = modal_n_to(xa) : nec(a) == a^true;
+    let eq_nec_b_tauto_b = modal_n_to(xb) : nec(b) == b^true;
+    let eq_nec_ab_tauto_ab = modal_n_to(xab) : nec(a => b) == (a => b)^true;
+    use fst;
+    let nec_a_to_tauto_a = fst(eq_nec_a_tauto_a) : nec(a) => a^true;
+    let nec_ab_to_tauto_ab = fst(eq_nec_ab_tauto_ab) : nec(a => b) => (a => b)^true;
     use modal_n_from;
-    let tauto_b_to_nec_b = modal_n_from(xb) : b^true => nec(b);
+    use snd;
+    let tauto_b_to_nec_b = snd(eq_nec_b_tauto_b) : b^true => nec(b);
     use hooo_imply;
     let f = hooo_imply() : (a => b)^true => (a^true => b^true);
     use imply_transitivity;
@@ -128,7 +133,9 @@ fn modal_n_to_t all(N(a))  ->  T(a) {
     use modal_n_to;
     use triv;
     let f = triv() : a^true => a;
-    let x3 = modal_n_to(x2) : nec(a) => a^true;
+    let eq_nec_a_tauto_a = modal_n_to(x2) : nec(a) == a^true;
+    use fst;
+    let x3 = fst(eq_nec_a_tauto_a) : nec(a) => a^true;
     use imply_transitivity;
     let x4 = imply_transitivity(x3, f) : nec(a) => a;
     use modal_t_from;
@@ -136,4 +143,45 @@ fn modal_n_to_t all(N(a))  ->  T(a) {
     return r;
 }
 
+/*
+NToPos axiom: `□a => !◇!a`
+Formal expression: `all(NToPos(a))`
+*/
+
+/// Reduction of NToPos relation.
+fn modal_n_to_pos_to NToPos(a)  ->  nec(a) => !pos(!a) {
+    axiom modal_n_to_pos_to : NToPos(a) -> nec(a) => !pos(!a);
+    x : NToPos(a);
+    let r = modal_n_to_pos_to(x) : nec(a) => !pos(!a);
+    return r;
+}
+
+/// Construction of NToPos relation.
+fn modal_n_to_pos_from nec(a) => !pos(!a)  ->  NToPos(a) {
+    axiom modal_n_to_pos_from : nec(a) => !pos(!a) -> NToPos(a);
+    x : nec(a) => !pos(!a);
+    let r = modal_n_to_pos_from(x) : NToPos(a);
+    return r;
+}
+
+/*
+PosToN axiom: `◇a => !□!a`
+Formal expression: `all(PosToN(a))`
+*/
+
+/// Reduction of PosToN relation.
+fn modal_pos_to_n_to PosToN(a)  ->  pos(a) => !nec(!a) {
+    axiom modal_pos_to_n_to : PosToN(a) -> pos(a) => !nec(!a);
+    x : PosToN(a);
+    let r = modal_pos_to_n_to(x) : pos(a) => !nec(!a);
+    return r;
+}
+
+/// Construction of PosToN relation.
+fn modal_pos_to_n_from pos(a) => !nec(!a)  ->  PosToN(a) {
+    axiom modal_pos_to_n_from : pos(a) => !nec(!a) -> PosToN(a);
+    x : pos(a) => !nec(!a);
+    let r = modal_pos_to_n_from(x) : PosToN(a);
+    return r;
+}
 
