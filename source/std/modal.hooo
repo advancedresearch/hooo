@@ -31,6 +31,27 @@ fn lob_absurd all((p^true => p)^true => p^true)  ->  false {
 }
 
 /*
+Löb axiom: `□(□p => p) => □p`
+Formal expression: `all(Lob(p))`
+*/
+
+/// Reduction of Löb relation.
+fn modal_lob_to Lob(a)  ->  nec(nec(a) => a) => nec(a) {
+    axiom modal_lob_to : Lob(a) -> nec(nec(a) => a) => nec(a);
+    x : Lob(a);
+    let r = modal_lob_to(x) : nec(nec(a) => a) => nec(a);
+    return r;
+}
+
+/// Construction of Löb relation.
+fn modal_lob_from nec(nec(a) => a) => nec(a)  ->  Lob(a) {
+    axiom modal_lob_from : nec(nec(a) => a) => nec(a)  ->  Lob(a);
+    x : nec(nec(a) => a) => nec(a);
+    let r = modal_lob_from(x) : Lob(a);
+    return r;
+}
+
+/*
 N axiom: `□a => a^true`
 Formal expression `all(N(a))`
 */
@@ -186,20 +207,20 @@ fn modal_pos_to_nec_from pos(a) == !nec(!a)  ->  PosToNec(a) {
 }
 
 /// `□a & (a == b)  ->  □a`.
-fn modal_nec_cong nec(a) & (a == b)  ->  nec(b) {
-    axiom modal_nec_cong : nec(a) & (a == b) -> nec(b);
+fn modal_nec_in_arg nec(a) & (a == b)  ->  nec(b) {
+    axiom modal_nec_in_arg : nec(a) & (a == b) -> nec(b);
     x : nec(a);
     y : a == b;
-    let r = modal_nec_cong(x, y) : nec(b);
+    let r = modal_nec_in_arg(x, y) : nec(b);
     return r;
 }
 
 /// `◇a & (a == b)  ->  ◇b`.
-fn modal_pos_cong pos(a) & (a == b)  ->  pos(b) {
-    axiom modal_pos_cong : pos(a) & (a == b) -> pos(b);
+fn modal_pos_in_arg pos(a) & (a == b)  ->  pos(b) {
+    axiom modal_pos_in_arg : pos(a) & (a == b) -> pos(b);
     x : pos(a);
     y : a == b;
-    let r = modal_pos_cong(x, y) : pos(b);
+    let r = modal_pos_in_arg(x, y) : pos(b);
     return r;
 }
 
@@ -207,16 +228,16 @@ fn modal_nec_eq (a == b)  ->  nec(a) == nec(b) {
     x : a == b;
     lam f nec(a) => nec(b) {
         y : nec(a);
-        use modal_nec_cong;
-        let r = modal_nec_cong(y, x) : nec(b);
+        use modal_nec_in_arg;
+        let r = modal_nec_in_arg(y, x) : nec(b);
         return r;
     }
     lam g nec(b) => nec(a) {
         y : nec(b);
         use eq_symmetry;
         let x2 = eq_symmetry(x) : b == a;
-        use modal_nec_cong;
-        let r = modal_nec_cong(y, x2) : nec(a);
+        use modal_nec_in_arg;
+        let r = modal_nec_in_arg(y, x2) : nec(a);
         return r;
     }
     use refl;
@@ -228,16 +249,16 @@ fn modal_pos_eq (a == b)  ->  pos(a) == pos(b) {
     x : a == b;
     lam f pos(a) => pos(b) {
         y : pos(a);
-        use modal_pos_cong;
-        let r = modal_pos_cong(y, x) : pos(b);
+        use modal_pos_in_arg;
+        let r = modal_pos_in_arg(y, x) : pos(b);
         return r;
     }
     lam g pos(b) => pos(a) {
         y : pos(b);
         use eq_symmetry;
         let x2 = eq_symmetry(x) : b == a;
-        use modal_pos_cong;
-        let r = modal_pos_cong(y, x2) : pos(a);
+        use modal_pos_in_arg;
+        let r = modal_pos_in_arg(y, x2) : pos(a);
         return r;
     }
     use refl;
@@ -317,4 +338,37 @@ all(excm(a)^true)  ->  all(PosToNec(a)) => NecToPos(a) {
     return f;
 }
 
+fn modal_n_to_nlob all(N(a))  ->  !all(Lob(a)) {
+    x : all(N(a));
+    lam f !all(Lob(a)) {
+        use eq_transitivity;
+        use imply_eq_left;
+        use imply_in_left_arg;
+        use imply_in_right_arg;
+        use modal_lob_to;
+        use modal_n_to;
+        use modal_nec_eq;
+        use para_lob;
+
+        y : all(Lob(a));
+        let y2 = y() : Lob(false);
+        let y3 = modal_lob_to(y2) : nec(nec(false) => false) => nec(false);
+        
+        let x2 = x() : N(false);
+        let x3 = modal_n_to(x2) : nec(false) == false^true;
+
+        let x4 = imply_eq_left(x3) : (nec(false) => false) == (false^true => false);
+        let x5 = modal_nec_eq(x4) : nec(nec(false) => false) == nec(false^true => false);
+
+        let x6 = x() : N(false^true => false);
+        let x7 = modal_n_to(x6) : nec(false^true => false) == (false^true => false)^true;
+
+        let x8 = eq_transitivity(x5, x7) : nec(nec(false) => false) == (false^true => false)^true;
+        let x9 = imply_in_left_arg(y3, x8) : (false^true => false)^true => nec(false);
+        let x10 = imply_in_right_arg(x9, x3) : (false^true => false)^true => false^true;
+        let r = para_lob(x10) : false;
+        return r;
+    }
+    return f;
+}
 
