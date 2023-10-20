@@ -185,3 +185,21 @@ fn modal_pos_to_n_from pos(a) => !nec(!a)  ->  PosToN(a) {
     return r;
 }
 
+/// `□a & (a == b)  ->  □a`.
+fn modal_nec_cong nec(a) & (a == b)  ->  nec(b) {
+    axiom modal_nec_cong : nec(a) & (a == b) -> nec(b);
+    x : nec(a);
+    y : a == b;
+    let r = modal_nec_cong(x, y) : nec(b);
+    return r;
+}
+
+/// `◇a & (a == b)  ->  ◇b`.
+fn modal_pos_cong pos(a) & (a == b)  ->  pos(b) {
+    axiom modal_pos_cong : pos(a) & (a == b) -> pos(b);
+    x : pos(a);
+    y : a == b;
+    let r = modal_pos_cong(x, y) : pos(b);
+    return r;
+}
+
