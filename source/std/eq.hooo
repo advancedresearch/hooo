@@ -1,4 +1,4 @@
-fn eq_symmetry a == b -> b == a {
+fn eq_symmetry : a == b -> b == a {
     use fst;
     use snd;
 
@@ -11,7 +11,7 @@ fn eq_symmetry a == b -> b == a {
     return r;
 }
 
-fn eq_transitivity (a == b) & (b == c)  -> (a == c) {
+fn eq_transitivity : (a == b) & (b == c)  -> (a == c) {
     use fst;
     use snd;
 
@@ -31,7 +31,7 @@ fn eq_transitivity (a == b) & (b == c)  -> (a == c) {
     return x7;
 }
 
-fn eq_modus_tollens (a == b)  ->  (!a == !b) {
+fn eq_modus_tollens : (a == b)  ->  (!a == !b) {
     x : a == b;
     use fst;
     let x2 = fst(x) : a => b;

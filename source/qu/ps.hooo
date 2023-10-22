@@ -1,0 +1,9 @@
+
+/// Core axiom of Path Semantics.
+fn ps_core : q'(a, b) & ty'(a, c) & ty'(b, d) -> q'(c, d) {
+    axiom ps_core : q'(a, b) & ty'(a, c) & ty'(b, d) -> q'(c, d);
+    x : q'(a, b) & ty'(a, c) & ty'(b, d);
+    let r = ps_core(x) : q'(c, d);
+    return r;
+}
+

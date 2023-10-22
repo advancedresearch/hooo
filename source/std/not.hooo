@@ -1,13 +1,13 @@
-fn absurd false -> a {
+fn absurd : false -> a {
     x : false;
     let r = match x : a;
     return r;
 }
 
-fn not_double a -> !!a {
+fn not_double : a -> !!a {
     x : a;
 
-    fn f (a & !a) -> false {
+    fn f : (a & !a) -> false {
         use modus_ponens;
 
         x : a;
@@ -25,7 +25,7 @@ fn not_double a -> !!a {
     return x3;
 }
 
-fn not_rev_double_excm !!a & excm(a) -> a {
+fn not_rev_double_excm : !!a & excm(a) -> a {
     use absurd;
     use unify;
     use refl;
@@ -40,7 +40,7 @@ fn not_rev_double_excm !!a & excm(a) -> a {
     return x3;
 }
 
-fn not_rev_triple !!!a -> !a {
+fn not_rev_triple : !!!a -> !a {
     use not_double;
     use imply_transitivity;
 
@@ -51,11 +51,11 @@ fn not_rev_triple !!!a -> !a {
     return x3;
 }
 
-fn not_excm_to_eq_nn excm(a)  ->  a == !!a {
+fn not_excm_to_eq_nn : excm(a)  ->  a == !!a {
     x : excm(a);
     use not_double;
     let f = not_double() : a => !!a;
-    lam g !!a => a {
+    lam g : !!a => a {
         y : !!a;
         use not_rev_double_excm;
         let r = not_rev_double_excm(y, x) : a;

@@ -13,9 +13,9 @@ _ty: ";{}"
     .._seps!:"arg" , .._seps!:"arg"
 .w? ")" .w?] ":" ..._ty!:"ty"]
 9 return = ["return" .w! .._seps!:"return"]
-8 lam_decl = ["lam" .w! .._seps!:"name" .w? ..._ty!:"ty"]
+8 lam_decl = ["lam" .w! .._seps!:"name" .w? ":" .w? ..._ty!:"ty"]
 7 app = [let .._seps!:"arg" "(" .w? .s?.(, .._seps!:"arg") .w? ")" .w? ":" ..._ty!:"ty"]
-6 fun_decl = ["fn" .w! .._seps!:"name" .w? ..._ty!:"ty"]
+6 fun_decl = ["fn" .w! .._seps!:"name" .w? ":" .w? ..._ty!:"ty"]
 5 , = [.w? "," .w?]
 4 fn = [{
     fun_decl:"fun_decl"
