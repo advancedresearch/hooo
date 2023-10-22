@@ -824,6 +824,10 @@ impl fmt::Display for Type {
             return write!(w, "{}({})", a, b);
         }
         if let Some((f, args)) = self.as_multi_app_sym() {
+            if args.len() == 0 {
+                return write!(w, "{}'", f);
+            }
+
             write!(w, "{}(", f)?;
             let mut first = true;
             for arg in args {
@@ -1304,6 +1308,17 @@ mod tests {
             }
         };
         assert_eq!(a, imply(and(ty("a"), ty("b")), ty("c")));
+    }
+
+    #[test]
+    fn test_parse_sym() {
+        let a: Type = "a'".try_into().unwrap();
+        assert_eq!(a, sym("a"));
+        assert_eq!(format!("{}", a), "a'".to_string());
+
+        let a: Type = "a' =^= b'".try_into().unwrap();
+        assert_eq!(a, pow_eq(sym("a"), sym("b")));
+        assert_eq!(format!("{}", a), "a' =^= b'".to_string());
     }
 
     #[test]

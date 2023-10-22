@@ -87,7 +87,7 @@ fn tauto_nnexcm true  ->  !!excm(a) {
     return f;
 }
 
-fn pow_eq_to_tauto_eq b =^= a  ->  (a == b)^true {
+fn pow_eq_to_tauto_eq a =^= b  ->  (a == b)^true {
     x : b^a;
     y : a^b;
 

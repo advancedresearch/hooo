@@ -1,0 +1,34 @@
+
+fn exists_to ex(a, b) -> !((!b)^a) {
+    axiom exists_to : ex(a, b) -> !((!b)^a);
+    x : ex(a, b);
+    let r = exists_to(x) : !((!b)^a);
+    return r;
+}
+
+fn exists_from !((!b)^a) -> ex(a, b) {
+    axiom exists_from : !((!b)^a) -> ex(a, b);
+    x : !((!b)^a);
+    let r = exists_from(x) : ex(a, b);
+    return r;
+}
+
+fn exists_from_imply !(a => !b) -> ex(a, b) {
+    x : !(a => !b);
+    lam f (!b)^a => (a => !b) {
+        y : (!b)^a;
+        lam g a => !b {
+            z : a;
+            let r = y(z) : !b;
+            return r;
+        }
+        return g;
+    }
+
+    use imply_transitivity;
+    let x2 = imply_transitivity(f, x) : !((!b)^a);
+    use exists_from;
+    let r = exists_from(x2) : ex(a, b);
+    return r;
+}
+
