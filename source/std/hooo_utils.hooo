@@ -20,6 +20,13 @@ fn tauto_not_to_para (!a)^true  ->  false^a {
     return r;
 }
 
+fn para_to_tauto_not false^a  ->  (a => false)^true {
+    x : false^a;
+    use pow_to_imply_lift;
+    let r = pow_to_imply_lift(x) : (a => false)^true;
+    return r;
+}
+
 fn tauto_imply_refl true  ->  (a => a) {
     x : true;
     use refl;
