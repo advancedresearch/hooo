@@ -71,19 +71,23 @@ fn run_ctx(
             convert.update(range);
             break;
         }
-        
-        if let Ok((range, (name, args, ty))) = parse_var("axiom", convert, ignored) {
-            convert.update(range);
-            if loader.run {
-                if args.len() == 0 {
-                    ctx.new_term((name, Term::Axiom(ty)), search).map_err(|err| (range, err))?;
-                } else {
-                    return Err((range, "Parsing axiom".into()));
+       
+        match parse_var("axiom", convert, ignored) {
+            Ok((range, (name, args, ty))) => {
+                convert.update(range);
+                if loader.run {
+                    if args.len() == 0 {
+                        ctx.new_term((name, Term::Axiom(ty)), search).map_err(|err| (range, err))?;
+                    } else {
+                        return Err((range, "Parsing axiom".into()));
+                    }
                 }
+                continue;
             }
-            continue;
-        }
-        
+            Err(Some(err)) => return Err((start_range, err)),
+            Err(None) => {}
+        } 
+ 
         match parse_var("var", convert, ignored) {
             Ok((range, (name, args, ty))) => {
                 convert.update(range);
@@ -314,6 +318,9 @@ fn parse_ty(
         } else if let Ok((range, val)) = parse_bin("eq", convert, ignored) {
             convert.update(range);
             ty = Some(val);
+        } else if let Ok((range, val)) = parse_bin("sd", convert, ignored) {
+            convert.update(range);
+            ty = Some(val);
         } else if let Ok((range, val)) = parse_or("or", convert, ignored) {
             convert.update(range);
             ty = Some(val);
@@ -521,6 +528,9 @@ fn parse_bin(
         } else if let Ok((range, _)) = convert.meta_bool("imply") {
             convert.update(range);
             op = Some(Op::Imply);
+        } else if let Ok((range, _)) = convert.meta_bool("sd") {
+            convert.update(range);
+            op = Some(Op::Sd);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -536,6 +546,7 @@ fn parse_bin(
         Op::PowEq => pow_eq(left, right),
         Op::Pow => pow(left, right),
         Op::Imply => imply(left, right),
+        Op::Sd => sd(left, right),
         _ => return Err(()),
     };
     Ok((convert.subtract(start), ty))

@@ -1,0 +1,26 @@
+
+fn sd_symmetry sd(a, b) -> sd(b, a) {
+    axiom sd_symmetry : sd(a, b) -> sd(b, a);
+    x : sd(a, b);
+    let r = sd_symmetry(x) : sd(b, a);
+    return r;
+}
+
+fn sd_in_left_arg sd(a, b) & (a == c)^true -> sd(c, b) {
+    axiom sd_in_left_arg : sd(a, b) & (a == c)^true -> sd(c, b);
+    x : sd(a, b) & (a == c)^true;
+    let r = sd_in_left_arg(x) : sd(c, b);
+    return r;
+}
+
+fn sd_in_right_arg sd(a, b) & (b == c)^true -> sd(a, c) {
+    x : sd(a, b);
+    y : (b == c)^true;
+    use sd_symmetry;
+    let x2 = sd_symmetry(x) : sd(b, a);
+    use sd_in_left_arg;
+    let x3 = sd_in_left_arg(x2, y) : sd(c, a);
+    let r = sd_symmetry(x3) : sd(a, c);
+    return r;
+}
+

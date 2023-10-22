@@ -4,3 +4,10 @@ fn test_refl a -> a {
     return y;
 }
 
+fn test_sd sd(a, b) -> sd(b, a) {
+    x : sd(a, b);
+    use std::sd_symmetry;
+    let r = sd_symmetry(x) : sd(b, a);
+    return r;
+}
+

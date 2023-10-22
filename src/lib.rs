@@ -419,6 +419,7 @@ impl Context {
 
         match proof {
             True => true,
+            Sd(_) if proof.symbolic_distinct() => true,
             Or(ab) if self.has_proof(&ab.0) || self.has_proof(&ab.1) => true,
             And(ab) if self.has_proof(&ab.0) && self.has_proof(&ab.1) => true,
             Imply(ab) if self.has_proof(&ab.1) => true,
@@ -692,6 +693,8 @@ pub enum Type {
     Sym(Arc<String>),
     /// Application.
     App(Box<(Type, Type)>),
+    /// Symbolic distinction.
+    Sd(Box<(Type, Type)>),
 }
 
 #[derive(Copy, Clone)]
@@ -706,6 +709,7 @@ pub enum Op {
     PowEq,
     All,
     App,
+    Sd,
 }
 
 fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
@@ -745,7 +749,16 @@ impl Type {
             All(_) => Some(Op::All),
             Sym(_) => None,
             App(_) => Some(Op::App),
+            Sd(_) => Some(Op::Sd),
         }
+    }
+
+    pub fn symbolic_distinct(&self) -> bool {
+        if let Type::Sd(ab) = self {
+            if let (Type::Sym(a), Type::Sym(b)) = &**ab {
+                if a != b {return true} else {false}
+            } else {false}
+        } else {false}
     }
 
     pub fn as_not(&self) -> Option<&Type> {
@@ -860,6 +873,7 @@ impl fmt::Display for Type {
             All(a) => write!(w, "all({})", a)?,
             Sym(a) => write!(w, "{}'", a)?,
             App(ab) => write!(w, "{}({})", ab.0.to_str(false, op), ab.1)?,
+            Sd(ab) => write!(w, "sd({}, {})", ab.0, ab.1)?,
         }
         Ok(())
     }
@@ -885,6 +899,7 @@ impl Type {
             AllTy(_) | All(_) => false,
             Sym(_) => true,
             App(_) => true,
+            Sd(_) => true,
         }
     }
 
@@ -914,6 +929,7 @@ impl Type {
             All(_) => self,
             Sym(_) => self,
             App(ab) => app(ab.0.lift(), ab.1.lift()),
+            Sd(ab) => sd(ab.0.lift(), ab.1.lift()),
         }
     }
 
@@ -946,7 +962,8 @@ impl Type {
             }
             (And(ab), And(cd)) |
             (Or(ab), Or(cd)) |
-            (App(ab), App(cd)) => {
+            (App(ab), App(cd)) |
+            (Sd(ab), Sd(cd)) => {
                 let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
                 if !ab.0.bind(contra, &cd.0, bind) {return false};
                 if !ab.1.bind(contra, &cd.1, bind) {return false};
@@ -1003,6 +1020,7 @@ impl Type {
             Or(ab) => or(ab.0.replace(bind), ab.1.replace(bind)),
             App(ab) => app(ab.0.replace(bind), ab.1.replace(bind)),
             All(a) => All(Box::new(a.replace(bind))),
+            Sd(ab) => sd(ab.0.replace(bind), ab.1.replace(bind)),
         }
     }
 
@@ -1043,6 +1061,7 @@ impl Type {
             (All(a), All(b)) if a.has_(contra, b) => true,
             (Sym(a), Sym(b)) if a == b => true,
             (App(ab), App(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
+            (Sd(ab), Sd(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             _ => false,
         }
     }
@@ -1242,6 +1261,7 @@ pub fn tauto(a: Type) -> Type {pow(a, Type::True)}
 pub fn para(a: Type) -> Type {pow(Type::False, a)}
 pub fn app(a: Type, b: Type) -> Type {Type::App(Box::new((a, b)))}
 pub fn sym(a: &str) -> Type {Type::Sym(Arc::new(a.into()))}
+pub fn sd(a: Type, b: Type) -> Type {Type::Sd(Box::new((a, b)))}
 
 #[cfg(test)]
 mod tests {
@@ -1346,6 +1366,12 @@ mod tests {
         let a: Type = "f(a, b)".try_into().unwrap();
         assert_eq!(a, app(app(ty("f"), ty("a")), ty("b")));
         assert_eq!(format!("{}", a), "f(a, b)"); 
+    }
+    
+    #[test]
+    fn test_parse_sd() {
+        let a: Type = "sd(a, b)".try_into().unwrap();
+        assert_eq!(a, sd(ty("a"), ty("b")));
     }
 
     #[test]

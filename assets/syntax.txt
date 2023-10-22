@@ -1,12 +1,13 @@
 _seps: "',(){}=-<>^&|!-"
 
+24 sd = ["sd(":"sd" .w? type_or_fun:"left" , type_or_fun:"right" .w? ")"]
 23 or = .s!([.w? "|" .w?] and:"arg")
 22 and = .s!([.w? "&" .w?] type_or_pow:"arg")
 21 var = [.._seps!:"name" ?"'":"sym"]
 20 imply_left = or:"or"
 18 , = [.w? "," .w?]
 17 app_left = var:"var"
-16 app = [!"all(" !"excm(" app_left:"left" "(" .w? .s!(, type_or_fun:"arg") .w? ")"]
+16 app = [!"all(" !"excm(" !"sd(" app_left:"left" "(" .w? .s!(, type_or_fun:"arg") .w? ")"]
 14 all = ["all(" .w? type_or_fun:"arg" .w? ")"]
 13 type_or_fun = {fun:"pow" type}
 12 type_or_pow = {
@@ -29,6 +30,7 @@ _seps: "',(){}=-<>^&|!-"
 2 typeleft = {
     ["(" .w? type_or_fun .w? ")"]
     excm:"excm"
+    sd:"sd"
     all:"all"
     "true":"true"
     "false":"false"
