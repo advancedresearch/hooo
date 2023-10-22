@@ -13,3 +13,19 @@ fn ty_eq_right a == b  ->  ty'(c, a) == ty'(c, b) {
     return r;
 }
 
+fn ty_app ty(f, a => b) & ty(a2, a) -> ty(f(a2), b) {
+    axiom ty_app : ty(f, a => b) & ty(a2, a) -> ty(f(a2), b);
+    x : ty(f, a => b) & ty(a2, a);
+    let r = ty_app(x) : ty(f(a2), b);
+    return r;
+}
+
+fn ty_app2 ty(f, a => b => c) & ty(a2, a) & ty(b2, b) -> ty(f(a2, b2), c) {
+    x : ty(f, a => b => c);
+    y : ty(a2, a);
+    z : ty(b2, b);
+    use ty_app;
+    let x2 = ty_app(x, y) : ty(f(a2), b => c);
+    let r = ty_app(x2, z) : ty(f(a2, b2), c);
+    return r;
+}

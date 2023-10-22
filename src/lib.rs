@@ -786,18 +786,19 @@ impl Type {
         } else {None}
     }
 
-    pub fn as_multi_app_sym(&self) -> Option<(&Arc<String>, Vec<&Type>)> {
+    pub fn as_multi_app(&self) -> Option<(&Type, Vec<&Type>)> {
         let mut args: Vec<&Type> = vec![];
         let mut ty = self;
         loop {
             if let Type::App(ab) = ty {
                 args.push(&ab.1);
                 ty = &ab.0;
-            } else if let Type::Sym(f) = ty {
-                args.reverse();
-                return Some((f, args));
             } else {
-                return None;
+                if args.len() < 2 {return None}
+                else {
+                    args.reverse();
+                    return Some((ty, args))
+                }
             }
         }
     }
@@ -835,12 +836,8 @@ impl fmt::Display for Type {
         if let Some((a, b)) = self.as_app_sym() {
             return write!(w, "{}'({})", a, b);
         }
-        if let Some((f, args)) = self.as_multi_app_sym() {
-            if args.len() == 0 {
-                return write!(w, "{}'", f);
-            }
-
-            write!(w, "{}'(", f)?;
+        if let Some((f, args)) = self.as_multi_app() {
+            write!(w, "{}(", f.to_str(false, None))?;
             let mut first = true;
             for arg in args {
                 if !first {
@@ -1341,6 +1338,14 @@ mod tests {
 
         let a: Type = "ty'(add', nat' & nat' -> nat')".try_into().unwrap();
         assert_eq!(a, app(app(sym("ty"), sym("add")), pow(sym("nat"), and(sym("nat"), sym("nat")))));
+
+        let a: Type = "f(a)".try_into().unwrap();
+        assert_eq!(a, app(ty("f"), ty("a")));
+        assert_eq!(format!("{}", a), "f(a)");
+
+        let a: Type = "f(a, b)".try_into().unwrap();
+        assert_eq!(a, app(app(ty("f"), ty("a")), ty("b")));
+        assert_eq!(format!("{}", a), "f(a, b)"); 
     }
 
     #[test]

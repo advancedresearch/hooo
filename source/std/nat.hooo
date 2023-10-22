@@ -274,3 +274,14 @@ fn nat_one_plus_one_equals_two true -> add'(1', 1') == 2' {
     return r;
 }
 
+fn nat_add_check_all_ty ty'(a, nat') & ty'(b, nat') -> ty'(add'(a, b), nat') {
+    x : ty'(a, nat');
+    y : ty'(b, nat');
+    use ty_app2;
+    use nat_add_ty;
+    use triv;
+    let x2 = triv(nat_add_ty) : ty'(add', nat' => nat' => nat');
+    let r = ty_app2(x2, x, y) : ty'(add'(a, b), nat');
+    return r;
+}
+
