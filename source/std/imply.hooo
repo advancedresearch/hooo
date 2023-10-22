@@ -1,7 +1,7 @@
-fn imply_transitivity (a => b) & (b => c) -> (a => c) {
+fn imply_transitivity : (a => b) & (b => c) -> (a => c) {
     x : a => b;
     y : b => c;
-    lam f (a => c) {
+    lam f : (a => c) {
         arg : a;
         let x2 = x(arg) : b;
         let x3 = y(x2) : c;
@@ -10,11 +10,11 @@ fn imply_transitivity (a => b) & (b => c) -> (a => c) {
     return f;
 }
 
-fn modus_tollens (a => b)  ->  (!b => !a) {
+fn modus_tollens : (a => b)  ->  (!b => !a) {
     x : a => b;
-    lam f !b => !a {
+    lam f : !b => !a {
         y : !b;
-        lam g !a {
+        lam g : !a {
             z : a;
             let x2 = x(z) : b;
             let r = y(x2) : false;
@@ -25,7 +25,7 @@ fn modus_tollens (a => b)  ->  (!b => !a) {
     return f;
 }
 
-fn rev_modus_tollens_nn (!!a => !!b)  ->  (!b => !a) {
+fn rev_modus_tollens_nn : (!!a => !!b)  ->  (!b => !a) {
     x : !!a => !!b;
     use modus_tollens;
     let y = modus_tollens(x) : !!!b => !!!a;
@@ -39,7 +39,7 @@ fn rev_modus_tollens_nn (!!a => !!b)  ->  (!b => !a) {
     return r;
 }
 
-fn imply_in_left_arg (a => b) & (a == c)  ->  (c => b) {
+fn imply_in_left_arg : (a => b) & (a == c)  ->  (c => b) {
     x : a => b;
     y : a == c;
     use snd;
@@ -49,7 +49,7 @@ fn imply_in_left_arg (a => b) & (a == c)  ->  (c => b) {
     return r;
 }
 
-fn imply_in_right_arg (a => b) & (b == c)  ->  (a => c) {
+fn imply_in_right_arg : (a => b) & (b == c)  ->  (a => c) {
     x : a => b;
     y : b == c;
     use fst;
@@ -59,9 +59,9 @@ fn imply_in_right_arg (a => b) & (b == c)  ->  (a => c) {
     return r;
 }
 
-fn imply_eq_left (a == b)  ->   (a => c) == (b => c) {
+fn imply_eq_left : (a == b)  ->   (a => c) == (b => c) {
     x : a == b;
-    lam f (a => c) => (b => c) {
+    lam f : (a => c) => (b => c) {
         y : a => c;
         use snd;
         let x2 = snd(x) : b => a;
@@ -69,7 +69,7 @@ fn imply_eq_left (a == b)  ->   (a => c) == (b => c) {
         let r = imply_transitivity(x2, y) : b => c;
         return r;
     }
-    lam g (b => c) => (a => c) {
+    lam g : (b => c) => (a => c) {
         y : b => c;
         use fst;
         let x2 = fst(x) : a => b;

@@ -1,14 +1,14 @@
-fn refl a -> a {
+fn refl : a -> a {
     x : a;
 
     return x;
 }
 
-fn curry (a & b) => c  ->  (a => b => c) {
+fn curry : (a & b) => c  ->  (a => b => c) {
     x : (a & b) => c;
-    lam f a => b => c {
+    lam f : a => b => c {
         y : a;
-        lam g b => c {
+        lam g : b => c {
             z : b;
             let r = x(y, z) : c;
             return r;
@@ -18,9 +18,9 @@ fn curry (a & b) => c  ->  (a => b => c) {
     return f;
 }
 
-fn uncurry (a => b => c) -> (a & b) => c {
+fn uncurry : (a => b => c) -> (a & b) => c {
     x : a => b => c;
-    lam f (a & b) => c {
+    lam f : (a & b) => c {
         x2 : a;
         x3 : b;
         let x4 = x(x2) : b => c;
@@ -30,7 +30,7 @@ fn uncurry (a => b => c) -> (a & b) => c {
     return f;
 }
 
-fn modus_ponens a & (a => b) -> b {
+fn modus_ponens : a & (a => b) -> b {
     x : a;
     y : a => b;
 
@@ -38,7 +38,7 @@ fn modus_ponens a & (a => b) -> b {
     return z;
 }
 
-fn unify (a | b) & ((a => c) & (b => c))  ->  c {
+fn unify : (a | b) & ((a => c) & (b => c))  ->  c {
     x : (a | b);
     l : a => c;
     r : b => c;
@@ -46,7 +46,7 @@ fn unify (a | b) & ((a => c) & (b => c))  ->  c {
     return y;
 }
 
-fn all_pow_absurd all(a -> b) -> c {
+fn all_pow_absurd : all(a -> b) -> c {
     x : all(a -> b);
     let y = () : true;
     let z = x(y) : c;

@@ -1,4 +1,4 @@
-fn or_symmetry a | b -> b | a {
+fn or_symmetry : a | b -> b | a {
     use unify;
     use left;
     use right;
@@ -12,21 +12,21 @@ fn or_symmetry a | b -> b | a {
     return x4;
 }
 
-fn left a -> a | b {
+fn left : a -> a | b {
     axiom left : a -> a | b;
     x : a;
     let r = left(x) : a | b;
     return r;
 }
 
-fn right b -> a | b {
+fn right : b -> a | b {
     axiom right : b -> a | b;
     x : b;
     let r = right(x) : a | b;
     return r;
 }
 
-fn nleft !(a | b) -> !a {
+fn nleft : !(a | b) -> !a {
     x : !(a | b);
     use left;
     use modus_tollens;
@@ -35,7 +35,7 @@ fn nleft !(a | b) -> !a {
     return r;
 }
 
-fn nright !(a | b) -> !b {
+fn nright : !(a | b) -> !b {
     x : !(a | b);
     use right;
     use modus_tollens;

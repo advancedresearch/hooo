@@ -1,19 +1,19 @@
 
-fn uniform_to uniform'(a)  ->  (a^true | false^a) {
+fn uniform_to : uniform'(a)  ->  (a^true | false^a) {
     axiom uniform_to : uniform'(a)  ->  (a^true | false^a);
     x : uniform'(a);
     let r = uniform_to(x) : (a^true | false^a);
     return r;
 }
 
-fn uniform_from (a^true | false^a)  ->  uniform'(a) {
+fn uniform_from : (a^true | false^a)  ->  uniform'(a) {
     axiom uniform_from : (a^true | false^a)  ->  uniform'(a);
     x : a^true | false^a;
     let r = uniform_from(x) : uniform'(a);
     return r;
 }
 
-fn tauto_uniform_eq true  ->  (uniform'(a) == (a^true | false^a)) {
+fn tauto_uniform_eq : true  ->  (uniform'(a) == (a^true | false^a)) {
     x : true;
     use uniform_to;
     use uniform_from;
@@ -24,7 +24,7 @@ fn tauto_uniform_eq true  ->  (uniform'(a) == (a^true | false^a)) {
     return r;
 }
 
-fn tauto_to_uniform a^true  ->  uniform'(a) {
+fn tauto_to_uniform : a^true  ->  uniform'(a) {
     x : a^true;
     use left;
     let y = left(x) : a^true | false^a;
@@ -33,7 +33,7 @@ fn tauto_to_uniform a^true  ->  uniform'(a) {
     return r;
 }
 
-fn para_to_uniform false^a  -> uniform'(a) {
+fn para_to_uniform : false^a  -> uniform'(a) {
     x : false^a;
     use right;
     let y = right(x) : a^true | false^a;
@@ -42,21 +42,21 @@ fn para_to_uniform false^a  -> uniform'(a) {
     return r;
 }
 
-fn theory_to theory'(a)  ->  !uniform'(a) {
+fn theory_to : theory'(a)  ->  !uniform'(a) {
     axiom theory_to : theory'(a)  ->  !uniform'(a);
     x : theory'(a);
     let r = theory_to(x) : !uniform'(a);
     return r;
 }
 
-fn theory_from !uniform'(a)  ->  theory'(a) {
+fn theory_from : !uniform'(a)  ->  theory'(a) {
     axiom theory_from : !uniform'(a)  ->  theory'(a);
     x : !uniform'(a);
     let r = theory_from(x) : theory'(a);
     return r;
 }
 
-fn theory_to_nor_tauto_para theory'(a)  ->  !(a^true | false^a) {
+fn theory_to_nor_tauto_para : theory'(a)  ->  !(a^true | false^a) {
     x : theory'(a);
     use theory_to;
     let y = theory_to(x) : !uniform'(a);
@@ -68,7 +68,7 @@ fn theory_to_nor_tauto_para theory'(a)  ->  !(a^true | false^a) {
     return r;
 }
 
-fn theory_to_ntauto theory'(a)  ->  !(a^true) {
+fn theory_to_ntauto : theory'(a)  ->  !(a^true) {
     x : theory'(a);
     use theory_to_nor_tauto_para;
     let y = theory_to_nor_tauto_para(x) : !(a^true | false^a);
@@ -77,7 +77,7 @@ fn theory_to_ntauto theory'(a)  ->  !(a^true) {
     return r;
 }
 
-fn theory_to_npara theory'(a)  ->  !(false^a) {
+fn theory_to_npara : theory'(a)  ->  !(false^a) {
     x : theory'(a);
     use theory_to_nor_tauto_para;
     let y = theory_to_nor_tauto_para(x) : !(a^true | false^a);
@@ -86,9 +86,9 @@ fn theory_to_npara theory'(a)  ->  !(false^a) {
     return r;
 }
 
-fn uniform_to_tauto_excm uniform'(a)  ->  excm(a)^true {
+fn uniform_to_tauto_excm : uniform'(a)  ->  excm(a)^true {
     x : uniform'(a);
-    lam g a^true => excm(a)^true {
+    lam g : a^true => excm(a)^true {
         y : a^true;
         use left;
         use pow_transitivity;
@@ -97,7 +97,7 @@ fn uniform_to_tauto_excm uniform'(a)  ->  excm(a)^true {
         let r = f(y, l) : excm(a)^true;
         return r;
     }
-    lam h false^a => excm(a)^true {
+    lam h : false^a => excm(a)^true {
         y : false^a;
         use pow_to_imply_lift;
         let x2 = pow_to_imply_lift(y) : (!a)^true;
@@ -113,7 +113,7 @@ fn uniform_to_tauto_excm uniform'(a)  ->  excm(a)^true {
     return r;
 }
 
-fn tauto_excm_to_uniform excm(a)^true  ->  uniform'(a) {
+fn tauto_excm_to_uniform : excm(a)^true  ->  uniform'(a) {
     x : excm(a)^true;
     use hooo_or;
     let x2 = hooo_or(x) : a^true | (!a)^true;

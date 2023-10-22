@@ -1,8 +1,8 @@
 
-fn and_map a -> b => (a & b) {
+fn and_map : a -> b => (a & b) {
     x : a;
 
-    lam f b => (a & b) {
+    lam f : b => (a & b) {
         x2 : b;
 
         use refl;
@@ -12,7 +12,7 @@ fn and_map a -> b => (a & b) {
     return f;
 }
 
-fn and_symmetry a & b -> b & a {
+fn and_symmetry : a & b -> b & a {
     use fst;
     use snd;
 
@@ -25,13 +25,13 @@ fn and_symmetry a & b -> b & a {
     return r;
 }
 
-fn fst (a & b) -> a {
+fn fst : (a & b) -> a {
     x : a;
     y : b;
     return x;
 }
 
-fn snd a & b -> b {
+fn snd : a & b -> b {
     x : a;
     y : b;
     return y;

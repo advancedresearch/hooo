@@ -1,5 +1,12 @@
 
-fn qu_in_arg qu'(a) & (a == b)^true  ->  qu'(b) {
+fn q_lift : sd(a, b) & (a == b) -> q(a, b) {
+    axiom q_lift : sd(a, b) & (a == b) -> q(a, b);
+    x : sd(a, b) & (a == b);
+    let r = q_lift(x) : q(a, b);
+    return r;
+}
+
+fn qu_in_arg : qu'(a) & (a == b)^true  ->  qu'(b) {
     axiom qu_in_arg : qu'(a) & (a == b)^true  ->  qu'(b);
     x : qu'(a);
     y : (a == b)^true;
@@ -7,7 +14,7 @@ fn qu_in_arg qu'(a) & (a == b)^true  ->  qu'(b) {
     return r;
 }
 
-fn q_from (a == b) & qu'(a) & qu'(b)  ->  q'(a, b) {
+fn q_from : (a == b) & qu'(a) & qu'(b)  ->  q'(a, b) {
     axiom q_from : (a == b) & qu'(a) & qu'(b)  ->  q'(a, b);
     x : a == b;
     y : qu'(a);
@@ -16,14 +23,14 @@ fn q_from (a == b) & qu'(a) & qu'(b)  ->  q'(a, b) {
     return r;
 }
 
-fn q_to q'(a, b)  ->  (a == b) & qu'(a) & qu'(b) {
+fn q_to : q'(a, b)  ->  (a == b) & qu'(a) & qu'(b) {
     axiom q_to : q'(a, b)  ->  (a == b) & qu'(a) & qu'(b);
     x : q'(a, b);
     let r = q_to(x) : (a == b) & qu'(a) & qu'(b);
     return r;
 }
 
-fn qu_to_q qu'(a)  ->  q'(a, a) {
+fn qu_to_q : qu'(a)  ->  q'(a, a) {
     x : qu'(a);
     use std::refl;
     let y = refl() : a => a;
@@ -33,7 +40,7 @@ fn qu_to_q qu'(a)  ->  q'(a, a) {
     return r;
 }
 
-fn q_to_qu q'(a, a)  ->  qu'(a) {
+fn q_to_qu : q'(a, a)  ->  qu'(a) {
     x : q'(a, a);
     use q_to;
     let y = q_to(x) : (a == a) & qu'(a) & qu'(a);
@@ -43,7 +50,7 @@ fn q_to_qu q'(a, a)  ->  qu'(a) {
     return r;
 }
 
-fn q_left q'(a, b)  ->  q'(a, a) {
+fn q_left : q'(a, b)  ->  q'(a, a) {
     x : q'(a, b);
     use q_to;
     let y = q_to(x) : (a == b) & qu'(a) & qu'(b);
@@ -56,7 +63,7 @@ fn q_left q'(a, b)  ->  q'(a, a) {
     return r;
 }
 
-fn q_right q'(a, b)  ->  q'(b, b) {
+fn q_right : q'(a, b)  ->  q'(b, b) {
     x : q'(a, b);
     use q_to;
     let y = q_to(x) : (a == b) & qu'(a) & qu'(b);
@@ -68,7 +75,7 @@ fn q_right q'(a, b)  ->  q'(b, b) {
     return r;
 }
 
-fn q_to_eq q'(a, b)  ->  (a == b) {
+fn q_to_eq : q'(a, b)  ->  (a == b) {
     x : q'(a, b);
     use q_to;
     let y = q_to(x) : (a == b) & qu'(a) & qu'(b);
@@ -77,7 +84,7 @@ fn q_to_eq q'(a, b)  ->  (a == b) {
     return r;
 }
 
-fn neq_to_sesh !(a == b)  ->  !q'(a, b) {
+fn neq_to_sesh : !(a == b)  ->  !q'(a, b) {
     x : !(a == b);
     use q_to_eq;
     let y = q_to_eq() : q'(a, b) => (a == b);
@@ -87,7 +94,7 @@ fn neq_to_sesh !(a == b)  ->  !q'(a, b) {
     return r;
 }
 
-fn nqu_to_sesh !qu'(a)  ->  !q'(a, a) {
+fn nqu_to_sesh : !qu'(a)  ->  !q'(a, a) {
     x: !qu'(a);
     use q_to_qu;
     use std::modus_tollens;
@@ -96,7 +103,7 @@ fn nqu_to_sesh !qu'(a)  ->  !q'(a, a) {
     return r;
 }
 
-fn sesh_left !q'(a, a)  ->  !q'(a, b) {
+fn sesh_left : !q'(a, a)  ->  !q'(a, b) {
     x : !q'(a, a);
     use std::modus_tollens;
     use q_left;
@@ -105,7 +112,7 @@ fn sesh_left !q'(a, a)  ->  !q'(a, b) {
     return r;
 }
 
-fn sesh_right !q'(b, b)  ->  !q'(a, b) {
+fn sesh_right : !q'(b, b)  ->  !q'(a, b) {
     x : !q'(b, b);
     use std::modus_tollens;
     use q_right;

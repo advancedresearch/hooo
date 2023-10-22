@@ -16,7 +16,7 @@ hooo <file.hooo>
 ### Example: Absurd
 
 ```text
-fn absurd false -> a {
+fn absurd : false -> a {
     x : false;
     let r = match x : a;
     return r;
@@ -113,14 +113,19 @@ This is why a library is needed to show how to prove such statements.
 For example, in Hooo, one can prove that function composition is possible:
 
 ```text
-fn pow_transitivity b^a & c^b -> c^a {
+fn pow_transitivity : b^a & c^b -> c^a {
+    use hooo_imply;
+    use pow_lift;
+    use refl;
+    use hooo_rev_and;
+
     x : b^a;
     y : c^b;
 
-    fn f a -> ((b^a & c^b) => c) {
+    fn f : a -> ((b^a & c^b) => c) {
         x : a;
 
-        lam g (b^a & c^b) => c {
+        lam g : (b^a & c^b) => c {
             y : b^a;
             z : c^b;
 
@@ -131,19 +136,11 @@ fn pow_transitivity b^a & c^b -> c^a {
         return g;
     }
 
-    use hooo_imply;
     let x2 = hooo_imply(f) : (b^a & c^b)^a => c^a;
-
-    use pow_lift;
     let x3 = pow_lift(x) : (b^a)^a;
     let y3 = pow_lift(y) : (c^b)^a;
-
-    use refl;
     let x4 = refl(x3, y3) : (b^a)^a & (c^b)^a;
-
-    use hooo_rev_and;
     let x5 = hooo_rev_and(x4) : (b^a & c^b)^a;
-
     let x6 = x2(x5) : c^a;
     return x6;
 }
@@ -152,10 +149,10 @@ fn pow_transitivity b^a & c^b -> c^a {
 Notice how complex this proof is compared to proving lambda/closure composition:
 
 ```text
-fn imply_transitivity (a => b) & (b => c) -> (a => c) {
+fn imply_transitivity : (a => b) & (b => c) -> (a => c) {
     x : a => b;
     y : b => c;
-    lam f (a => c) {
+    lam f : (a => c) {
         arg : a;
         let x2 = x(arg) : b;
         let x3 = y(x2) : c;
@@ -208,8 +205,8 @@ f(x, y, ...)                Apply multiple arguments
 match x : a                 If `x : false`
 match x (l, r) : c          If `x : (a | b)`, `l : a => c` and `r : b => c`
 use <tactic>                Imports tactic
-fn <name> a -> b { ... }    Function
-lam <name> a => b { ... }   Lambda/closure
+fn <name> : a -> b { ... }  Function
+lam <name> : a => b { ... } Lambda/closure
 ```
 
 The `^` operator has high precedence, while `->` has low precedence.
