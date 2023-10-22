@@ -188,6 +188,8 @@ a | b      Or (enum type)
 !a         Not (sugar for `a => false`)
 a == b     Equal (sugar for `(a => b) & (b => a)`)
 a =^= b    Pow equal (sugar for `b^a & a^b`)
+excm(a)    Excluded middle (sugar for `a | !a`)
+sd(a, b)   Symbolic distinction (see section [Symbolic distinction])
 true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types
@@ -224,3 +226,74 @@ or predicates, one can just use e.g. `foo'(a, b)`.
 An explicit symbol `foo` is written `foo'`.
 
 Symbols are global, so `foo'` is `foo'` everywhere.
+
+### Congruence
+
+An operator `f` is normal congruent when:
+
+```
+a == b  ->  f(a) == f(b)
+```
+
+An operator `f` is tautological congruent when:
+
+```
+(a == b)^true -> f(a) == f(b)
+```
+
+Most operators are normal congruent.
+Some theories treat all operators within the theory
+as normal congruent, e.g. predicates in First Order Logic.
+
+However, in [Path Semantics](https://github.com/advancedresearch/path_semantics/tree/master) there
+are some operators which are tautological congruent.
+
+For example, path semantical quality and symbolic distinction are tautological congruent.
+
+### Symbolic distinction
+
+Paper: [Symbolic distinction](https://github.com/advancedresearch/path_semantics/blob/master/papers-wip2/symbolic-distinction.pdf).
+
+In normal logic, there is no way to distingish propositions from each other
+without adding explicit assumptions.
+With other words, logic is not allowed to know internally
+the accurate representation of data.
+This is because logic is used to reason hypothetically.
+
+For example, you know that the symbol `x'` is identical to `x'`.
+Yet, logic can not know this internally, because it would lead to unsoundness.
+If one has two indistinct symbols which are non-equal, then this would be unsound in logic.
+
+You must always be allowed to treat propositions as equal,
+although they are strictly symbolic distinct:
+
+- `a == b` (normal equality)
+- `(a == b)^true` (tautological equality)
+
+There should be no stronger notion of equality in logic than tautological equality.
+Most operators are congruent by normal equality,
+but a few operators are only congruent by tautological equality.
+
+However, there no problems in logic by using symbolic distinction.
+
+- `sd(a, b)` (`a` and `b` are symbolic distinct)
+
+For example, in Hooo, one can distinguish two symbols `foo'` and `bar'`:
+
+`let x = () : sd(foo', bar');`
+
+This is useful when you are working with theories that need
+some form of uniqueness.
+
+For example, in Type Theory, a member of a type is
+only allowed to have a unique type.
+When we work with Type Theory in logic,
+we are allowed to assume that two types are equal,
+but the theory decides whether this is permitted.
+The theory can not prevent us from making assumptions,
+but it can control the consequences.
+Without symbolic distinction, there is no way to tell
+in logic that two types are not permitted to be equal.
+
+Symbolic distinction allows you to add axioms for such cases
+and still be able to reason hypothetically.
