@@ -97,8 +97,8 @@ There are 3 axioms in HOOO EP:
 
 ```text
 pow_lift : a^b -> (a^b)^c
-tauto_hooo_imply : (a => b)^c -> (a^c => a^b)^true
-tauto_hooo_or : (a | b)^c -> (a^c | a^b)^true
+tauto_hooo_imply : (a => b)^c -> (a^c => b^c)^true
+tauto_hooo_or : (a | b)^c -> (a^c | b^c)^true
 ```
 
 The philosophy of HOOO EP is that the axioms are intuitive.
