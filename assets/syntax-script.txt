@@ -32,7 +32,6 @@ _ty: ";{}"
     match:"match"
     check:"check"
     app:"app"
-    ..._ty!:"prove"
 }
 1 script = [.w? .l([.w? {
     comment
