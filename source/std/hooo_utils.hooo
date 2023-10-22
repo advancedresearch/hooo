@@ -27,6 +27,27 @@ fn para_to_tauto_not false^a  ->  (a => false)^true {
     return r;
 }
 
+fn tauto_imply_to_pow (a => b)^true  ->  b^a {
+    x : (a => b)^true;
+    fn f a -> (a => b)^true => b {
+        y : a;
+        lam g (a => b)^true => b {
+            z : (a => b)^true;
+            use triv;
+            let z2 = triv(z) : a => b;
+            let r = z2(y) : b;
+            return r;
+        }
+        return g;
+    }
+    use hooo_imply;
+    let x2 = hooo_imply(f) : ((a => b)^true)^a => b^a;
+    use pow_lift;
+    let x3 = pow_lift(x) : ((a => b)^true)^a;
+    let r = x2(x3) : b^a;
+    return r;
+}
+
 fn tauto_imply_refl true  ->  (a => a) {
     x : true;
     use refl;
@@ -147,4 +168,28 @@ fn pow_in_right_arg a^b & (b == c)^true  ->  a^c {
     return r;
 }
 
+fn not_to_not_tauto !a  ->  !(a^true) {
+    x : !a;
+    lam f !(a^true) {
+        y : a^true;
+        use triv;
+        let y2 = triv(y) : a;
+        let r = x(y2) : false;
+        return r;
+    }
+    return f;
+}
+
+fn pow_modus_tollens  (a -> b)  ->  (!b -> !a) {
+    x : a -> b;
+    use pow_to_imply_lift;
+    let x2 = pow_to_imply_lift(x) : (a => b)^true;
+    use modus_tollens;
+    use pow_transitivity;
+    let f = modus_tollens() : (a => b) -> (!b => !a);
+    let x3 = pow_transitivity(x2, f) : (!b => !a)^true;
+    use tauto_imply_to_pow;
+    let r = tauto_imply_to_pow(x3) : !b -> !a;
+    return r;
+}
 
