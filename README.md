@@ -198,6 +198,7 @@ let y      Theorem/variable
 
 return x   Helps the solver make a conclusion
 
+sym foo;                    Declare a symbol `foo'`.
 axiom foo : a               Introduce axiom `foo` of type `a`
 () : a                      Prove `a`, e.g. `() : true`
 f(x)                        Apply one argument `x` to `f`
@@ -216,11 +217,14 @@ E.g. `b^a => b` is parsed as `(b^a) => b`.
 
 ### Symbols
 
-The current version of Hooo uses ad-hoc symbols.
-This means that instead of declaring data structures
-or predicates, one can just use e.g. `foo'(a, b)`.
+The current version of Hooo uses simple symbols.
+This means that instead of declaring data structures,
+one can just use e.g. `foo'(a, b)`.
+A symbol must be declared before use:
 
-An explicit symbol `foo` is written `foo'`.
+```text
+sym foo;
+```
 
 Symbols are global, so `foo'` is `foo'` everywhere.
 

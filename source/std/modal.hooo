@@ -1,3 +1,13 @@
+sym Lob;
+sym nec;
+sym pos;
+sym N;
+sym N2;
+sym K;
+sym T;
+sym NecToPos;
+sym PosToNec;
+
 /// `□(□p => p)`.
 fn lob_triv : (p^true => p)^true {
     lam f : p^true => p {

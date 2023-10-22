@@ -1,3 +1,4 @@
+sym ex;
 
 fn exists_to : ex'(a, b) -> !((!b)^a) {
     axiom exists_to : ex'(a, b) -> !((!b)^a);

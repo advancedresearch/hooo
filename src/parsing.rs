@@ -216,6 +216,9 @@ fn run_ctx(
                 let ty = loader.load_fun(&ns, &fun).map_err(|err| (range, err))?;
                 ctx.new_term((fun, Term::FunDecl(ty)), search).map_err(|err| (range, err))?;
             }
+        } else if let Ok((range, val)) = convert.meta_string("sym") {
+            convert.update(range);
+            ctx.symbols.push(val);
         } else {
             let range = convert.ignore();
             convert.update(range);

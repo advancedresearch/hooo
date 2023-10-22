@@ -1,4 +1,7 @@
 
+sym z;
+sym type;
+
 fn ty_eq_left : a == b  ->  (a : c) == (b : c) {
     axiom ty_eq_left : a == b -> (a : c) == (b : c);
     x : a == b;

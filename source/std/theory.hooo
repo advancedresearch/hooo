@@ -1,3 +1,5 @@
+sym uniform;
+sym theory;
 
 fn uniform_to : uniform'(a)  ->  (a^true | false^a) {
     axiom uniform_to : uniform'(a)  ->  (a^true | false^a);
