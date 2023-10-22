@@ -1,6 +1,6 @@
 [package]
 name = "hooo"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2021"
 keywords = ["advancedresearch", "theorem", "proving", "assistant", "exponentials"]
 description = "Propositional logic with exponentials"
