@@ -98,8 +98,8 @@ There are 3 axioms in HOOO EP:
 
 ```text
 pow_lift : a^b -> (a^b)^c
-tauto_hooo_imply : (a => b)^c -> (a^c => a^b)^true
-tauto_hooo_or : (a | b)^c -> (a^c | a^b)^true
+tauto_hooo_imply : (a => b)^c -> (a^c => b^c)^true
+tauto_hooo_or : (a | b)^c -> (a^c | b^c)^true
 ```
 
 The philosophy of HOOO EP is that the axioms are intuitive.
@@ -323,7 +323,7 @@ impl Context {
                 self.proof_cache.insert(ty);
                 Ok(())
             }
-            Err(err) => Err(format!("{}\nType mismatch `{}`", err, name)),            
+            Err(err) => Err(format!("{}\nType mismatch `{}`", err, name)),
         }
     }
 
@@ -623,7 +623,7 @@ impl Term {
                         }
                     }
                 }
-                
+
                 for (i, arg_ind) in arg_inds.iter().enumerate() {
                     if arg_ind.is_none() {
                         return Err(format!("Argument `{}` is not found", args[i]));
@@ -797,7 +797,7 @@ impl Type {
                 return format!("{} -> {}", ab.1.to_str(false, op), ab.0.to_str(false, op));
             }
         }
-        
+
         if needs_parens(self, parent_op) {format!("({})", self)}
         else {format!("{}", self)}
     }
@@ -1092,7 +1092,7 @@ impl Loader {
         .collect();
 
         let (tx, rx) = std::sync::mpsc::channel();
-        let error: Arc<Mutex<Result<(), String>>> = Arc::new(Ok(()).into());        
+        let error: Arc<Mutex<Result<(), String>>> = Arc::new(Ok(()).into());
 
         // Extract all functions.
         let _ = (0..files.len()).into_par_iter().map(|i| {
@@ -1116,7 +1116,7 @@ impl Loader {
         }).while_some().max();
 
         drop(tx);
- 
+
         let error = error.lock().unwrap();
         let _ = error.as_ref().map_err(|err| err.clone())?;
 
@@ -1284,13 +1284,13 @@ mod tests {
 
         let a: Type = "a => b -> c => d".try_into().unwrap();
         assert_eq!(a, "(c => d)^(a => b)".try_into().unwrap());
-    
+
         let a: Type = "a & b -> c".try_into().unwrap();
         assert_eq!(a, pow(ty("c"), and(ty("a"), ty("b"))));
-    
+
         let a: Type = "a & b & c -> d".try_into().unwrap();
         assert_eq!(a, pow(ty("d"), and(ty("a"), and(ty("b"), ty("c")))));
-    
+
         let a: Type = "a^c == b^c".try_into().unwrap();
         assert_eq!(a, eq(pow(ty("a"), ty("c")), pow(ty("b"), ty("c"))));
     }
@@ -1325,7 +1325,7 @@ mod tests {
     fn test_all() {
         let a: Type = "all(a)".try_into().unwrap();
         assert_eq!(a, Type::All(Box::new(Type::AllTy(Arc::new("a".into())))));
-    
+
         let b: Type = "all(b)".try_into().unwrap();
         assert!(a.has_bound(&b));
 
@@ -1341,10 +1341,10 @@ mod tests {
     fn test_display() {
         let a: Type = "!a".try_into().unwrap();
         assert_eq!(format!("{}", a), "!a".to_string());
-   
+
         let a: Type = "!!a".try_into().unwrap();
         assert_eq!(format!("{}", a), "!!a".to_string());
- 
+
         let a: Type = "!(a & b)".try_into().unwrap();
         assert_eq!(format!("{}", a), "!(a & b)".to_string());
 
@@ -1359,7 +1359,7 @@ mod tests {
 
         let a: Result<Type, String> = "false^true^true".try_into();
         assert!(a.is_err());
-    
+
         let a: Type = "!((false^true)^true)".try_into().unwrap();
         assert_eq!(format!("{}", a), "!((false^true)^true)".to_string());
 
@@ -1374,22 +1374,22 @@ mod tests {
 
         let a: Type = "a =^= b".try_into().unwrap();
         assert_eq!(format!("{}", a), "a =^= b".to_string());
-    
+
         let a: Type = "!a == !b".try_into().unwrap();
         assert_eq!(format!("{}", a), "!a == !b".to_string());
-    
+
         let a: Type = "!a => !b".try_into().unwrap();
         assert_eq!(format!("{}", a), "!a => !b".to_string());
-    
+
         let a: Type = "!a & !b".try_into().unwrap();
         assert_eq!(format!("{}", a), "!a & !b".to_string());
-    
+
         let a: Type = "!a | !b".try_into().unwrap();
         assert_eq!(format!("{}", a), "!a | !b".to_string());
-    
+
         let a: Type = "!a =^= !b".try_into().unwrap();
         assert_eq!(format!("{}", a), "!a =^= !b".to_string());
-    
+
         let a: Type = "q(a, b)".try_into().unwrap();
         assert_eq!(format!("{}", a), "q(a, b)".to_string());
     }
@@ -1412,7 +1412,7 @@ mod tests {
         let x: Type = "(a => b) -> c".try_into().unwrap();
         let y: Type = "(a -> b) -> c".try_into().unwrap();
         assert!(x.has_bound(&y));
-    
+
         let x: Type = pow(ty("a"), Type::AllTy(Arc::new("b".into())));
         let y: Type = "a^b".try_into().unwrap();
         assert!(x.has_(false, &y));
@@ -1423,17 +1423,17 @@ mod tests {
         let mut bind = vec![];
         let a: Type = "a".try_into().unwrap();
         assert!(a.bind(false, &a, &mut bind));
-    
+
         let mut bind = vec![];
         assert!(a.bind(true, &a, &mut bind));
-    
+
         let mut bind = vec![];
         assert!(a.clone().lift().bind(false, &a, &mut bind));
         let mut bind = vec![];
         assert!(a.clone().lift().bind(true, &a, &mut bind));
         let mut bind = vec![];
         assert!(!a.bind(false, &a.clone().lift(), &mut bind));
-    
+
         let x: Type = "a^b".try_into().unwrap();
         let mut bind = vec![];
         assert!(x.clone().lift().bind(false, &x, &mut bind));
@@ -1443,7 +1443,7 @@ mod tests {
         assert!(!x.bind(false, &x.clone().lift(), &mut bind));
         let mut bind = vec![];
         assert!(!x.bind(true, &x.clone().lift(), &mut bind));
-    
+
         let x: Type = "qu(a)".try_into().unwrap();
         let y: Type = "qu(true)".try_into().unwrap();
         let mut bind = vec![];
@@ -1461,7 +1461,7 @@ mod tests {
         let all_a: Type = "all(a)".try_into().unwrap();
         assert!(!a.app_to_has_bound(&all_a, &b, &b));
         assert!(all_a.app_to_has_bound(&all_a, &b, &b));
-    
+
         let all_ab: Type = "all(a -> b)".try_into().unwrap();
         let all_aa: Type = "all(a -> a)".try_into().unwrap();
         assert!(all_ab.has_bound(&all_aa));
@@ -1477,7 +1477,7 @@ mod tests {
     fn test_sym() {
         let a: Type = "qu'".try_into().unwrap();
         assert_eq!(a, sym("qu"));
-    
+
         let a: Type = "qu(a)".try_into().unwrap();
         assert_eq!(a, app(sym("qu"), ty("a")));
         assert!(a.has_bound(&a));
@@ -1493,4 +1493,3 @@ mod tests {
         assert_eq!(a, app(app(sym("q"), ty("a")), ty("b")));
     }
 }
-
