@@ -441,6 +441,26 @@ fn modal_tauto_n2_to_para_nec_false all(N2(a))^true  ->  false^nec(false) {
     return r;
 }
 
+fn modal_tauto_t_to_para_nec_false all(T(a))^true  ->  false^nec(false) {
+    x : all(T(a))^true;
+
+    fn f all(T(a)) -> T(false) {
+        y : all(T(a));
+        let r = y() : T(false);
+        return r;
+    }
+
+    use pow_transitivity;
+    let x2 = pow_transitivity(x, f) : T(false)^true;
+    use modal_t_to;
+    let f2 = modal_t_to() : T(false) -> !nec(false);
+    let x3 = pow_transitivity(x2, f2) : (!nec(false))^true;
+
+    use tauto_not_to_para;
+    let r = tauto_not_to_para(x3) : false^nec(false);
+    return r;
+}
+
 fn modal_n_to_nlob all(N(a)) & false^nec(false)  ->  !all(Lob(a)) {
     x : all(N(a));
     y0 : false^nec(false);
