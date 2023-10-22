@@ -232,13 +232,13 @@ Symbols are global, so `foo'` is `foo'` everywhere.
 
 An operator `f` is normal congruent when:
 
-```
+```text
 a == b  ->  f(a) == f(b)
 ```
 
 An operator `f` is tautological congruent when:
 
-```
+```text
 (a == b)^true -> f(a) == f(b)
 ```
 
