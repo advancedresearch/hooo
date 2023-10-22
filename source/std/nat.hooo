@@ -1,4 +1,11 @@
 
+fn nat_ty true -> ty(nat', type'(z')) {
+    axiom nat_ty : true -> ty(nat', type'(z'));
+    x : true;
+    let r = nat_ty(x) : ty(nat', type'(z'));
+    return r;
+}
+
 fn nat_zero_ty true -> ty'(z', nat') {
     axiom nat_zero_ty : true -> ty'(z', nat');
     x : true;
