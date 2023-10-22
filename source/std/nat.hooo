@@ -152,10 +152,10 @@ fn nat_two_ty true -> ty(2', nat') {
 Addition of natural numbers.
 */
 
-fn add_ty true -> ty(add', nat' & nat' -> nat') {
-    axiom add_ty : true -> ty(add', nat' & nat' -> nat');
+fn nat_add_ty true -> ty(add', nat' => nat' => nat') {
+    axiom add_ty : true -> ty(add', nat' => nat' => nat');
     x : true;
-    let r = add_ty(x) : ty(add', nat' & nat' -> nat');
+    let r = add_ty(x) : ty(add', nat' => nat' => nat');
     return r;
 }
 
