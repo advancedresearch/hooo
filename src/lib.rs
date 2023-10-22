@@ -193,7 +193,7 @@ true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types
 foo'       Symbol `foo`
-foo(a)     Apply symbol `foo` to `a`
+foo'(a)    Apply symbol `foo` to `a`
 
 x : a      Premise/argument
 let y      Theorem/variable
@@ -220,14 +220,11 @@ E.g. `b^a => b` is parsed as `(b^a) => b`.
 
 The current version of Hooo uses ad-hoc symbols.
 This means that instead of declaring data structures
-or predicates, one can just use e.g. `foo(a, b)`.
+or predicates, one can just use e.g. `foo'(a, b)`.
 
 An explicit symbol `foo` is written `foo'`.
 
 Symbols are global, so `foo'` is `foo'` everywhere.
-
-Hooo does not support quantification over symbols.
-With other words, in some sense Hooo is restricted a First Order Logic style of quantification.
 
 */
 
@@ -836,14 +833,14 @@ impl fmt::Display for Type {
             return write!(w, "{} =^= {}", a, b);
         }
         if let Some((a, b)) = self.as_app_sym() {
-            return write!(w, "{}({})", a, b);
+            return write!(w, "{}'({})", a, b);
         }
         if let Some((f, args)) = self.as_multi_app_sym() {
             if args.len() == 0 {
                 return write!(w, "{}'", f);
             }
 
-            write!(w, "{}(", f)?;
+            write!(w, "{}'(", f)?;
             let mut first = true;
             for arg in args {
                 if !first {
@@ -1334,15 +1331,15 @@ mod tests {
         let a: Type = "a' =^= b'".try_into().unwrap();
         assert_eq!(a, pow_eq(sym("a"), sym("b")));
         assert_eq!(format!("{}", a), "a' =^= b'".to_string());
-    
+
         let a: Type = "a' & b'".try_into().unwrap();
         assert_eq!(a, and(sym("a"), sym("b")));
         assert_eq!(format!("{}", a), "a' & b'".to_string());
-    
+
         let a: Type = "a' & b' -> c'".try_into().unwrap();
         assert_eq!(a, pow(sym("c"), and(sym("a"), sym("b"))));
 
-        let a: Type = "ty(add', nat' & nat' -> nat')".try_into().unwrap();
+        let a: Type = "ty'(add', nat' & nat' -> nat')".try_into().unwrap();
         assert_eq!(a, app(app(sym("ty"), sym("add")), pow(sym("nat"), and(sym("nat"), sym("nat")))));
     }
 
@@ -1415,8 +1412,8 @@ mod tests {
         let a: Type = "!a =^= !b".try_into().unwrap();
         assert_eq!(format!("{}", a), "!a =^= !b".to_string());
 
-        let a: Type = "q(a, b)".try_into().unwrap();
-        assert_eq!(format!("{}", a), "q(a, b)".to_string());
+        let a: Type = "q'(a, b)".try_into().unwrap();
+        assert_eq!(format!("{}", a), "q'(a, b)".to_string());
     }
 
     #[test]
@@ -1469,8 +1466,8 @@ mod tests {
         let mut bind = vec![];
         assert!(!x.bind(true, &x.clone().lift(), &mut bind));
 
-        let x: Type = "qu(a)".try_into().unwrap();
-        let y: Type = "qu(true)".try_into().unwrap();
+        let x: Type = "qu'(a)".try_into().unwrap();
+        let y: Type = "qu'(true)".try_into().unwrap();
         let mut bind = vec![];
         assert!(x.lift().bind(false, &y, &mut bind));
     }
@@ -1503,18 +1500,18 @@ mod tests {
         let a: Type = "qu'".try_into().unwrap();
         assert_eq!(a, sym("qu"));
 
-        let a: Type = "qu(a)".try_into().unwrap();
+        let a: Type = "qu'(a)".try_into().unwrap();
         assert_eq!(a, app(sym("qu"), ty("a")));
         assert!(a.has_bound(&a));
 
         let a: Type = "qu'(a)".try_into().unwrap();
         assert_eq!(a, app(sym("qu"), ty("a")));
 
-        let a: Type = "qu(a) & (a == b)^true  ->  qu(b)".try_into().unwrap();
+        let a: Type = "qu'(a) & (a == b)^true  ->  qu'(b)".try_into().unwrap();
         assert_eq!(a, pow(app(sym("qu"), ty("b")),
             and(app(sym("qu"), ty("a")), tauto(eq(ty("a"), ty("b"))))));
 
-        let a: Type = "q(a, b)".try_into().unwrap();
+        let a: Type = "q'(a, b)".try_into().unwrap();
         assert_eq!(a, app(app(sym("q"), ty("a")), ty("b")));
     }
 }
