@@ -1,15 +1,15 @@
 
-fn ty_eq_left a == b  ->  ty(a, c) == ty(b, c) {
-    axiom ty_eq_left : a == b -> ty(a, c) == ty(b, c);
+fn ty_eq_left a == b  ->  ty'(a, c) == ty'(b, c) {
+    axiom ty_eq_left : a == b -> ty'(a, c) == ty'(b, c);
     x : a == b;
-    let r = ty_eq_left(x) : ty(a, c) == ty(b, c);
+    let r = ty_eq_left(x) : ty'(a, c) == ty'(b, c);
     return r;
 }
 
-fn ty_eq_right a == b  ->  ty(c, a) == ty(c, b) {
-    axiom ty_eq_right : a == b -> ty(c, a) == ty(c, b);
+fn ty_eq_right a == b  ->  ty'(c, a) == ty'(c, b) {
+    axiom ty_eq_right : a == b -> ty'(c, a) == ty'(c, b);
     x : a == b;
-    let r = ty_eq_right(x) : ty(c, a) == ty(c, b);
+    let r = ty_eq_right(x) : ty'(c, a) == ty'(c, b);
     return r;
 }
 

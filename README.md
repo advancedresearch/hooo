@@ -192,7 +192,7 @@ true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types
 foo'       Symbol `foo`
-foo(a)     Apply symbol `foo` to `a`
+foo'(a)    Apply symbol `foo` to `a`
 
 x : a      Premise/argument
 let y      Theorem/variable
@@ -219,11 +219,8 @@ E.g. `b^a => b` is parsed as `(b^a) => b`.
 
 The current version of Hooo uses ad-hoc symbols.
 This means that instead of declaring data structures
-or predicates, one can just use e.g. `foo(a, b)`.
+or predicates, one can just use e.g. `foo'(a, b)`.
 
 An explicit symbol `foo` is written `foo'`.
 
 Symbols are global, so `foo'` is `foo'` everywhere.
-
-Hooo does not support quantification over symbols.
-With other words, in some sense Hooo is restricted a First Order Logic style of quantification.
