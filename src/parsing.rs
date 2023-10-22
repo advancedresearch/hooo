@@ -348,9 +348,9 @@ fn parse_ty(
         } else if let Ok((range, val)) = convert.meta_string("sym") {
             convert.update(range);
             ty = Some(Type::Sym(val));
-        } else if let Ok((range, val)) = convert.meta_string("name") {
+        } else if let Ok((range, val)) = parse_ty_var("var", convert, ignored) {
             convert.update(range);
-            ty = Some(Type::Ty(val));
+            ty = Some(val);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -359,6 +359,39 @@ fn parse_ty(
     }
 
     let ty = ty.ok_or(())?;
+    Ok((convert.subtract(start), ty))
+}
+
+fn parse_ty_var(
+    node: &str,
+    mut convert: Convert,
+    ignored: &mut Vec<Range>
+) -> Result<(Range, Type), ()> {
+    let start = convert;
+    let start_range = convert.start_node(node)?;
+    convert.update(start_range);
+
+    let mut name: Option<Arc<String>> = None;
+    let mut sym: bool = false;
+    loop {
+        if let Ok(range) = convert.end_node(node) {
+            convert.update(range);
+            break;
+        } else if let Ok((range, val)) = convert.meta_string("name") {
+            convert.update(range);
+            name = Some(val);
+        } else if let Ok((range, val)) = convert.meta_bool("sym") {
+            convert.update(range);
+            sym = val;
+        } else {
+            let range = convert.ignore();
+            convert.update(range);
+            ignored.push(range);
+        }
+    }
+
+    let name = name.ok_or(())?;
+    let ty = if sym {Type::Sym(name)} else {Type::Ty(name)};
     Ok((convert.subtract(start), ty))
 }
 
