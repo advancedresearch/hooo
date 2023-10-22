@@ -1,7 +1,6 @@
 fn test_refl a -> a {
-    use std::refl;
     x : a;
-    let y = refl(x) : a;
+    let y = () : a;
     return y;
 }
 

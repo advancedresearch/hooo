@@ -315,14 +315,16 @@ impl Context {
         (name, t): (Arc<String>, Term),
         search: &mut Search
     ) -> Result<(), String> {
-        self.proof_cache.insert(t.get_type());
-        self.terms.push(t);
-        self.term_names.push(name.clone());
-        let last = self.terms.last().map(|n| n.clone()).unwrap();
-        if !last.has_type(&last.get_type(), self, search) {
-            return Err(format!("Type mismatch `{}`", name));
+        let ty = t.get_type();
+        match t.has_type(&ty, self, search) {
+            Ok(()) => {
+                self.terms.push(t);
+                self.term_names.push(name.clone());
+                self.proof_cache.insert(ty);
+                Ok(())
+            }
+            Err(err) => Err(format!("{}\nType mismatch `{}`", err, name)),            
         }
-        Ok(())
     }
 
     #[must_use]
@@ -541,7 +543,7 @@ impl Term {
         }
     }
 
-    pub fn has_type(&self, ty: &Type, ctx: &mut Context, search: &mut Search) -> bool {
+    pub fn has_type(&self, ty: &Type, ctx: &mut Context, search: &mut Search) -> Result<(), String> {
         use Term::*;
 
         match self {
@@ -561,16 +563,27 @@ impl Term {
                         }
                     }
                 }
-                if arg_inds.iter().any(|n| n.is_none()) {return false};
+
+                for (i, arg_ind) in arg_inds.iter().enumerate() {
+                    if arg_ind.is_none() {
+                        return Err(format!("Argument `{}` is not found", args[i]));
+                    }
+                }
 
                 if let Some(fun_decl) = fun_decl {
                     let ty_f = ctx.terms[fun_decl].get_type();
                     let ty_f = if let Type::All(x) = ty_f {(*x).clone()} else {ty_f};
                     if args.len() == 0 {
-                        if ty_f.has_bound(t) {return true}
+                        if ty_f.has_bound(t) {return Ok(())}
                         else {
-                            if let Type::All(_) = ty_f {return false}
-                            else {return Type::All(Box::new(ty_f)).has_bound(ty)}
+                            if let Type::All(_) = ty_f {return Err("Did not expect `all(..)`".into())}
+                            else {
+                                return if Type::All(Box::new(ty_f.clone())).has_bound(ty) {
+                                    Ok(())
+                                } else {
+                                    Err(format!("Expected `{}`, found `{}`", ty, ty_f))
+                                };
+                            }
                         }
                     } else {
                         let arg_ind = arg_inds.pop().unwrap();
@@ -578,14 +591,27 @@ impl Term {
                         for arg_ind in arg_inds.into_iter().rev() {
                             ty_arg = and(ctx.terms[arg_ind.unwrap()].get_type(), ty_arg);
                         }
-                        if let Type::Pow(ab) = ty_f {
-                            return ty_arg.app_to_has_bound(&ab.1, &ab.0, t);
-                        } else if let Type::Imply(ab) = ty_f {
-                            return ty_arg.app_to_has_bound(&ab.0, &ab.1, t);
+                        if let Type::Pow(ab) = &ty_f {
+                            return if ty_arg.app_to_has_bound(&ab.1, &ab.0, t) {
+                                Ok(())
+                            } else {
+                                Err(format!("Expected `{}`, could not apply `{}` to `{}`",
+                                    t, ty_f.to_str(true, None), ty_arg))
+                            };
+                        } else if let Type::Imply(ab) = &ty_f {
+                            return if ty_arg.app_to_has_bound(&ab.0, &ab.1, t) {
+                                Ok(())
+                            } else {
+                                Err(format!("Expected `{}`', could not apply `{}` to `{}`",
+                                    t, ty_f, ty_arg))
+                            };
+                        } else {
+                            return Err("Expected `->` or `=>`".into());
                         }
                     }
+                } else {
+                    return Err(format!("Could not find `{}`", f));
                 }
-                false
             }
             Match(args, t) if t.has_bound(ty) => {
                 let mut arg_inds: Vec<Option<usize>> = vec![None; args.len()];
@@ -597,7 +623,12 @@ impl Term {
                         }
                     }
                 }
-                if arg_inds.iter().any(|n| n.is_none()) {return false};
+                
+                for (i, arg_ind) in arg_inds.iter().enumerate() {
+                    if arg_ind.is_none() {
+                        return Err(format!("Argument `{}` is not found", args[i]));
+                    }
+                }
 
                 let arg_ind = arg_inds.pop().unwrap();
                 let mut ty_arg = ctx.terms[arg_ind.unwrap()].get_type();
@@ -607,17 +638,19 @@ impl Term {
                 let ty_f: Type = if args.len() == 1 {"false -> a".try_into().unwrap()}
                     else {MATCH_TYPE.as_ref().unwrap().clone()};
                 if let Type::Pow(ab) = ty_f.lift() {
-                    return ty_arg.app_to_has_bound(&ab.1, &ab.0, t);
+                    if ty_arg.app_to_has_bound(&ab.1, &ab.0, t) {
+                        return Ok(());
+                    };
                 }
-                false
+                return Err("Internal error in type checker".into());
             }
-            Axiom(t) if t.has_bound(ty) => true,
-            FunDecl(t) if t.has_bound(ty) => true,
-            LamDecl(t) if t.has_bound(ty) => true,
-            Var(t) if t.has_bound(ty) => true,
+            Axiom(t) if t.has_bound(ty) => Ok(()),
+            FunDecl(t) if t.has_bound(ty) => Ok(()),
+            LamDecl(t) if t.has_bound(ty) => Ok(()),
+            Var(t) if t.has_bound(ty) => Ok(()),
             Check(t) if ctx.prove(t.clone(), search) &&
-                ctx.prove(ty.clone(), search) => true,
-            _ => false,
+                ctx.prove(ty.clone(), search) => Ok(()),
+            _ => return Err("Type check error #100".into()),
         }
     }
 }
