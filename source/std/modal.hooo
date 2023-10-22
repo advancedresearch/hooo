@@ -57,18 +57,39 @@ Formal expression `all(N(a))`
 */
 
 /// Reduction of N relation.
-fn modal_n_to N(a)  ->  nec(a) == a^true {
-    axiom modal_n_to : N(a) -> nec(a) == a^true;
+fn modal_n_to N(a)  ->  a^true => nec(a) {
+    axiom modal_n_to : N(a) -> a^true => nec(a);
     x : N(a);
-    let r = modal_n_to(x) : nec(a) == a^true;
+    let r = modal_n_to(x) : a^true => nec(a);
     return r;
 }
 
-/// Construction of N relation.
-fn modal_n_from nec(a) == a^true  ->  N(a) {
-    axiom modal_n_from : nec(a) == a^true -> N(a);
-    x : nec(a) == a^true;
+/// Construciton of N relation.
+fn modal_n_from a^true => nec(a)  ->  N(a) {
+    axiom modal_n_from : a^true => nec(a) -> N(a);
+    x : a^true => nec(a);
     let r = modal_n_from(x) : N(a);
+    return r;
+}
+
+/*
+N2 axiom `□a == a^true
+Formal expression `all(N2(a))`
+*/
+
+/// Reduction of N2 relation.
+fn modal_n2_to N2(a)  ->  nec(a) == a^true {
+    axiom modal_n2_to : N2(a) -> nec(a) == a^true;
+    x : N2(a);
+    let r = modal_n2_to(x) : nec(a) == a^true;
+    return r;
+}
+
+/// Construction of N2 relation.
+fn modal_n2_from nec(a) == a^true  ->  N2(a) {
+    axiom modal_n2_from : nec(a) == a^true -> N2(a);
+    x : nec(a) == a^true;
+    let r = modal_n2_from(x) : N2(a);
     return r;
 }
 
@@ -114,20 +135,31 @@ fn modal_t_from nec(a) => a  ->  T(a) {
     return r;
 }
 
-/// Axiom N implies axiom K.
-fn modal_n_to_k all(N(a))  ->  K(a, b) {
-    x : all(N(a));
-    let xa = x() : N(a);
-    let xb = x() : N(b);
-    let xab = x() : N(a => b);
-    use modal_n_to;
-    let eq_nec_a_tauto_a = modal_n_to(xa) : nec(a) == a^true;
-    let eq_nec_b_tauto_b = modal_n_to(xb) : nec(b) == b^true;
-    let eq_nec_ab_tauto_ab = modal_n_to(xab) : nec(a => b) == (a => b)^true;
+/// Axiom N2 implies axiom N.
+fn modal_n2_to_n N2(a)  ->  N(a) {
+    x : N2(a);
+    use modal_n2_to;
+    let x3 = modal_n2_to(x) : nec(a) == a^true;
+    use snd;
+    let x4 = snd(x3) : a^true => nec(a);
+    use modal_n_from;
+    let r = modal_n_from(x4) : N(a);
+    return r;
+}
+
+/// Axiom N2 implies axiom K.
+fn modal_n2_to_k all(N2(a))  ->  K(a, b) {
+    x : all(N2(a));
+    let xa = x() : N2(a);
+    let xb = x() : N2(b);
+    let xab = x() : N2(a => b);
+    use modal_n2_to;
+    let eq_nec_a_tauto_a = modal_n2_to(xa) : nec(a) == a^true;
+    let eq_nec_b_tauto_b = modal_n2_to(xb) : nec(b) == b^true;
+    let eq_nec_ab_tauto_ab = modal_n2_to(xab) : nec(a => b) == (a => b)^true;
     use fst;
     let nec_a_to_tauto_a = fst(eq_nec_a_tauto_a) : nec(a) => a^true;
     let nec_ab_to_tauto_ab = fst(eq_nec_ab_tauto_ab) : nec(a => b) => (a => b)^true;
-    use modal_n_from;
     use snd;
     let tauto_b_to_nec_b = snd(eq_nec_b_tauto_b) : b^true => nec(b);
     use hooo_imply;
@@ -147,14 +179,14 @@ fn modal_n_to_k all(N(a))  ->  K(a, b) {
     return r;
 }
 
-/// Axiom N implies axiom T.
-fn modal_n_to_t all(N(a))  ->  T(a) {
-    x : all(N(a));
-    let x2 = x() : N(a);
-    use modal_n_to;
+/// Axiom N2 implies axiom T.
+fn modal_n2_to_t all(N2(a))  ->  T(a) {
+    x : all(N2(a));
+    let x2 = x() : N2(a);
+    use modal_n2_to;
     use triv;
     let f = triv() : a^true => a;
-    let eq_nec_a_tauto_a = modal_n_to(x2) : nec(a) == a^true;
+    let eq_nec_a_tauto_a = modal_n2_to(x2) : nec(a) == a^true;
     use fst;
     let x3 = fst(eq_nec_a_tauto_a) : nec(a) => a^true;
     use imply_transitivity;
@@ -338,15 +370,16 @@ all(excm(a)^true)  ->  all(PosToNec(a)) => NecToPos(a) {
     return f;
 }
 
-fn modal_n_to_nlob all(N(a))  ->  !all(Lob(a)) {
-    x : all(N(a));
+/// There is no consistent modal logic of the Löb axiom in HOOO EP (N2).
+fn modal_n2_to_nlob all(N2(a))  ->  !all(Lob(a)) {
+    x : all(N2(a));
     lam f !all(Lob(a)) {
         use eq_transitivity;
         use imply_eq_left;
         use imply_in_left_arg;
         use imply_in_right_arg;
         use modal_lob_to;
-        use modal_n_to;
+        use modal_n2_to;
         use modal_nec_eq;
         use para_lob;
 
@@ -354,14 +387,14 @@ fn modal_n_to_nlob all(N(a))  ->  !all(Lob(a)) {
         let y2 = y() : Lob(false);
         let y3 = modal_lob_to(y2) : nec(nec(false) => false) => nec(false);
         
-        let x2 = x() : N(false);
-        let x3 = modal_n_to(x2) : nec(false) == false^true;
+        let x2 = x() : N2(false);
+        let x3 = modal_n2_to(x2) : nec(false) == false^true;
 
         let x4 = imply_eq_left(x3) : (nec(false) => false) == (false^true => false);
         let x5 = modal_nec_eq(x4) : nec(nec(false) => false) == nec(false^true => false);
 
-        let x6 = x() : N(false^true => false);
-        let x7 = modal_n_to(x6) : nec(false^true => false) == (false^true => false)^true;
+        let x6 = x() : N2(false^true => false);
+        let x7 = modal_n2_to(x6) : nec(false^true => false) == (false^true => false)^true;
 
         let x8 = eq_transitivity(x5, x7) : nec(nec(false) => false) == (false^true => false)^true;
         let x9 = imply_in_left_arg(y3, x8) : (false^true => false)^true => nec(false);
@@ -369,6 +402,70 @@ fn modal_n_to_nlob all(N(a))  ->  !all(Lob(a)) {
         let r = para_lob(x10) : false;
         return r;
     }
+    return f;
+}
+
+fn modal_tauto_n2_to_para_nec_false all(N2(a))^true  ->  false^nec(false) {
+    x : all(N2(a))^true;
+   
+    fn h all(N2(a))  ->  N2(false) {
+        k : all(N2(a));
+        let r = k() : N2(false);
+        return r;
+    }
+ 
+    use pow_transitivity;
+    let x2 = pow_transitivity(x, h) : N2(false)^true;
+    use modal_n2_to;
+    let f2 = modal_n2_to() : N2(false) -> nec(false) == false^true;
+    let x3 = pow_transitivity(x2, f2) : (nec(false) == false^true)^true;
+    use fst;
+    let f3 = fst() : (nec(false) == false^true) -> (nec(false) => false^true);
+    let x4 = pow_transitivity(x3, f3) : (nec(false) => false^true)^true;
+    
+    fn f nec(false) => false^true  ->  nec(false) => false {
+        x : nec(false) => false^true;
+        lam g nec(false) => false {
+            y : nec(false);
+            let y2 = x(y) : false^true;
+            use triv;
+            let r = triv(y2) : false;
+            return r;
+        }
+        return g;
+    }
+
+    let x5 = pow_transitivity(x4, f) : (!nec(false))^true;
+    use tauto_not_to_para;
+    let r = tauto_not_to_para(x5) : false^nec(false);
+    return r;
+}
+
+fn modal_n_to_nlob all(N(a)) & false^nec(false)  ->  !all(Lob(a)) {
+    x : all(N(a));
+    y0 : false^nec(false);
+
+    use para_to_tauto_not;
+    let y = para_to_tauto_not(y0) : (nec(false) => false)^true;
+
+    let x2 = x() : N(nec(false) => false);
+    use modal_n_to;
+    let x3 = modal_n_to(x2) : (nec(false) => false)^true => nec(nec(false) => false);
+    let y2 = x3(y) : nec(nec(false) => false);
+
+    use triv;
+    let w = triv(y) : nec(false) => false;
+
+    lam f !all(Lob(a)) {
+        z : all(Lob(a));
+        let z2 = z() : Lob(false);
+        use modal_lob_to;
+        let z3 = modal_lob_to(z2) : nec(nec(false) => false) => nec(false);
+        let z4 = z3(y2) : nec(false);
+        let r = w(z4) : false;
+        return r;
+    }
+
     return f;
 }
 
