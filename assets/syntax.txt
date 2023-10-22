@@ -1,24 +1,24 @@
 _seps: "',(){}=-<>^&|!-"
 
-25 jud = [type_or_pow:"left" .w? ":":"jud" .w? type_or_fun:"right"]
-24 sd = ["sd(":"sd" .w? type_or_fun:"left" , type_or_fun:"right" .w? ")"]
-23 or = .s!([.w? "|" .w?] and:"arg")
-22 and = .s!([.w? "&" .w?] type_or_pow:"arg")
-21 var = [.._seps!:"name" ?"'":"sym"]
-20 imply_left = or:"or"
-18 , = [.w? "," .w?]
-17 app_left = var:"var"
-16 app = [!"all(" !"excm(" !"sd(" app_left:"left" "(" .w? .s!(, type_or_fun:"arg") .w? ")"]
-14 all = ["all(" .w? type_or_fun:"arg" .w? ")"]
-13 type_or_fun = {fun:"pow" type}
-12 type_or_pow = {
+21 jud = [type_or_pow:"left" .w? ":":"jud" .w? type_or_fun:"right"]
+20 sd = ["sd(":"sd" .w? type_or_fun:"left" , type_or_fun:"right" .w? ")"]
+19 or = .s!([.w? "|" .w?] and:"arg")
+18 and = .s!([.w? "&" .w?] type_or_pow:"arg")
+17 var = [.._seps!:"name" ?"'":"sym"]
+16 imply_left = or:"or"
+15 , = [.w? "," .w?]
+14 app_left = var:"var"
+13 app = [!"all(" !"excm(" !"sd(" app_left:"left" "(" .w? .s!(, type_or_fun:"arg") .w? ")"]
+12 all = ["all(" .w? type_or_fun:"arg" .w? ")"]
+11 type_or_fun = {fun:"pow" type}
+10 type_or_pow = {
     pow:"pow"
     typeleft_or_not
 }
-11 fun = [type:"right" .w? "->":"pow" .w? type_or_fun:"left"]
-10 excm = ["excm(" .w? type:"arg" .w? ")"]
-9 not = ["!" typeleft_or_not:"arg"]
-7 eq = [type_or_pow:"left" .w? {
+9 fun = [type:"right" .w? "->":"pow" .w? type_or_fun:"left"]
+8 excm = ["excm(" .w? type:"arg" .w? ")"]
+7 not = ["!" typeleft_or_not:"arg"]
+6 eq = [type_or_pow:"left" .w? {
     "==":"eq"
     "=^=":"pow_eq"
 } .w? type_or_pow:"right"]
