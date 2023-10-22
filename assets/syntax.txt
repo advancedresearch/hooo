@@ -1,5 +1,6 @@
 _seps: "',(){}=<>^&|!->"
 
+21 var = [.._seps!:"name" ?"'":"sym"]
 20 imply_left = {
     and:"and"
     type_or_pow
@@ -9,9 +10,7 @@ _seps: "',(){}=<>^&|!->"
     type_or_pow
 }
 18 , = [.w? "," .w?]
-17 app_left = {
-    [.._seps!:"sym" ?"'"]
-}
+17 app_left = [.._seps!:"sym" ?"'"]
 16 app = [!"all(" !"excm(" app_left:"left" "(" .w? .s!(, type:"arg") .w? ")"]
 15 pow_eq = [typeleft_or_not:"left" .w? "=^=" .w? typeleft_or_not:"right"]
 14 all = ["all(" .w? type_or_fun:"arg" .w? ")"]
@@ -39,8 +38,7 @@ _seps: "',(){}=<>^&|!->"
     "true":"true"
     "false":"false"
     app:"app"
-    [.._seps!:"sym" "'"]
-    .._seps!:"name"
+    var:"var"
 }
 1 type = {
     imply:"imply"
