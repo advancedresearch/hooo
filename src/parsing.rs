@@ -307,22 +307,16 @@ fn parse_ty(
             break;
         } else if let Ok((range, val)) = parse_bin("imply", convert, ignored) {
             convert.update(range);
-            ty = Some(Type::Imply(Box::new(val)));
+            ty = Some(val);
         } else if let Ok((range, val)) = parse_bin("pow", convert, ignored) {
             convert.update(range);
-            ty = Some(Type::Pow(Box::new(val)));
-        } else if let Ok((range, val)) = parse_bin("and", convert, ignored) {
-            convert.update(range);
-            ty = Some(Type::And(Box::new(val)));
-        } else if let Ok((range, val)) = parse_bin("or", convert, ignored) {
-            convert.update(range);
-            ty = Some(Type::Or(Box::new(val)));
+            ty = Some(val);
         } else if let Ok((range, val)) = parse_bin("eq", convert, ignored) {
             convert.update(range);
-            ty = Some(eq(val.0, val.1));
-        } else if let Ok((range, val)) = parse_bin("pow_eq", convert, ignored) {
+            ty = Some(val);
+        } else if let Ok((range, val)) = parse_or("or", convert, ignored) {
             convert.update(range);
-            ty = Some(pow_eq(val.0, val.1));
+            ty = Some(val);
         } else if let Ok((range, (f, args))) = parse_app("app", convert, ignored) {
             convert.update(range);
             let mut val = f;
@@ -359,6 +353,72 @@ fn parse_ty(
     }
 
     let ty = ty.ok_or(())?;
+    Ok((convert.subtract(start), ty))
+}
+
+fn parse_or(
+    node: &str,
+    mut convert: Convert,
+    ignored: &mut Vec<Range>
+) -> Result<(Range, Type), ()> {
+    let start = convert;
+    let start_range = convert.start_node(node)?;
+    convert.update(start_range);
+
+    let mut args: Vec<Type> = vec![];
+    loop {
+        if let Ok(range) = convert.end_node(node) {
+            convert.update(range);
+            break;
+        } else if let Ok((range, val)) = parse_and("arg", convert, ignored) {
+            convert.update(range);
+            args.push(val);
+        } else {
+            let range = convert.ignore();
+            convert.update(range);
+            ignored.push(range);
+        }
+    }
+
+    if args.len() == 0 {return Err(())};
+
+    let mut ty: Type = args.pop().unwrap();
+    while let Some(a) = args.pop() {
+        ty = or(a, ty);
+    }
+    Ok((convert.subtract(start), ty))
+}
+
+fn parse_and(
+    node: &str,
+    mut convert: Convert,
+    ignored: &mut Vec<Range>
+) -> Result<(Range, Type), ()> {
+    let start = convert;
+    let start_range = convert.start_node(node)?;
+    convert.update(start_range);
+
+    let mut args: Vec<Type> = vec![];
+    loop {
+        if let Ok(range) = convert.end_node(node) {
+            convert.update(range);
+            break;
+        } else if let Ok((range, val)) = parse_ty("arg", convert, ignored) {
+            convert.update(range);
+            args.push(val);
+        } else {
+            let range = convert.ignore();
+            convert.update(range);
+            ignored.push(range);
+        }
+    }
+
+    if args.len() == 0 {return Err(())};
+
+    let mut ty: Type = args.pop().unwrap();
+    while let Some(a) = args.pop() {
+        ty = and(a, ty);
+    }
     Ok((convert.subtract(start), ty))
 }
 
@@ -431,13 +491,14 @@ fn parse_bin(
     node: &str,
     mut convert: Convert,
     ignored: &mut Vec<Range>
-) -> Result<(Range, (Type, Type)), ()> {
+) -> Result<(Range, Type), ()> {
     let start = convert;
     let start_range = convert.start_node(node)?;
     convert.update(start_range);
 
     let mut left: Option<Type> = None;
     let mut right: Option<Type> = None;
+    let mut op: Option<Op> = None;
     loop {
         if let Ok(range) = convert.end_node(node) {
             convert.update(range);
@@ -448,6 +509,18 @@ fn parse_bin(
         } else if let Ok((range, val)) = parse_ty("right", convert, ignored) {
             convert.update(range);
             right = Some(val);
+        } else if let Ok((range, _)) = convert.meta_bool("eq") {
+            convert.update(range);
+            op = Some(Op::Eq);
+        } else if let Ok((range, _)) = convert.meta_bool("pow_eq") {
+            convert.update(range);
+            op = Some(Op::PowEq);
+        } else if let Ok((range, _)) = convert.meta_bool("pow") {
+            convert.update(range);
+            op = Some(Op::Pow);
+        } else if let Ok((range, _)) = convert.meta_bool("imply") {
+            convert.update(range);
+            op = Some(Op::Imply);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -457,7 +530,15 @@ fn parse_bin(
 
     let left = left.ok_or(())?;
     let right = right.ok_or(())?;
-    Ok((convert.subtract(start), (left, right)))
+    let op = op.ok_or(())?;
+    let ty = match op {
+        Op::Eq => eq(left, right),
+        Op::PowEq => pow_eq(left, right),
+        Op::Pow => pow(left, right),
+        Op::Imply => imply(left, right),
+        _ => return Err(()),
+    };
+    Ok((convert.subtract(start), ty))
 }
 
 fn parse_un(
