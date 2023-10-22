@@ -25,9 +25,8 @@ fn lob_absurd all((p^true => p)^true => p^true)  ->  false {
     arg : all((p^true => p)^true => p^true);
     let x = arg() : (false^true => false)^true => false^true;
     use para_lob;
-    let x2 = para_lob(x) : false;
-    let x3 = match x2 : true;
-    return x3;
+    let r = para_lob(x) : false;
+    return r;
 }
 
 /*

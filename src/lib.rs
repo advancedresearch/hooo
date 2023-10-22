@@ -420,14 +420,6 @@ impl Context {
         match proof {
             True => true,
             Sd(_) if proof.symbolic_distinct() => true,
-            Or(ab) if self.has_proof(&ab.0) || self.has_proof(&ab.1) => true,
-            And(ab) if self.has_proof(&ab.0) && self.has_proof(&ab.1) => true,
-            Imply(ab) if self.has_proof(&ab.1) => true,
-            Pow(ab) => {
-                let has = self.has_proof(&ab.0);
-                if has && self.safe(proof) {return true};
-                false
-            }
             _ => false,
         }
     }
@@ -462,22 +454,9 @@ impl Context {
     }
 
     #[must_use]
-    pub fn prove_depth(&mut self, ty: Type, depth: u32, search: &mut Search) -> bool {
-        use Type::*;
-
+    pub fn prove_depth(&mut self, ty: Type, depth: u32, _search: &mut Search) -> bool {
         if depth == 0 {return false}
         if self.has_proof(&ty) {return true}
-
-        // Conclude pow that covers context.
-        if let Pow(ab) = &ty {
-            if self.prove_depth(ab.0.clone(), depth - 1, search) {
-                self.add_proof(ty);
-                return true;
-            }
-
-            search.inc();
-        }
-
         false
     }
 
@@ -1244,35 +1223,6 @@ pub fn sd(a: Type, b: Type) -> Type {Type::Sd(Box::new((a, b)))}
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_pow() {
-        let mut ctx = Context::new();
-        ctx.new_term(var("true", ty("Bool")), &mut Search::new()).unwrap();
-        assert!(ctx.prove(ty("Bool"), &mut Search::new()));
-        assert!(ctx.prove(pow(ty("Bool"), ty("Bool")), &mut Search::new()));
-        ctx.new_term(var("x", pow(ty("Bool"), ty("Bool"))), &mut Search::new()).unwrap();
-        assert!(ctx.prove(imply(ty("Bool"), ty("Bool")), &mut Search::new()));
-    }
-
-    #[test]
-    fn test_and() {
-        let mut ctx = Context::new();
-        ctx.new_term(var("x", ty("A")), &mut Search::new()).unwrap();
-        ctx.new_term(var("y", ty("B")), &mut Search::new()).unwrap();
-        assert!(ctx.prove(and(ty("A"), ty("B")), &mut Search::new()));
-    }
-
-    #[test]
-    fn test_anti_pow() {
-        let mut ctx = Context::new();
-        assert!(ctx.fun(Range::empty(0), Arc::new("foo".into()), "a^b -> a^b".try_into().unwrap(),
-        &mut Search::new(), |ctx, search| {
-            ctx.new_term(var("x", "a^b".try_into().unwrap()), &mut Search::new()).unwrap();
-            if ctx.prove("a^b".try_into().unwrap(), search) {Ok(())} else {Err((Range::empty(0), "error".into()))}
-        }).is_ok());
-        assert!(!ctx.prove("a^b".try_into().unwrap(), &mut Search::new()));
-    }
 
     #[test]
     fn test_replace() {

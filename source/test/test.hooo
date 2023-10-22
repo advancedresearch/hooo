@@ -11,3 +11,19 @@ fn test_sd sd(a, b) -> sd(b, a) {
     return r;
 }
 
+/*
+fn test_pow a -> a^b {
+    x : a;
+    let r = () : a^b;
+    return r;
+}
+*/
+
+fn foo true -> (a^b -> a^b) {
+    fn f a^b -> a^b {
+        x : a^b;
+        return x;
+    }
+    return f;
+}
+
