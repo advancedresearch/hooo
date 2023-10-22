@@ -426,28 +426,6 @@ impl Context {
             Pow(ab) => {
                 let has = self.has_proof(&ab.0);
                 if has && self.safe(proof) {return true};
-
-                if let True = ab.1 {
-                    // tauto_hooo_imply `(a => b)^c  ->  (a^c => b^c)^true`.
-                    if let Imply(ab) = &ab.0 {
-                        if let (Pow(ref x), Pow(ref y)) = **ab {
-                            if x.1 == y.1 {
-                                let transform = pow(imply(x.0.clone(), y.0.clone()), x.1.clone());
-                                return self.has_proof(&transform);
-                            }
-                        }
-                    }
-
-                    // tauto_hooo_or `(a | b)^c  ->  (a^c | b^c)^true`.
-                    if let Or(ab) = &ab.0 {
-                        if let (Pow(ref x), Pow(ref y)) = **ab {
-                            if x.1 == y.1 {
-                                let transform = pow(or(x.0.clone(), y.0.clone()), x.1.clone());
-                                return self.has_proof(&transform);
-                            }
-                        }
-                    }
-                }
                 false
             }
             _ => false,

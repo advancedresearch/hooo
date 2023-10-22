@@ -165,13 +165,17 @@ fn tauto_hooo_and (a & b)^c -> (a^c & b^c)^true {
 }
 
 fn tauto_hooo_imply (a => b)^c  ->  (a^c => b^c)^true {
+    axiom tauto_hooo_imply : (a => b)^c -> (a^c => b^c)^true;
     x : (a => b)^c;
-    return x;
+    let r = tauto_hooo_imply(x) : (a^c => b^c)^true;
+    return r;
 }
 
 fn tauto_hooo_or (a | b)^c  ->  (a^c | b^c)^true {
+    axiom tauto_hooo_or : (a | b)^c -> (a^c | b^c)^true;
     x : (a | b)^c;
-    return x;
+    let r = tauto_hooo_or(x) : (a^c | b^c)^true;
+    return r;
 }
 
 fn tauto_hooo_rev_and (a^c & b^c)^true  ->  (a & b)^c {
