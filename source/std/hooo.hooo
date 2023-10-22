@@ -78,8 +78,10 @@ fn hooo_rev_or (a^c | b^c) -> (a | b)^c {
 }
 
 fn pow_lift a^b -> (a^b)^c {
+    axiom pow_lift : a^b -> (a^b)^c;
     x : a^b;
-    return x;
+    let r = pow_lift(x) : (a^b)^c;
+    return r;
 }
 
 fn pow_to_imply b^a -> a => b {

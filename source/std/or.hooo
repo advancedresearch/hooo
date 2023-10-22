@@ -13,13 +13,17 @@ fn or_symmetry a | b -> b | a {
 }
 
 fn left a -> a | b {
+    axiom left : a -> a | b;
     x : a;
-    return x;
+    let r = left(x) : a | b;
+    return r;
 }
 
 fn right b -> a | b {
+    axiom right : b -> a | b;
     x : b;
-    return x;
+    let r = right(x) : a | b;
+    return r;
 }
 
 fn nleft !(a | b) -> !a {
