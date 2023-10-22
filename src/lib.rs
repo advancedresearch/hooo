@@ -721,7 +721,7 @@ fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
     }
     if ty.as_excm().is_some() {return false};
     match ty {
-        True | False | Ty(_) | AllTy(_) | All(_) | App(_) => false,
+        True | False | Ty(_) | AllTy(_) | All(_) | App(_) | Sym(_) => false,
         _ => {
             match (ty.op(), parent_op) {
                 (Some(Op::Pow), Some(Op::And) | Some(Op::Or) | Some(Op::Imply)) => false,
@@ -1334,6 +1334,16 @@ mod tests {
         let a: Type = "a' =^= b'".try_into().unwrap();
         assert_eq!(a, pow_eq(sym("a"), sym("b")));
         assert_eq!(format!("{}", a), "a' =^= b'".to_string());
+    
+        let a: Type = "a' & b'".try_into().unwrap();
+        assert_eq!(a, and(sym("a"), sym("b")));
+        assert_eq!(format!("{}", a), "a' & b'".to_string());
+    
+        let a: Type = "a' & b' -> c'".try_into().unwrap();
+        assert_eq!(a, pow(sym("c"), and(sym("a"), sym("b"))));
+
+        let a: Type = "ty(add', nat' & nat' -> nat')".try_into().unwrap();
+        assert_eq!(a, app(app(sym("ty"), sym("add")), pow(sym("nat"), and(sym("nat"), sym("nat")))));
     }
 
     #[test]
