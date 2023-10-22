@@ -1,5 +1,6 @@
 _seps: "',(){}=-<>^&|!-"
 
+25 jud = [type_or_pow:"left" .w? ":":"jud" .w? type_or_fun:"right"]
 24 sd = ["sd(":"sd" .w? type_or_fun:"left" , type_or_fun:"right" .w? ")"]
 23 or = .s!([.w? "|" .w?] and:"arg")
 22 and = .s!([.w? "&" .w?] type_or_pow:"arg")
@@ -40,6 +41,7 @@ _seps: "',(){}=-<>^&|!-"
 1 type = {
     imply:"imply"
     eq:"eq"
+    jud:"jud"
     or:"or"
 }
 0 doc = [.w? type_or_fun:"type" .w?]

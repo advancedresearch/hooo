@@ -321,6 +321,9 @@ fn parse_ty(
         } else if let Ok((range, val)) = parse_bin("sd", convert, ignored) {
             convert.update(range);
             ty = Some(val);
+        } else if let Ok((range, val)) = parse_bin("jud", convert, ignored) {
+            convert.update(range);
+            ty = Some(val);
         } else if let Ok((range, val)) = parse_or("or", convert, ignored) {
             convert.update(range);
             ty = Some(val);
@@ -531,6 +534,9 @@ fn parse_bin(
         } else if let Ok((range, _)) = convert.meta_bool("sd") {
             convert.update(range);
             op = Some(Op::Sd);
+        } else if let Ok((range, _)) = convert.meta_bool("jud") {
+            convert.update(range);
+            op = Some(Op::Jud);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -547,6 +553,7 @@ fn parse_bin(
         Op::Pow => pow(left, right),
         Op::Imply => imply(left, right),
         Op::Sd => sd(left, right),
+        Op::Jud => jud(left, right),
         _ => return Err(()),
     };
     Ok((convert.subtract(start), ty))

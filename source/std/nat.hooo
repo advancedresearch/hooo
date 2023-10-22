@@ -6,17 +6,17 @@ fn nat_ty : true -> ty(nat', type'(z')) {
     return r;
 }
 
-fn nat_zero_ty : true -> ty'(z', nat') {
-    axiom nat_zero_ty : true -> ty'(z', nat');
+fn nat_zero_ty : true -> (z' : nat') {
+    axiom nat_zero_ty : true -> (z' : nat');
     x : true;
-    let r = nat_zero_ty(x) : ty'(z', nat');
+    let r = nat_zero_ty(x) : (z' : nat');
     return r;
 }
 
-fn nat_succ_ty : ty'(a, nat') -> ty'(s'(a), nat') {
-    axiom nat_succ_ty : ty'(a, nat') -> ty'(s'(a), nat');
-    x : ty'(a, nat');
-    let r = nat_succ_ty(x) : ty'(s'(a), nat');
+fn nat_succ_ty : (a : nat') -> (s'(a) : nat') {
+    axiom nat_succ_ty : (a : nat') -> (s'(a) : nat');
+    x : (a : nat');
+    let r = nat_succ_ty(x) : (s'(a) : nat');
     return r;
 }
 
@@ -49,17 +49,17 @@ fn nat_para_eq_prev : (a == prev'(a)) -> false {
 }
 
 /// Definition.
-fn nat_def : ty'(a, nat') -> (a == z') | ty'(prev'(a), nat') & (a == s'(prev'(a))) {
-    axiom nat_def : ty'(a, nat') -> (a == z') | ty'(prev'(a), nat') & (a == s'(prev'(a)));
-    x : ty'(a, nat');
-    let r = nat_def(x) : (a == z') | ty'(prev'(a), nat') & (a == s'(prev'(a)));
+fn nat_def : (a : nat') -> (a == z') | (prev'(a) : nat') & (a == s'(prev'(a))) {
+    axiom nat_def : (a : nat') -> (a == z') | (prev'(a) : nat') & (a == s'(prev'(a)));
+    x : (a : nat');
+    let r = nat_def(x) : (a == z') | (prev'(a) : nat') & (a == s'(prev'(a)));
     return r;
 }
 
 /// Induction.
-fn nat_ind : ex'(ty'(z', nat'), a) & ex'(ty'(s'(n), nat'), a) -> a {
-    axiom nat_ind : ex'(ty'(z', nat'), a) & ex'(ty'(s'(n), nat'), a) -> a;
-    x : ex'(ty'(z', nat'), a) & ex'(ty'(s'(n), nat'), a);
+fn nat_ind : ex'(z' : nat', a) & ex'(s'(n) : nat', a) -> a {
+    axiom nat_ind : ex'(z' : nat', a) & ex'(s'(n) : nat', a) -> a;
+    x : ex'(z' : nat', a) & ex'(s'(n) : nat', a);
     let r = nat_ind(x) : a;
     return r;
 }
@@ -91,19 +91,19 @@ fn nat_one_eq : true -> 1' == s'(z') {
     return r;
 }
 
-fn nat_one_ty : true -> ty'(1', nat') {
+fn nat_one_ty : true -> (1' : nat') {
     x : true;
     use nat_zero_ty;
-    let y = nat_zero_ty(x) : ty'(z', nat');
+    let y = nat_zero_ty(x) : (z' : nat');
     use nat_succ_ty;
-    let y2 = nat_succ_ty(y) : ty'(s'(z'), nat');
+    let y2 = nat_succ_ty(y) : (s'(z') : nat');
     use nat_one_eq;
     let x2 = nat_one_eq(x) : 1' == s'(z'); 
     use ty_eq_left;
-    let x3 = ty_eq_left(x2) : ty'(1', nat') == ty'(s'(z'), nat');
+    let x3 = ty_eq_left(x2) : (1' : nat') == (s'(z') : nat');
     use snd;
-    let x4 = snd(x3) : ty'(s'(z'), nat') => ty'(1', nat');
-    let r = x4(y2) : ty'(1', nat');
+    let x4 = snd(x3) : (s'(z') : nat') => (1' : nat');
+    let r = x4(y2) : (1' : nat');
     return r;
 }
 
@@ -133,25 +133,25 @@ fn nat_two_eq : true -> 2' == s'(s'(z')) {
     return r;
 }
 
-fn nat_two_ty : true -> ty'(2', nat') {
+fn nat_two_ty : true -> (2' : nat') {
     x : true;
     use nat_one_ty;
-    let y = nat_one_ty(x) : ty'(1', nat');
+    let y = nat_one_ty(x) : (1' : nat');
     use nat_one_eq;
     let y2 = nat_one_eq(x) : 1' == s'(z');
     use ty_eq_left;
-    let f = ty_eq_left(y2) : ty'(1', nat') == ty'(s'(z'), nat');
+    let f = ty_eq_left(y2) : (1' : nat') == (s'(z') : nat');
     use fst;
-    let f2 = fst(f) : ty'(1', nat') => ty'(s'(z'), nat');
-    let f3 = f2(y) : ty'(s'(z'), nat');
+    let f2 = fst(f) : (1' : nat') => (s'(z') : nat');
+    let f3 = f2(y) : (s'(z') : nat');
     use nat_succ_ty;
-    let f4 = nat_succ_ty(f3) : ty'(s'(s'(z')), nat');
+    let f4 = nat_succ_ty(f3) : (s'(s'(z')) : nat');
     use nat_two_eq;
     let y3 = nat_two_eq(x) : 2' == s'(s'(z'));
-    let x2 = ty_eq_left(y3) : ty'(2', nat') == ty'(s'(s'(z')), nat');
+    let x2 = ty_eq_left(y3) : (2' : nat') == (s'(s'(z')) : nat');
     use snd;
-    let x3 = snd(x2) : ty'(s'(s'(z')), nat') => ty'(2', nat');
-    let r = x3(f4) : ty'(2', nat');
+    let x3 = snd(x2) : (s'(s'(z')) : nat') => (2' : nat');
+    let r = x3(f4) : (2' : nat');
     return r;
 }
 
@@ -159,23 +159,23 @@ fn nat_two_ty : true -> ty'(2', nat') {
 Addition of natural numbers.
 */
 
-fn nat_add_ty : true -> ty'(add', nat' => nat' => nat') {
-    axiom add_ty : true -> ty'(add', nat' => nat' => nat');
+fn nat_add_ty : true -> (add' : nat' => nat' => nat') {
+    axiom add_ty : true -> (add' : nat' => nat' => nat');
     x : true;
-    let r = add_ty(x) : ty'(add', nat' => nat' => nat');
+    let r = add_ty(x) : (add' : nat' => nat' => nat');
     return r;
 }
 
-fn nat_add_zero : ty'(a, nat') -> add'(a, z') == a {
-    axiom nat_add_zero : ty'(a, nat') -> add'(a, z') == a;
-    x : ty'(a, nat');
+fn nat_add_zero : (a : nat') -> add'(a, z') == a {
+    axiom nat_add_zero : (a : nat') -> add'(a, z') == a;
+    x : (a : nat');
     let r = nat_add_zero(x) : add'(a, z') == a;
     return r;
 }
 
-fn nat_add_succ : ty'(a, nat') & ty'(b, nat') -> add'(a, s'(b)) == s'(add'(a, b)) {
-    axiom nat_add_succ : ty'(a, nat') & ty'(b, nat') -> add'(a, s'(b)) == s'(add'(a, b));
-    x : ty'(a, nat') & ty'(b, nat');
+fn nat_add_succ : (a : nat') & (b : nat') -> add'(a, s'(b)) == s'(add'(a, b)) {
+    axiom nat_add_succ : (a : nat') & (b : nat') -> add'(a, s'(b)) == s'(add'(a, b));
+    x : (a : nat') & (b : nat');
     let r = nat_add_succ(x) : add'(a, s'(b)) == s'(add'(a, b));
     return r;
 }
@@ -201,12 +201,12 @@ fn nat_neq_zero_one : true -> !(z' == s'(z')) {
     return r;
 }
 
-fn nat_para_eq_succ : ty'(a, nat') & (a == s'(a)) -> false {
-    x : ty'(a, nat');
+fn nat_para_eq_succ : (a : nat') & (a == s'(a)) -> false {
+    x : (a : nat');
     y : a == s'(a);
 
     use nat_def;
-    let x2 = nat_def(x) : (a == z') | ty'(prev'(a), nat') & (a == s'(prev'(a)));
+    let x2 = nat_def(x) : (a == z') | (prev'(a) : nat') & (a == s'(prev'(a)));
 
     lam f : !(a == z') {
         z : a == z';
@@ -219,8 +219,8 @@ fn nat_para_eq_succ : ty'(a, nat') & (a == s'(a)) -> false {
         return r;
     }
 
-    lam g : !(ty'(prev'(a), nat') & (a == s'(prev'(a)))) {
-        x3 : ty'(prev'(a), nat');
+    lam g : !((prev'(a) : nat') & (a == s'(prev'(a)))) {
+        x3 : (prev'(a) : nat');
         y3 : a == s'(prev'(a));
         use eq_symmetry;
         let x4 = eq_symmetry(y) : s'(a) == a;
@@ -243,14 +243,14 @@ fn nat_one_plus_one_equals_two : true -> add'(1', 1') == 2' {
     use nat_one_eq;
     let x2 = nat_one_eq(x) : 1' == s'(z');
     use nat_one_ty;
-    let x3 = nat_one_ty(x) : ty'(1', nat');
+    let x3 = nat_one_ty(x) : (1' : nat');
     use ty_eq_left;
-    let x4 = ty_eq_left(x2) : ty'(1', nat') == ty'(s'(z'), nat');
+    let x4 = ty_eq_left(x2) : (1' : nat') == (s'(z') : nat');
     use fst;
-    let x5 = fst(x4) : ty'(1', nat') => ty'(s'(z'), nat');
-    let succ_ty = x5(x3) : ty'(s'(z'), nat');
+    let x5 = fst(x4) : (1' : nat') => (s'(z') : nat');
+    let succ_ty = x5(x3) : (s'(z') : nat');
     use nat_zero_ty;
-    let zero_ty = nat_zero_ty(x) : ty'(z', nat');
+    let zero_ty = nat_zero_ty(x) : (z' : nat');
     use nat_add_succ;
     let x7 = nat_add_succ(succ_ty, zero_ty) : add'(s'(z'), s'(z')) == s'(add'(s'(z'), z'));
 
@@ -262,12 +262,12 @@ fn nat_one_plus_one_equals_two : true -> add'(1', 1') == 2' {
     let y3 = eq_transitivity(x7, y2) : add'(s'(z'), s'(z')) == s'(s'(z'));
 
     use nat_two_ty;
-    let x8 = nat_two_ty(x) : ty'(2', nat');
+    let x8 = nat_two_ty(x) : (2' : nat');
     use nat_two_eq;
     let x9 = nat_two_eq(x) : 2' == s'(s'(z'));
-    let x10 = ty_eq_left(x9) : ty'(2', nat') == ty'(s'(s'(z')), nat');
-    let x11 = fst(x10) : ty'(2', nat') => ty'(s'(s'(z')), nat');
-    let x12 = x11(x8) : ty'(s'(s'(z')), nat');
+    let x10 = ty_eq_left(x9) : (2' : nat') == (s'(s'(z')) : nat');
+    let x11 = fst(x10) : (2' : nat') => (s'(s'(z')) : nat');
+    let x12 = x11(x8) : (s'(s'(z')) : nat');
     use nat_add_zero;
     use eq_symmetry;
     let x15 = eq_symmetry(x9) : s'(s'(z')) == 2';
@@ -281,14 +281,14 @@ fn nat_one_plus_one_equals_two : true -> add'(1', 1') == 2' {
     return r;
 }
 
-fn nat_add_check_all_ty : ty'(a, nat') & ty'(b, nat') -> ty'(add'(a, b), nat') {
-    x : ty'(a, nat');
-    y : ty'(b, nat');
+fn nat_add_check_all_ty : (a : nat') & (b : nat') -> (add'(a, b) : nat') {
+    x : (a : nat');
+    y : (b : nat');
     use ty_app2;
     use nat_add_ty;
     use triv;
-    let x2 = triv(nat_add_ty) : ty'(add', nat' => nat' => nat');
-    let r = ty_app2(x2, x, y) : ty'(add'(a, b), nat');
+    let x2 = triv(nat_add_ty) : (add' : nat' => nat' => nat');
+    let r = ty_app2(x2, x, y) : (add'(a, b) : nat');
     return r;
 }
 
