@@ -1,8 +1,17 @@
+sym nat;
+sym type;
+sym z;
+sym s;
+sym prev;
+sym ex;
+sym 1;
+sym 2;
+sym add;
 
-fn nat_ty : true -> ty(nat', type'(z')) {
-    axiom nat_ty : true -> ty(nat', type'(z'));
+fn nat_ty : true -> (nat' : type'(z')) {
+    axiom nat_ty : true -> (nat' : type'(z'));
     x : true;
-    let r = nat_ty(x) : ty(nat', type'(z'));
+    let r = nat_ty(x) : (nat' : type'(z'));
     return r;
 }
 

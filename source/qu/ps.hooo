@@ -1,3 +1,4 @@
+sym q;
 
 /// Core axiom of Path Semantics.
 fn ps_core : q'(a, b) & (a : c) & (b : d) -> q'(c, d) {

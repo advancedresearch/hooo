@@ -6,6 +6,7 @@ _ty: ";{}"
 }) "*/"]
 201 comment = {multi_line_comment ["//" ..."\n"?]}
 
+14 sym_decl = ["sym" .w! .._seps!:"sym"]
 13 let = ["let" .w! .._seps!:"name" .w? "=" .w?]
 12 use = ["use" .w! .r?([.._seps!:"ns" "::"]) .._seps!:"fun"]
 11 check = [let "()" .w? ":" .w? ..._ty!:"ty"]
@@ -24,6 +25,7 @@ _ty: ";{}"
 3 var = [.._seps!:"name" .w? ":" .w? ..._ty!:"ty"]
 2 command = {
     return
+    sym_decl
     use:"use"
     ["axiom " var:"axiom"]
     var:"var"

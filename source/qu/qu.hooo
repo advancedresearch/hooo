@@ -1,3 +1,5 @@
+sym qu;
+sym q;
 
 fn q_lift : sd(a, b) & (a == b) -> q(a, b) {
     axiom q_lift : sd(a, b) & (a == b) -> q(a, b);

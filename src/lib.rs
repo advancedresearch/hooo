@@ -199,6 +199,7 @@ let y      Theorem/variable
 
 return x   Helps the solver make a conclusion
 
+sym foo;                    Declare a symbol `foo'`.
 axiom foo : a               Introduce axiom `foo` of type `a`
 () : a                      Prove `a`, e.g. `() : true`
 f(x)                        Apply one argument `x` to `f`
@@ -217,11 +218,14 @@ E.g. `b^a => b` is parsed as `(b^a) => b`.
 
 ### Symbols
 
-The current version of Hooo uses ad-hoc symbols.
-This means that instead of declaring data structures
-or predicates, one can just use e.g. `foo'(a, b)`.
+The current version of Hooo uses simple symbols.
+This means that instead of declaring data structures,
+one can just use e.g. `foo'(a, b)`.
+A symbol must be declared before use:
 
-An explicit symbol `foo` is written `foo'`.
+```text
+sym foo;
+```
 
 Symbols are global, so `foo'` is `foo'` everywhere.
 
@@ -335,6 +339,8 @@ impl Search {
 
 #[derive(Clone)]
 pub struct Context {
+    /// Stores symbols.
+    pub symbols: Vec<Arc<String>>,
     /// Stores the terms.
     pub terms: Vec<Term>,
     /// Stores the term names.
@@ -348,10 +354,31 @@ pub struct Context {
 impl Context {
     pub fn new() -> Context {
         Context {
+            symbols: vec![],
             terms: vec![],
             term_names: vec![],
             proofs: vec![],
             proof_cache: HashSet::new(),
+        }
+    }
+
+    pub fn is_symbol_declared(&self, symbol: &str) -> bool {
+        for s in &self.symbols {
+            if &**s == symbol {return true}
+        }
+        false
+    }
+
+    pub fn is_type_declared(&self, ty: &Type) -> bool {
+        use Type::*;
+
+        match ty {
+            Sym(s) => self.is_symbol_declared(s),
+            True | False | Ty(_) | AllTy(_) => true,
+            Pow(ab) | And(ab) | Or(ab) | Imply(ab) | App(ab) | Sd(ab) | Jud(ab) =>
+                self.is_type_declared(&ab.0) &&
+                self.is_type_declared(&ab.1),
+            All(a) => self.is_type_declared(a),
         }
     }
 
@@ -398,6 +425,7 @@ impl Context {
         search: &mut Search
     ) -> Result<(), String> {
         let ty = t.get_type();
+        if !self.is_type_declared(&ty) {return Err("Some symbols where not declared".into())}
         match t.has_type(&ty, self, search) {
             Ok(()) => {
                 self.terms.push(t);
@@ -424,6 +452,7 @@ impl Context {
 
         if let Type::Pow(_) = &ty {
             let mut ctx = Context::new();
+            ctx.symbols = self.symbols.clone();
             f(&mut ctx, search)?;
             if ctx.prove(ty.clone(), search) && ctx.safe(&ty) {
                 // Force the proof since it is safe.
@@ -997,7 +1026,7 @@ impl Type {
             (And(ab), And(cd)) |
             (Or(ab), Or(cd)) |
             (App(ab), App(cd)) |
-            (Sd(ab), Sd(cd)) | 
+            (Sd(ab), Sd(cd)) |
             (Jud(ab), Jud(cd)) => {
                 let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
                 if !ab.0.bind(contra, &cd.0, bind) {return false};
@@ -1389,11 +1418,11 @@ mod tests {
         let a: Type = "a : b".try_into().unwrap();
         assert_eq!(a, jud(ty("a"), ty("b")));
         assert_eq!(format!("{}", a), "a : b".to_string());
-    
+
         let a: Type = "a : b -> c".try_into().unwrap();
         assert_eq!(a, jud(ty("a"), pow(ty("c"), ty("b"))));
         assert_eq!(format!("{}", a), "a : b -> c".to_string());
-    
+
         let a: Type = "(a => b) : b -> c".try_into().unwrap();
         assert_eq!(format!("{}", a), "(a => b) : b -> c".to_string());
     }
