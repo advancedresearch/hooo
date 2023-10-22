@@ -722,6 +722,8 @@ pub enum Type {
     App(Box<(Type, Type)>),
     /// Symbolic distinction.
     Sd(Box<(Type, Type)>),
+    /// Type judgement.
+    Jud(Box<(Type, Type)>),
 }
 
 #[derive(Copy, Clone)]
@@ -737,6 +739,7 @@ pub enum Op {
     All,
     App,
     Sd,
+    Jud,
 }
 
 fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
@@ -777,6 +780,7 @@ impl Type {
             Sym(_) => None,
             App(_) => Some(Op::App),
             Sd(_) => Some(Op::Sd),
+            Jud(_) => Some(Op::Jud),
         }
     }
 
@@ -901,6 +905,7 @@ impl fmt::Display for Type {
             Sym(a) => write!(w, "{}'", a)?,
             App(ab) => write!(w, "{}({})", ab.0.to_str(false, op), ab.1)?,
             Sd(ab) => write!(w, "sd({}, {})", ab.0, ab.1)?,
+            Jud(ab) => write!(w, "{} : {}", ab.0.to_str(false, op), ab.1.to_str(true, op))?,
         }
         Ok(())
     }
@@ -927,6 +932,7 @@ impl Type {
             Sym(_) => true,
             App(_) => true,
             Sd(_) => true,
+            Jud(_) => true,
         }
     }
 
@@ -957,6 +963,7 @@ impl Type {
             Sym(_) => self,
             App(ab) => app(ab.0.lift(), ab.1.lift()),
             Sd(ab) => sd(ab.0.lift(), ab.1.lift()),
+            Jud(ab) => jud(ab.0.lift(), ab.1.lift()),
         }
     }
 
@@ -990,7 +997,8 @@ impl Type {
             (And(ab), And(cd)) |
             (Or(ab), Or(cd)) |
             (App(ab), App(cd)) |
-            (Sd(ab), Sd(cd)) => {
+            (Sd(ab), Sd(cd)) | 
+            (Jud(ab), Jud(cd)) => {
                 let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
                 if !ab.0.bind(contra, &cd.0, bind) {return false};
                 if !ab.1.bind(contra, &cd.1, bind) {return false};
@@ -1048,6 +1056,7 @@ impl Type {
             App(ab) => app(ab.0.replace(bind), ab.1.replace(bind)),
             All(a) => All(Box::new(a.replace(bind))),
             Sd(ab) => sd(ab.0.replace(bind), ab.1.replace(bind)),
+            Jud(ab) => jud(ab.0.replace(bind), ab.1.replace(bind)),
         }
     }
 
@@ -1089,6 +1098,7 @@ impl Type {
             (Sym(a), Sym(b)) if a == b => true,
             (App(ab), App(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             (Sd(ab), Sd(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
+            (Jud(ab), Jud(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             _ => false,
         }
     }
@@ -1289,6 +1299,7 @@ pub fn para(a: Type) -> Type {pow(Type::False, a)}
 pub fn app(a: Type, b: Type) -> Type {Type::App(Box::new((a, b)))}
 pub fn sym(a: &str) -> Type {Type::Sym(Arc::new(a.into()))}
 pub fn sd(a: Type, b: Type) -> Type {Type::Sd(Box::new((a, b)))}
+pub fn jud(a: Type, b: Type) -> Type {Type::Jud(Box::new((a, b)))}
 
 #[cfg(test)]
 mod tests {
@@ -1370,6 +1381,21 @@ mod tests {
     fn test_parse_sd() {
         let a: Type = "sd(a, b)".try_into().unwrap();
         assert_eq!(a, sd(ty("a"), ty("b")));
+        assert_eq!(format!("{}", a), "sd(a, b)".to_string());
+    }
+
+    #[test]
+    fn test_parse_jud() {
+        let a: Type = "a : b".try_into().unwrap();
+        assert_eq!(a, jud(ty("a"), ty("b")));
+        assert_eq!(format!("{}", a), "a : b".to_string());
+    
+        let a: Type = "a : b -> c".try_into().unwrap();
+        assert_eq!(a, jud(ty("a"), pow(ty("c"), ty("b"))));
+        assert_eq!(format!("{}", a), "a : b -> c".to_string());
+    
+        let a: Type = "(a => b) : b -> c".try_into().unwrap();
+        assert_eq!(format!("{}", a), "(a => b) : b -> c".to_string());
     }
 
     #[test]

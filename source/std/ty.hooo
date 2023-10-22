@@ -1,61 +1,61 @@
 
-fn ty_eq_left : a == b  ->  ty'(a, c) == ty'(b, c) {
-    axiom ty_eq_left : a == b -> ty'(a, c) == ty'(b, c);
+fn ty_eq_left : a == b  ->  (a : c) == (b : c) {
+    axiom ty_eq_left : a == b -> (a : c) == (b : c);
     x : a == b;
-    let r = ty_eq_left(x) : ty'(a, c) == ty'(b, c);
+    let r = ty_eq_left(x) : (a : c) == (b : c);
     return r;
 }
 
-fn ty_eq_right : a == b  ->  ty'(c, a) == ty'(c, b) {
-    axiom ty_eq_right : a == b -> ty'(c, a) == ty'(c, b);
+fn ty_eq_right : a == b  ->  (c : a) == (c : b) {
+    axiom ty_eq_right : a == b -> (c : a) == (c : b);
     x : a == b;
-    let r = ty_eq_right(x) : ty'(c, a) == ty'(c, b);
+    let r = ty_eq_right(x) : (c : a) == (c : b);
     return r;
 }
 
-fn ty_app : ty(f, a => b) & ty(a2, a) -> ty(f(a2), b) {
-    axiom ty_app : ty(f, a => b) & ty(a2, a) -> ty(f(a2), b);
-    x : ty(f, a => b) & ty(a2, a);
-    let r = ty_app(x) : ty(f(a2), b);
+fn ty_app : (f : a => b) & (a2 : a) -> (f(a2) : b) {
+    axiom ty_app : (f : a => b) & (a2 : a) -> (f(a2) : b);
+    x : (f : a => b) & (a2 : a);
+    let r = ty_app(x) : (f(a2) : b);
     return r;
 }
 
-fn ty_app2 : ty(f, a => b => c) & ty(a2, a) & ty(b2, b) -> ty(f(a2, b2), c) {
-    x : ty(f, a => b => c);
-    y : ty(a2, a);
-    z : ty(b2, b);
+fn ty_app2 : (f : a => b => c) & (a2 : a) & (b2 : b) -> (f(a2, b2) : c) {
+    x : (f : a => b => c);
+    y : (a2 : a);
+    z : (b2 : b);
     use ty_app;
-    let x2 = ty_app(x, y) : ty(f(a2), b => c);
-    let r = ty_app(x2, z) : ty(f(a2, b2), c);
+    let x2 = ty_app(x, y) : (f(a2) : b => c);
+    let r = ty_app(x2, z) : (f(a2, b2) : c);
     return r;
 }
 
-fn ty_uniq : !(a == b) & (ty(c, a) == ty(c, b)) -> false {
-    axiom ty_uniq : !(a == b) & (ty(c, a) == ty(c, b)) -> false;
-    x : !(a == b) & (ty(c, a) == ty(c, b));
+fn ty_uniq : !(a == b) & ((c : a) == (c : b)) -> false {
+    axiom ty_uniq : !(a == b) & ((c : a) == (c : b)) -> false;
+    x : !(a == b) & ((c : a) == (c : b));
     let r = ty_uniq(x) : false;
     return r;
 }
 
 /// Make symbolic distinct types non-equal.
-fn ty_sd_to_neq : sd(a, b) & ty'(a, type'(z')) & ty'(b, type'(z')) -> !(a == b) {
-    axiom ty_sd_to_neq : sd(a, b) & ty'(a, type'(z')) & ty'(b, type'(z')) -> !(a == b);
-    x : sd(a, b) & ty'(a, type'(z')) & ty'(b, type'(z'));
+fn ty_sd_to_neq : sd(a, b) & (a : type'(z')) & (b : type'(z')) -> !(a == b) {
+    axiom ty_sd_to_neq : sd(a, b) & (a : type'(z')) & (b : type'(z')) -> !(a == b);
+    x : sd(a, b) & (a : type'(z')) & (b : type'(z'));
     let r = ty_sd_to_neq(x) : !(a == b);
     return r;
 }
 
-fn ty_fun : ty'(a, at) & ty'(b, bt) -> ty'(a => b, at => bt) {
-    axiom ty_fun : ty'(a, at) & ty'(b, bt) -> ty'(a => b, at => bt);
-    x : ty'(a, at) & ty'(b, bt);
-    let r = ty_fun(x) : ty'(a => b, at => bt);
+fn ty_fun : (a : at) & (b : bt) -> ((a => b) : at => bt) {
+    axiom ty_fun : (a : at) & (b : bt) -> ((a => b) : at => bt);
+    x : (a : at) & (b : bt);
+    let r = ty_fun(x) : ((a => b) : at => bt);
     return r;
 }
 
-fn ty_fun_ty : true -> ty'(type'(a) => type'(b), type'(z')) {
-    axiom ty_fun_ty : true -> ty'(type'(a) => type'(b), type'(z'));
+fn ty_fun_ty : true -> (type'(a) => type'(b) : type'(z')) {
+    axiom ty_fun_ty : true -> (type'(a) => type'(b) : type'(z'));
     x : true;
-    let r = ty_fun_ty(x) : ty'(type'(a) => type'(b), type'(z'));
+    let r = ty_fun_ty(x) : (type'(a) => type'(b) : type'(z'));
     return r;
 }
 
