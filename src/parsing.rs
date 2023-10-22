@@ -131,16 +131,6 @@ fn run_ctx(
                 ctx.new_term((name, Term::Check(ty)), search).map_err(|err| (range, err))?;
             }
             continue;
-        } else if let Ok((range, val)) = convert.meta_string("prove") {
-            convert.update(range);
-            if loader.run {
-                let ty: Type = (&**val).try_into().map_err(|err| (range, err))?;
-                let res = ctx.prove(ty, search);
-                if !res {
-                    return Err((range, format!("{}", val)));
-                }
-            }
-            continue;
         }
 
         match parse_var("fun_decl", convert, ignored) {
