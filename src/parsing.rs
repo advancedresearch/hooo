@@ -332,15 +332,9 @@ fn parse_ty(
                 val = app(val, arg);
             }
             ty = Some(val);
-        } else if let Ok((range, val)) = parse_un("not", convert, ignored) {
+        } else if let Ok((range, val)) = parse_un("un", convert, ignored) {
             convert.update(range);
-            ty = Some(Type::Imply(Box::new((val, Type::False))));
-        } else if let Ok((range, val)) = parse_un("excm", convert, ignored) {
-            convert.update(range);
-            ty = Some(or(val.clone(), not(val)));    
-        } else if let Ok((range, val)) = parse_un("all", convert, ignored) {
-            convert.update(range);
-            ty = Some(Type::All(Box::new(val.lift())));
+            ty = Some(val);
         } else if let Ok((range, _)) = convert.meta_bool("true") {
             convert.update(range);
             ty = Some(Type::True);
@@ -567,6 +561,7 @@ fn parse_un(
     convert.update(start_range);
 
     let mut arg: Option<Type> = None;
+    let mut op: Option<Op> = None;
     loop {
         if let Ok(range) = convert.end_node(node) {
             convert.update(range);
@@ -574,6 +569,21 @@ fn parse_un(
         } else if let Ok((range, val)) = parse_ty("arg", convert, ignored) {
             convert.update(range);
             arg = Some(val);
+        } else if let Ok((range, _)) = convert.meta_bool("not") {
+            convert.update(range);
+            op = Some(Op::Not);
+        } else if let Ok((range, _)) = convert.meta_bool("all") {
+            convert.update(range);
+            op = Some(Op::All);
+        } else if let Ok((range, _)) = convert.meta_bool("nec") {
+            convert.update(range);
+            op = Some(Op::Nec);
+        } else if let Ok((range, _)) = convert.meta_bool("pos") {
+            convert.update(range);
+            op = Some(Op::Pos);
+        } else if let Ok((range, _)) = convert.meta_bool("excm") {
+            convert.update(range);
+            op = Some(Op::Excm);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -582,7 +592,16 @@ fn parse_un(
     }
 
     let arg = arg.ok_or(())?;
-    Ok((convert.subtract(start), arg))
+    let op = op.ok_or(())?;
+    let ty = match op {
+        Op::Not => not(arg),
+        Op::All => all(arg),
+        Op::Nec => nec(arg),
+        Op::Pos => pos(arg),
+        Op::Excm => excm(arg),
+        _ => return Err(()),
+    };
+    Ok((convert.subtract(start), ty))
 }
 
 lazy_static! {
