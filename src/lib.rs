@@ -48,6 +48,10 @@ use std::not_double;
 
 This will add a term `not_double : a -> !!a`.
 
+Hooo generates a file "hooo-meta_cache.bin" that stores data to make repeated checks faster.
+This will usually just take a few KB of storage.
+If you want a clean check, then just delete this file.
+
 ## Introduction to Hooo
 
 Intuitionistic Propositional Logic (IPL) is the most important mathematical language
