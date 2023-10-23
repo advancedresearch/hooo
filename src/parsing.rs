@@ -2,8 +2,10 @@ use crate::*;
 
 use piston_meta::{syntax_errstr, Convert, Range, Syntax};
 use lazy_static::lazy_static;
+use crate::meta_cache::MetaCache;
 
 fn parse_lib(
+    meta_cache: &MetaCache,
     node: &str,
     mut convert: Convert,
     ignored: &mut Vec<Range>
@@ -30,7 +32,7 @@ fn parse_lib(
         } else if let Ok((range, val)) = convert.meta_string("desc") {
             convert.update(range);
             description = Some(val);
-        } else if let Ok((range, (name, _, ty))) = parse_var("fun", convert, ignored) {
+        } else if let Ok((range, (name, _, ty))) = parse_var(meta_cache, "fun", convert, ignored) {
             convert.update(range);
             functions.insert(name, ty.lift());
         } else if let Ok((range, val)) = convert.meta_string("dep_path") {
@@ -53,6 +55,7 @@ fn parse_lib(
 }
 
 fn run_ctx(
+    meta_cache: &MetaCache,
     ctx: &mut Context,
     search: &mut Search,
     loader: &mut Loader,
@@ -72,7 +75,7 @@ fn run_ctx(
             break;
         }
        
-        match parse_var("axiom", convert, ignored) {
+        match parse_var(meta_cache, "axiom", convert, ignored) {
             Ok((range, (name, args, ty))) => {
                 convert.update(range);
                 if loader.run {
@@ -88,7 +91,7 @@ fn run_ctx(
             Err(None) => {}
         } 
  
-        match parse_var("var", convert, ignored) {
+        match parse_var(meta_cache, "var", convert, ignored) {
             Ok((range, (name, args, ty))) => {
                 convert.update(range);
                 if loader.run {
@@ -104,7 +107,7 @@ fn run_ctx(
             Err(None) => {}
         }
 
-        if let Ok((range, (name, args, ty))) = parse_var("app", convert, ignored) {
+        if let Ok((range, (name, args, ty))) = parse_var(meta_cache, "app", convert, ignored) {
             convert.update(range);
             if loader.run {
                 if args.len() >= 1 {
@@ -115,7 +118,7 @@ fn run_ctx(
                 }
             }
             continue;
-        } else if let Ok((range, (name, args, ty))) = parse_var("match", convert, ignored) {
+        } else if let Ok((range, (name, args, ty))) = parse_var(meta_cache, "match", convert, ignored) {
             convert.update(range);
             if loader.run {
                 if args.len() == 3 || args.len() == 1 {
@@ -125,7 +128,7 @@ fn run_ctx(
                 }
             }
             continue;
-        } else if let Ok((range, (name, _, ty))) = parse_var("check", convert, ignored) {
+        } else if let Ok((range, (name, _, ty))) = parse_var(meta_cache, "check", convert, ignored) {
             convert.update(range);
             if loader.run {
                 ctx.new_term((name, Term::Check(ty)), search).map_err(|err| (range, err))?;
@@ -133,7 +136,7 @@ fn run_ctx(
             continue;
         }
 
-        match parse_var("fun_decl", convert, ignored) {
+        match parse_var(meta_cache, "fun_decl", convert, ignored) {
             Ok((range, (name, _, ty))) => {
                 convert.update(range);
                 if loader.run {
@@ -141,7 +144,7 @@ fn run_ctx(
                     loader.trace.push(name.clone());
                     if !loader.silent {println!("fn {}", name)};
                     ctx.fun(range, name.clone(), ty.clone(), search, |ctx, search| {
-                        match run_ctx(ctx, search, loader, "script", convert, ignored) {
+                        match run_ctx(meta_cache, ctx, search, loader, "script", convert, ignored) {
                             Ok((range, ret)) => {
                                 convert.update(range);
                                 if let Some(ret) = ret {
@@ -172,12 +175,12 @@ fn run_ctx(
             Err(None) => {}
         }
 
-        if let Ok((range, (name, _, ty))) = parse_var("lam_decl", convert, ignored) {
+        if let Ok((range, (name, _, ty))) = parse_var(meta_cache, "lam_decl", convert, ignored) {
             convert.update(range);
             if loader.run {
                 if !loader.silent {println!("lam {}", name)};
                 ctx.lam(range, name.clone(), ty.clone(), search, |ctx, search| {
-                    match run_ctx(ctx, search, loader, "script", convert, ignored) {
+                    match run_ctx(meta_cache, ctx, search, loader, "script", convert, ignored) {
                         Ok((range, ret)) => {
                             convert.update(range);
                             if let Some(ret) = ret {
@@ -252,6 +255,7 @@ fn parse_use(
 }
 
 fn parse_var(
+    meta_cache: &MetaCache,
     node: &str,
     mut convert: Convert,
     ignored: &mut Vec<Range>
@@ -275,7 +279,8 @@ fn parse_var(
             args.push(val);
         } else if let Ok((range, val)) = convert.meta_string("ty") {
             convert.update(range);
-            ty = Some((&**val).try_into().map_err(|err| Some(format!("```\n{}\n```\n{}", val, err)))?);
+            ty = Some(parse_ty_str(&**val, meta_cache)
+                .map_err(|err| Some(format!("```\n{}\n```\n{}", val, err)))?);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -588,13 +593,23 @@ lazy_static! {
 }
 
 /// Parses a type string.
-pub fn parse_ty_str(data: &str) -> Result<Type, String> {
+pub fn parse_ty_str(data: &str, meta_cache: &MetaCache) -> Result<Type, String> {
     use piston_meta::{parse_errstr};
+    use crate::meta_cache::Key;
 
     let syntax = TYPE_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
 
     let mut meta_data = vec![];
-    parse_errstr(&syntax, &data, &mut meta_data)?;
+    let key = Key {
+        source: Arc::new(data.into()),
+        syntax: Arc::new(include_str!("../assets/syntax.txt").into()),
+    };
+    if let Some(data) = meta_cache.get(&key) {
+        meta_data = data;
+    } else {
+        parse_errstr(&syntax, &data, &mut meta_data)?;
+        meta_cache.insert(key, meta_data.clone());
+    }
 
     // piston_meta::json::print(&meta_data);
 
@@ -619,19 +634,30 @@ pub fn run_str(
     data: &str,
     search: &mut Search,
     loader: &mut Loader,
+    meta_cache: &MetaCache,
 ) -> Result<Option<Arc<String>>, String> {
     use piston_meta::{parse_errstr, ParseErrorHandler};
+    use crate::meta_cache::Key;
 
     let syntax = SCRIPT_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
 
     let mut meta_data = vec![];
-    parse_errstr(&syntax, &data, &mut meta_data)?;
+    let key = Key {
+        source: Arc::new(data.into()),
+        syntax: Arc::new(include_str!("../assets/syntax-script.txt").into()),
+    };
+    if let Some(data) = meta_cache.get(&key) {
+        meta_data = data;
+    } else {
+        parse_errstr(&syntax, &data, &mut meta_data)?;
+        meta_cache.insert(key, meta_data.clone());
+    }
 
     // piston_meta::json::print(&meta_data);
 
     let convert = Convert::new(&meta_data);
     let mut ignored = vec![];
-    match run_ctx(ctx, search, loader, "script", convert, &mut ignored) {
+    match run_ctx(meta_cache, ctx, search, loader, "script", convert, &mut ignored) {
         Err((range, err)) => {
             let (range, _) = meta_data[range.offset].clone().decouple();
             let mut handler = ParseErrorHandler::new(data);
@@ -653,6 +679,7 @@ lazy_static! {
 /// Parses library format.
 pub fn lib_str(
     data: &str,
+    meta_cache: &MetaCache,
 ) -> Result<LibInfo, String> {
     use piston_meta::parse_errstr;
 
@@ -665,7 +692,7 @@ pub fn lib_str(
 
     let convert = Convert::new(&meta_data);
     let mut ignored = vec![];
-    match parse_lib("lib", convert, &mut ignored) {
+    match parse_lib(meta_cache, "lib", convert, &mut ignored) {
         Err(()) => Err("Could not convert meta data".into()),
         Ok((_, expr)) => Ok(expr),
     }

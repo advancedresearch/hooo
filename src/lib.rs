@@ -309,8 +309,10 @@ use std::fmt;
 use std::path::Path;
 use piston_meta::Range;
 use lazy_static::lazy_static;
+use meta_cache::MetaCache;
 
 pub mod parsing;
+pub mod meta_cache;
 
 /// Used to keep track of how much it costs to prove something.
 pub struct Search {
@@ -398,8 +400,9 @@ impl Context {
         script: &str,
         search: &mut Search,
         loader: &mut Loader,
+        meta_cache: &MetaCache,
     ) -> Result<Option<Arc<String>>, String> {
-        parsing::run_str(self, script, search, loader)
+        parsing::run_str(self, script, search, loader, meta_cache)
     }
 
     pub fn run(
@@ -407,6 +410,7 @@ impl Context {
         file: &str,
         search: &mut Search,
         loader: &mut Loader,
+        meta_cache: &MetaCache,
     ) -> Result<Option<Arc<String>>, String> {
         use std::fs::File;
         use std::io::Read;
@@ -416,7 +420,7 @@ impl Context {
         let mut data = String::new();
         data_file.read_to_string(&mut data)
             .map_err(|err| format!("Could not open `{}`, {}", file, err))?;
-        self.run_str(&data, search, loader)
+        self.run_str(&data, search, loader, meta_cache)
     }
 
     pub fn new_term(
@@ -943,7 +947,7 @@ impl fmt::Display for Type {
 impl TryFrom<&str> for Type {
     type Error = String;
     fn try_from(s: &str) -> Result<Type, String> {
-        parsing::parse_ty_str(s)
+        parsing::parse_ty_str(s, &MetaCache::new())
     }
 }
 
@@ -1154,7 +1158,7 @@ pub struct Loader {
 }
 
 impl Loader {
-    pub fn new(dir: Arc<String>) -> Result<Loader, String> {
+    pub fn new(dir: Arc<String>, meta_cache: &MetaCache) -> Result<Loader, String> {
         use rayon::prelude::*;
         use std::sync::Mutex;
 
@@ -1168,7 +1172,7 @@ impl Loader {
             files: vec![],
         };
 
-        let std = parsing::lib_str(include_str!("../source/std/Hooo.config"))?;
+        let std = parsing::lib_str(include_str!("../source/std/Hooo.config"), meta_cache)?;
         loader.dependencies.push(std);
 
         let files: Vec<String> = std::fs::read_dir(&**loader.dir).unwrap()
@@ -1194,7 +1198,7 @@ impl Loader {
             let mut search = Search::new();
             let mut loader = loader.clone();
             let file = &files[i];
-            match ctx.run(file, &mut search, &mut loader) {
+            match ctx.run(file, &mut search, &mut loader, meta_cache) {
                 Ok(_) => {}
                 Err(err) => {
                     let mut error = error.lock().unwrap();
@@ -1225,16 +1229,16 @@ impl Loader {
         Ok(loader)
     }
 
-    pub fn load_info(&mut self) -> Result<Option<LibInfo>, String> {
+    pub fn load_info(&mut self, meta_cache: &MetaCache) -> Result<Option<LibInfo>, String> {
         let path = Path::new(&**self.dir).join("Hooo.config");
         if path.exists() {
-            match LibInfo::from_path(&path) {
+            match LibInfo::from_path(&path, meta_cache) {
                 Ok(x) => {
                     for dep in &x.dependencies {
                         match dep {
                             Dep::Path(p) => {
                                 let dep_path = Path::new(&**self.dir).join(&**p).join("Hooo.config");
-                                match LibInfo::from_path(&dep_path) {
+                                match LibInfo::from_path(&dep_path, meta_cache) {
                                     Ok(x) => self.dependencies.push(x),
                                     Err(err) => return Err(err),
                                 }
@@ -1299,7 +1303,7 @@ pub struct LibInfo {
 }
 
 impl LibInfo {
-    pub fn from_path(path: &Path) -> Result<LibInfo, String> {
+    pub fn from_path(path: &Path, meta_cache: &MetaCache) -> Result<LibInfo, String> {
         use std::fs::File;
         use std::io::Read;
 
@@ -1309,7 +1313,7 @@ impl LibInfo {
         let mut data = String::new();
         data_file.read_to_string(&mut data)
             .map_err(|err| format!("Could not open `{}`, {}", file, err))?;
-        parsing::lib_str(&data)
+        parsing::lib_str(&data, meta_cache)
     }
 }
 
