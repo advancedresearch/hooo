@@ -1,0 +1,8 @@
+/// Core axiom of Path Semantics.
+fn ps_core : (a ~~ b) & (a : c) & (b : d) -> (c ~~ d) {
+    axiom ps_core : (a ~~ b) & (a : c) & (b : d) -> (c ~~ d);
+    x : (a ~~ b) & (a : c) & (b : d);
+    let r = ps_core(x) : c ~~ d;
+    return r;
+}
+

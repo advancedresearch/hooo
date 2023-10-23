@@ -1,0 +1,129 @@
+fn q_lift : sd(a, b) & (a == b) -> a ~~ b {
+    axiom q_lift : sd(a, b) & (a == b) -> a ~~ b;
+    x : sd(a, b) & (a == b);
+    let r = q_lift(x) : a ~~ b;
+    return r;
+}
+
+fn q_from : (a == b) & ~a & ~b  ->  a ~~ b {
+    axiom q_from : (a == b) & ~a & ~b  ->  a ~~ b;
+    x : a == b;
+    y : ~a;
+    z : ~b;
+    let r = q_from(x, y, z) : a ~~ b;
+    return r;
+}
+
+fn q_to : a ~~ b  ->  (a == b) & ~a & ~b {
+    axiom q_to : a ~~ b  ->  (a == b) & ~a & ~b;
+    x : a ~~ b;
+    let r = q_to(x) : (a == b) & ~a & ~b;
+    return r;
+}
+
+fn q_symmetry : a ~~ b  ->  b ~~ a {
+    x : a ~~ b;
+    use q_to;
+    let x2 = q_to(x) : (a == b) & ~a & ~b;
+    use fst;
+    let x3 = fst(x2) : a == b;
+    use eq_symmetry;
+    let x4 = eq_symmetry(x3) : b == a;
+    use snd;
+    let x5 = snd(x2) : ~a & ~b;
+    use and_symmetry;
+    let x6 = and_symmetry(x5) : ~b & ~a;
+    use refl;
+    let x7 = refl(x4, x6) : (b == a) & ~b & ~a;
+    use q_from;
+    let r = q_from(x7) : b ~~ a;
+    return r;
+}
+
+fn q_transitivity : (a ~~ b) & (b ~~ c)  ->  (a ~~ c) {
+    x : a ~~ b;
+    y : b ~~ c;
+
+    use q_to;
+    let x2 = q_to(x) : (a == b) & ~a & ~b;
+    let y2 = q_to(y) : (b == c) & ~b & ~c;
+    use fst;
+    let x3 = fst(x2) : a == b;
+    let y3 = fst(y2) : b == c;
+    use eq_transitivity;
+    let x4 = eq_transitivity(x3, y3) : a == c;
+    
+    use snd;
+    let x5 = snd(x2) : ~a & ~b;
+    let y5 = snd(y2) : ~b & ~c;
+    use and_transitivity;
+    let x6 = and_transitivity(x5, y5) : ~a & ~c;    
+
+    use refl;
+    let x7 = refl(x4, x6) : (a == c) & ~a & ~c;
+    use q_from;
+    let r = q_from(x7) : a ~~ c;
+    return r;
+}
+
+fn q_left : a ~~ b  ->  a ~~ a {
+    x : a ~~ b;
+    use q_to;
+    let y = q_to(x) : (a == b) & ~a & ~b;
+    use std::snd;
+    let y2 = snd(y) : ~a & ~b;
+    use std::fst;
+    let y3 = fst(y2) : ~a;
+    use qu_to_q;
+    let r = qu_to_q(y3) : a ~~ a;
+    return r;
+}
+
+fn q_right : a ~~ b  ->  b ~~ b {
+    x : a ~~ b;
+    use q_to;
+    let y = q_to(x) : (a == b) & ~a & ~b;
+    use std::snd;
+    let y2 = snd(y) : ~a & ~b;
+    let y3 = snd(y2) : ~b;
+    use qu_to_q;
+    let r = qu_to_q(y3) : b ~~ b;
+    return r;
+}
+
+fn q_to_eq : a ~~ b  ->  (a == b) {
+    x : a ~~ b;
+    use q_to;
+    let y = q_to(x) : (a == b) & ~a & ~b;
+    use std::fst;
+    let r = fst(y) : (a == b);
+    return r;
+}
+
+fn neq_to_sesh : !(a == b)  ->  !(a ~~ b) {
+    x : !(a == b);
+    use q_to_eq;
+    let y = q_to_eq() : (a ~~ b) => (a == b);
+    use std::modus_tollens;
+    let y2 = modus_tollens(y) : !(a == b) => !(a ~~ b);
+    let r = y2(x) : !(a ~~ b);
+    return r;
+}
+
+fn sesh_left : !(a ~~ a)  ->  !(a ~~ b) {
+    x : !(a ~~ a);
+    use std::modus_tollens;
+    use q_left;
+    let y = modus_tollens(q_left) : !(a ~~ a) => !(a ~~ b);
+    let r = y(x) : !(a ~~ b);
+    return r;
+}
+
+fn sesh_right : !(b ~~ b)  ->  !(a ~~ b) {
+    x : !(b ~~ b);
+    use std::modus_tollens;
+    use q_right;
+    let y = modus_tollens(q_right) : !(b ~~ b) => !(a ~~ b);
+    let r = y(x) : !(a ~~ b);
+    return r;
+}

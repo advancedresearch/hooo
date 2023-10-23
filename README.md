@@ -191,6 +191,8 @@ a == b     Equal (sugar for `(a => b) & (b => a)`)
 a =^= b    Pow equal (sugar for `b^a & a^b`)
 excm(a)    Excluded middle (sugar for `a | !a`)
 sd(a, b)   Symbolic distinction (see section [Symbolic distinction])
+~a         Path semantical qubit (see section [Path Semantics])
+a ~~ b     Path semantical quality (see section [Path Semantics])
 true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types
@@ -304,3 +306,102 @@ in logic that two types are not permitted to be equal.
 
 Symbolic distinction allows you to add axioms for such cases
 and still be able to reason hypothetically.
+
+### Path Semantics
+
+[Path Semantics](https://github.com/advancedresearch/path_semantics)
+is an expressive language for mathematical programming.
+
+Mathematical programming usually deals with higher dimensions compared to normal programming.
+In normal programming, you have just one dimension of evaluation.
+In higher dimensional programming, you can have multiple dimensions of evaluation.
+It is not as simple as parallelism, because you can evaluate functions as boundaries of a "function surface".
+Such surfaces, called "normal paths", must be treated as mathematical objects on their own,
+which requires a foundation of higher dimensional programming.
+
+For example:
+
+```text
+len(concat(a, b)) <=> add(len(a), len(b))
+```
+
+To write this as a normal path:
+
+```text
+concat[len] <=> add
+```
+
+In Category Theory, `concat[len]` is an "open box" which is closed by `add`.
+
+Now, since `add[even] <=> eqb`, one can prove:
+
+```text
+concat[len][even] <=> add[even]
+concat[len][even] <=> eqb
+concat[even . len] <=> eqb
+```
+
+The idea is that normal paths compose in an "orthogonal dimension" to normal computation.
+One uses this notation because it does not require variables,
+hence being a style of "point-free" theorem proving.
+
+The foundation of higher dimensional programming is notoriously hard,
+so you should not feel bad if you do not understand the entire theory.
+There is a lot ot take in, so take your time.
+
+Path Semantics is just one approach to higher dimensional programming.
+Another approach is Cubical Type Theory.
+
+Since higher dimensions often explode in combinatorial complexity, there is no way we can explore the entire space of possibilities. Therefore, we have to be satisfied with proving some properties across multiple dimensions.
+
+Naturally, we are used to think of types as a way of organizing data. However, if you have a powerful logic
+such as HOOO EP, then it also makes sense to reason
+about type hierarchies as "moments in time".
+Each moment in time is a local space for reasoning in IPL.
+
+Path Semantics at its fundamental level is the mechanism that allows propositions to transition
+from one moment in time to another moment.
+
+This is expressed in the core axiom of Path Semantics:
+
+```text
+ps_core : (a ~~ b) & (a : c) & (b : d) -> (c ~~ d)
+```
+
+The operator `~~` is path semantical quality,
+which is a partial equivalence that lifts bi-conditions using symbolic distinction:
+
+```text
+q_lift : sd(a, b) & (a == b) -> a ~~ b
+```
+
+This means, that when one assumes equality in some
+moment of time between two propositions that can be
+proved to be symbolic distinct, one is allowed to
+introduce quality and hence get a way to propagate
+new quality proposition in future moments.
+
+The reason for this mechanism is that in any moment of time, the information is relative to its internal state. So, there must be at least two separate physical states to store information from the past.
+Path semantical quality is a logical model of this phenomena.
+
+If you find this hard to think about, then you can just
+use the thumb rule "if two symbols are qual `a ~~ b`, then their meanings `(a : c) & (b : d)` are qual `c ~~ d`". This is a proper way of handling semantics of symbols in logic. Notice that you should not use "equal" because reflexivity and logical implication makes this unsound. The `~~` operator is sometimes thought of as a path, so the meaning of symbols using paths was why this field became "Path Semantics".
+
+In philosophy, path semantical quality is closely
+related to Hegel's philosophy of Being.
+Hegel's philosophy was rejected by Russel,
+who founded analytic philosophy.
+This turned out to be a mistake, likely because
+Russel was influenced by the language bias of First Order Logic, where all predicates are normal congruent.
+By using tautological congruence, one can reason about
+Hegel's philosophy just fine.
+However, this requires HOOO EP.
+
+Self quality `a ~~ a` is equivalent to `~a`,
+which is called a "qubit".
+In classical logic, one generates a random truth table of `~a` using `a` as the seed to the random generator.
+This makes `~a` behave as it is in super-position of all propositions,
+hence the name "qubit".
+One can also think about it as introducing a new proposition.
+
+Path semantical quality and qubit are tautological congruent.
