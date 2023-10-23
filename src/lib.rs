@@ -195,6 +195,8 @@ sd(a, b)   Symbolic distinction (see section [Symbolic distinction])
 true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types
+□a         Necessary `a` (modal logic)
+◇a         Possibly `a` (modal logic)
 foo'       Symbol `foo`
 foo'(a)    Apply symbol `foo` to `a`
 
@@ -280,7 +282,7 @@ There should be no stronger notion of equality in logic than tautological equali
 Most operators are congruent by normal equality,
 but a few operators are only congruent by tautological equality.
 
-However, there no problems in logic by using symbolic distinction.
+However, there are no problems in logic by using symbolic distinction.
 
 - `sd(a, b)` (`a` and `b` are symbolic distinct)
 
@@ -384,7 +386,7 @@ impl Context {
             Pow(ab) | And(ab) | Or(ab) | Imply(ab) | App(ab) | Sd(ab) | Jud(ab) =>
                 self.is_type_declared(&ab.0) &&
                 self.is_type_declared(&ab.1),
-            All(a) => self.is_type_declared(a),
+            All(a) | Nec(a) | Pos(a) => self.is_type_declared(a),
         }
     }
 
@@ -672,7 +674,7 @@ impl Term {
                             return if ty_arg.app_to_has_bound(&ab.1, &ab.0, t) {
                                 Ok(())
                             } else {
-                                Err(format!("Expected `{}`, could not apply `{}` to `{}`",
+                                Err(format!("Type check error #200\nExpected `{}`, could not apply `{}` to `{}`",
                                     t, ty_f.to_str(true, None), ty_arg))
                             };
                         } else if let Type::Imply(ab) = &ty_f {
@@ -761,6 +763,10 @@ pub enum Type {
     Sd(Box<(Type, Type)>),
     /// Type judgement.
     Jud(Box<(Type, Type)>),
+    /// Necessary (modal logic).
+    Nec(Box<Type>),
+    /// Possibly (modal logoc).
+    Pos(Box<Type>),
 }
 
 #[derive(Copy, Clone)]
@@ -777,6 +783,8 @@ pub enum Op {
     App,
     Sd,
     Jud,
+    Nec,
+    Pos,
 }
 
 fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
@@ -789,7 +797,7 @@ fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
     }
     if ty.as_excm().is_some() {return false};
     match ty {
-        True | False | Ty(_) | AllTy(_) | All(_) | App(_) | Sym(_) => false,
+        True | False | Ty(_) | AllTy(_) | All(_) | App(_) | Sym(_) | Nec(_) => false,
         _ => {
             match (ty.op(), parent_op) {
                 (Some(Op::Pow), Some(Op::And) | Some(Op::Or) | Some(Op::Imply)) => false,
@@ -818,6 +826,8 @@ impl Type {
             App(_) => Some(Op::App),
             Sd(_) => Some(Op::Sd),
             Jud(_) => Some(Op::Jud),
+            Nec(_) => Some(Op::Nec),
+            Pos(_) => Some(Op::Pos),
         }
     }
 
@@ -943,6 +953,8 @@ impl fmt::Display for Type {
             App(ab) => write!(w, "{}({})", ab.0.to_str(false, op), ab.1)?,
             Sd(ab) => write!(w, "sd({}, {})", ab.0, ab.1)?,
             Jud(ab) => write!(w, "{} : {}", ab.0.to_str(false, op), ab.1.to_str(true, op))?,
+            Nec(a) => write!(w, "□{}", a.to_str(false, op))?,
+            Pos(a) => write!(w, "◇{}", a.to_str(false, op))?,
         }
         Ok(())
     }
@@ -970,6 +982,8 @@ impl Type {
             App(_) => true,
             Sd(_) => true,
             Jud(_) => true,
+            Nec(_) => true,
+            Pos(_) => true,
         }
     }
 
@@ -1001,6 +1015,8 @@ impl Type {
             App(ab) => app(ab.0.lift(), ab.1.lift()),
             Sd(ab) => sd(ab.0.lift(), ab.1.lift()),
             Jud(ab) => jud(ab.0.lift(), ab.1.lift()),
+            Nec(a) => nec(a.lift()),
+            Pos(a) => pos(a.lift()),
         }
     }
 
@@ -1030,6 +1046,11 @@ impl Type {
                 }
                 bind.push((self.clone(), val.clone()));
                 true
+            }
+            (Nec(a), Nec(b)) |
+            (Pos(a), Pos(b)) => {
+                let (a, b) = if contra {(b, a)} else {(a, b)};
+                a.bind(contra, b, bind)
             }
             (And(ab), And(cd)) |
             (Or(ab), Or(cd)) |
@@ -1094,6 +1115,8 @@ impl Type {
             All(a) => All(Box::new(a.replace(bind))),
             Sd(ab) => sd(ab.0.replace(bind), ab.1.replace(bind)),
             Jud(ab) => jud(ab.0.replace(bind), ab.1.replace(bind)),
+            Nec(a) => nec(a.replace(bind)),
+            Pos(a) => pos(a.replace(bind)),
         }
     }
 
@@ -1131,7 +1154,9 @@ impl Type {
             (Imply(ab), Imply(cd)) if cd.0.has_(!contra, &ab.0) && ab.1.has_(contra, &cd.1) => true,
             // TODO: Add unit tests for this case.
             (x, Or(ab)) if x.has_(contra, &ab.0) || x.has_(contra, &ab.1) => true,
-            (All(a), All(b)) if a.has_(contra, b) => true,
+            (All(a), All(b)) |
+            (Nec(a), Nec(b)) |
+            (Pos(a), Pos(b)) if a.has_(contra, b) => true,
             (Sym(a), Sym(b)) if a == b => true,
             (App(ab), App(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             (Sd(ab), Sd(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
@@ -1329,14 +1354,18 @@ pub fn and(a: Type, b: Type) -> Type {Type::And(Box::new((a, b)))}
 pub fn or(a: Type, b: Type) -> Type {Type::Or(Box::new((a, b)))}
 pub fn imply(a: Type, b: Type) -> Type {Type::Imply(Box::new((a, b)))}
 pub fn not(a: Type) -> Type {imply(a, Type::False)}
+pub fn excm(a: Type) -> Type {or(a.clone(), not(a))}
 pub fn eq(a: Type, b: Type) -> Type {and(imply(a.clone(), b.clone()), imply(b, a))}
 pub fn pow_eq(a: Type, b: Type) -> Type {and(pow(b.clone(), a.clone()), pow(a, b))}
 pub fn tauto(a: Type) -> Type {pow(a, Type::True)}
 pub fn para(a: Type) -> Type {pow(Type::False, a)}
 pub fn app(a: Type, b: Type) -> Type {Type::App(Box::new((a, b)))}
+pub fn all(a: Type) -> Type {Type::All(Box::new(a.lift()))}
 pub fn sym(a: &str) -> Type {Type::Sym(Arc::new(a.into()))}
 pub fn sd(a: Type, b: Type) -> Type {Type::Sd(Box::new((a, b)))}
 pub fn jud(a: Type, b: Type) -> Type {Type::Jud(Box::new((a, b)))}
+pub fn nec(a: Type) -> Type {Type::Nec(Box::new(a))}
+pub fn pos(a: Type) -> Type {Type::Pos(Box::new(a))}
 
 #[cfg(test)]
 mod tests {
@@ -1433,6 +1462,17 @@ mod tests {
 
         let a: Type = "(a => b) : b -> c".try_into().unwrap();
         assert_eq!(format!("{}", a), "(a => b) : b -> c".to_string());
+    }
+
+    #[test]
+    fn test_parse_modal() {
+        let a: Type = "□a".try_into().unwrap();
+        assert_eq!(a, nec(ty("a")));
+        assert_eq!(format!("{}", a), "□a".to_string());
+
+        let a: Type = "◇a".try_into().unwrap();
+        assert_eq!(a, pos(ty("a")));
+        assert_eq!(format!("{}", a), "◇a".to_string());
     }
 
     #[test]

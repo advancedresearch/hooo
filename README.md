@@ -194,6 +194,8 @@ sd(a, b)   Symbolic distinction (see section [Symbolic distinction])
 true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types
+□a         Necessary `a` (modal logic)
+◇a         Possibly `a` (modal logic)
 foo'       Symbol `foo`
 foo'(a)    Apply symbol `foo` to `a`
 
@@ -279,7 +281,7 @@ There should be no stronger notion of equality in logic than tautological equali
 Most operators are congruent by normal equality,
 but a few operators are only congruent by tautological equality.
 
-However, there no problems in logic by using symbolic distinction.
+However, there are no problems in logic by using symbolic distinction.
 
 - `sd(a, b)` (`a` and `b` are symbolic distinct)
 
