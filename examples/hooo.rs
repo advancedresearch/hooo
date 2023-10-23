@@ -1,4 +1,5 @@
 use hooo::*;
+use hooo::meta_cache::MetaCache;
 
 use std::sync::Arc;
 use rayon::prelude::*;
@@ -11,16 +12,18 @@ fn main() {
     if let Some(file) = file {
         use std::path::Path;
 
+        let meta_store_file = "hooo-meta_store.bin";
         let path = Path::new(&file);
+        let mut meta_cache = MetaCache::restore(meta_store_file);
         if path.is_dir() {
-            let ref mut loader = match Loader::new(Arc::new(file.clone())) {
+            let ref mut loader = match Loader::new(Arc::new(file.clone()), &mut meta_cache) {
                 Ok(x) => x,
                 Err(err) => {
                     eprintln!("ERROR:\n{}", err);
                     return;
                 }
             };
-            match lib_check(loader) {
+            match lib_check(loader, &mut meta_cache) {
                 Ok(()) => {}
                 Err(err) => {
                     eprintln!("\nERROR:\n{}", err);
@@ -29,14 +32,14 @@ fn main() {
             }
         } else {
             let dir: String = path.parent().unwrap().to_str().unwrap().into();
-            let ref mut loader = match Loader::new(Arc::new(dir)) {
+            let ref mut loader = match Loader::new(Arc::new(dir), &mut meta_cache) {
                 Ok(x) => x,
                 Err(err) => {
                     eprintln!("ERROR:\n{}", err);
                     return;
                 }
             };
-            match proof_check(file, loader) {
+            match proof_check(file, loader, &mut meta_cache) {
                 Ok(()) => {}
                 Err(err) => {
                     eprintln!("ERROR:\n{}", err);
@@ -44,12 +47,13 @@ fn main() {
                 }
             }
         }
+        meta_cache.store(meta_store_file);
     } else {
         eprintln!("hooo <file.hooo>");
     }
 }
 
-fn lib_check(loader: &mut Loader) -> Result<(), String> {
+fn lib_check(loader: &mut Loader, meta_cache: &MetaCache) -> Result<(), String> {
     use std::fmt::Write;
     use std::path::Path;
     use std::fs::File;
@@ -57,14 +61,14 @@ fn lib_check(loader: &mut Loader) -> Result<(), String> {
     use std::sync::Mutex;
 
     let path = Path::new(&**loader.dir).join("Hooo.config");
-    let lib: Option<LibInfo> = loader.load_info()?;
+    let lib: Option<LibInfo> = loader.load_info(meta_cache)?;
   
     let files = loader.files.clone(); 
  
     loader.silent = true;
     let error: Arc<Mutex<Result<(), String>>> = Arc::new(Ok(()).into());
     let _ = (0..files.len()).into_par_iter().map(|i| {
-        if let Err(err) = proof_check(files[i].clone(), &mut loader.clone()) {
+        if let Err(err) = proof_check(files[i].clone(), &mut loader.clone(), &meta_cache) {
             let mut error = error.lock().unwrap();
             *error = Err(format!("In `{}`:\n{}", files[i], err));
             None
@@ -150,12 +154,12 @@ fn json(s: &str) -> String {
     String::from_utf8(buf).unwrap()
 }
 
-fn proof_check(file: String, loader: &mut Loader) -> Result<(), String> {
+fn proof_check(file: String, loader: &mut Loader, meta_cache: &MetaCache) -> Result<(), String> {
     println!("=== Proof check of `{}` ===", file);
-    let _ = loader.load_info()?;
+    let _ = loader.load_info(meta_cache)?;
     let mut ctx = Context::new();
     let mut search = Search::new();
-    let _ = ctx.run(&file, &mut search, loader)?;
+    let _ = ctx.run(&file, &mut search, loader, meta_cache)?;
     if !loader.silent {
         println!("\nProof check completed successfully.");
         println!("Search effort: {}", search.n);
