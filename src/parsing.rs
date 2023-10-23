@@ -529,6 +529,9 @@ fn parse_bin(
         } else if let Ok((range, _)) = convert.meta_bool("jud") {
             convert.update(range);
             op = Some(Op::Jud);
+        } else if let Ok((range, _)) = convert.meta_bool("q") {
+            convert.update(range);
+            op = Some(Op::Q);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -546,6 +549,7 @@ fn parse_bin(
         Op::Imply => imply(left, right),
         Op::Sd => sd(left, right),
         Op::Jud => jud(left, right),
+        Op::Q => q(left, right),
         _ => return Err(()),
     };
     Ok((convert.subtract(start), ty))
@@ -584,6 +588,9 @@ fn parse_un(
         } else if let Ok((range, _)) = convert.meta_bool("excm") {
             convert.update(range);
             op = Some(Op::Excm);
+        } else if let Ok((range, _)) = convert.meta_bool("qu") {
+            convert.update(range);
+            op = Some(Op::Qu);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -599,6 +606,7 @@ fn parse_un(
         Op::Nec => nec(arg),
         Op::Pos => pos(arg),
         Op::Excm => excm(arg),
+        Op::Qu => qu(arg),
         _ => return Err(()),
     };
     Ok((convert.subtract(start), ty))

@@ -1,4 +1,4 @@
-_seps: "',(){}=-<>^&|!-□◇"
+_seps: "',(){}=-<>^&|!-□◇~"
 
 21 jud = [type_or_pow:"left" .w? ":":"jud" .w? type_or_fun:"right"]
 20 sd = ["sd(":"sd" .w? type_or_fun:"left" , type_or_fun:"right" .w? ")"]
@@ -17,10 +17,11 @@ _seps: "',(){}=-<>^&|!-□◇"
 }
 9 fun = [type:"right" .w? "->":"pow" .w? type_or_fun:"left"]
 8 excm = ["excm(":"excm" .w? type:"arg" .w? ")"]
-7 un = [{"!":"not" "□":"nec" "◇":"pos"} typeleft_or_un:"arg"]
+7 un = [{"!":"not" "□":"nec" "◇":"pos" "~":"qu"} typeleft_or_un:"arg"]
 6 eq = [type_or_pow:"left" .w? {
     "==":"eq"
     "=^=":"pow_eq"
+    "~~":"q"
 } .w? type_or_pow:"right"]
 5 pow = [typeleft:"left" .w? "^":"pow" .w? typeleft:"right"]
 4 imply = [imply_left:"left" .w? "=>":"imply" .w? type:"right"]

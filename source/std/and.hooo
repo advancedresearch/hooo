@@ -25,6 +25,18 @@ fn and_symmetry : a & b -> b & a {
     return r;
 }
 
+fn and_transitivity : (a & b) & (b & c)  ->  (a & c) {
+    x : a & b;
+    y : b & c;
+    use fst;
+    let x2 = fst(x) : a;
+    use snd;
+    let y2 = snd(y) : c;
+    use refl;
+    let r = refl(x2, y2) : a & c;
+    return r;
+}
+
 fn fst : (a & b) -> a {
     x : a;
     y : b;

@@ -1,0 +1,37 @@
+
+fn qu_in_arg : ~a & (a == b)^true  ->  ~b {
+    axiom qu_in_arg : ~a & (a == b)^true  ->  ~b;
+    x : ~a;
+    y : (a == b)^true;
+    let r = qu_in_arg(x, y) : ~b;
+    return r;
+}
+
+fn qu_to_q : ~a  ->  a ~~ a {
+    x : ~a;
+    use std::refl;
+    let y = refl() : a => a;
+    let y2 = refl(y, y) : a == a;
+    use q_from;
+    let r = q_from(y2, x, x) : a ~~ a;
+    return r;
+}
+
+fn q_to_qu : a ~~ a  ->  ~a {
+    x : a ~~ a;
+    use q_to;
+    let y = q_to(x) : (a == a) & ~a & ~a;
+    use std::snd;
+    let y2 = snd(y) : ~a & ~a;
+    let r = snd(y2) : ~a;
+    return r;
+}
+
+fn nqu_to_sesh : !~a  ->  !(a ~~ a) {
+    x: !~a;
+    use q_to_qu;
+    use std::modus_tollens;
+    let y = modus_tollens(q_to_qu) : !~a => !(a ~~ a);
+    let r = y(x) : !(a ~~ a);
+    return r;
+}

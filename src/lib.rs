@@ -192,6 +192,8 @@ a == b     Equal (sugar for `(a => b) & (b => a)`)
 a =^= b    Pow equal (sugar for `b^a & a^b`)
 excm(a)    Excluded middle (sugar for `a | !a`)
 sd(a, b)   Symbolic distinction (see section [Symbolic distinction])
+~a         Path semantical qubit (see section [Path Semantics])
+a ~~ b     Path semantical quality (see section [Path Semantics])
 true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types
@@ -306,6 +308,105 @@ in logic that two types are not permitted to be equal.
 Symbolic distinction allows you to add axioms for such cases
 and still be able to reason hypothetically.
 
+### Path Semantics
+
+[Path Semantics](https://github.com/advancedresearch/path_semantics)
+is an expressive language for mathematical programming.
+
+Mathematical programming usually deals with higher dimensions compared to normal programming.
+In normal programming, you have just one dimension of evaluation.
+In higher dimensional programming, you can have multiple dimensions of evaluation.
+It is not as simple as parallelism, because you can evaluate functions as boundaries of a "function surface".
+Such surfaces, called "normal paths", must be treated as mathematical objects on their own,
+which requires a foundation of higher dimensional programming.
+
+For example:
+
+```text
+len(concat(a, b)) <=> add(len(a), len(b))
+```
+
+To write this as a normal path:
+
+```text
+concat[len] <=> add
+```
+
+In Category Theory, `concat[len]` is an "open box" which is closed by `add`.
+
+Now, since `add[even] <=> eqb`, one can prove:
+
+```text
+concat[len][even] <=> add[even]
+concat[len][even] <=> eqb
+concat[even . len] <=> eqb
+```
+
+The idea is that normal paths compose in an "orthogonal dimension" to normal computation.
+One uses this notation because it does not require variables,
+hence being a style of "point-free" theorem proving.
+
+The foundation of higher dimensional programming is notoriously hard,
+so you should not feel bad if you do not understand the entire theory.
+There is a lot ot take in, so take your time.
+
+Path Semantics is just one approach to higher dimensional programming.
+Another approach is Cubical Type Theory.
+
+Since higher dimensions often explode in combinatorial complexity, there is no way we can explore the entire space of possibilities. Therefore, we have to be satisfied with proving some properties across multiple dimensions.
+
+Naturally, we are used to think of types as a way of organizing data. However, if you have a powerful logic
+such as HOOO EP, then it also makes sense to reason
+about type hierarchies as "moments in time".
+Each moment in time is a local space for reasoning in IPL.
+
+Path Semantics at its fundamental level is the mechanism that allows propositions to transition
+from one moment in time to another moment.
+
+This is expressed in the core axiom of Path Semantics:
+
+```text
+ps_core : (a ~~ b) & (a : c) & (b : d) -> (c ~~ d)
+```
+
+The operator `~~` is path semantical quality,
+which is a partial equivalence that lifts bi-conditions using symbolic distinction:
+
+```text
+q_lift : sd(a, b) & (a == b) -> a ~~ b
+```
+
+This means, that when one assumes equality in some
+moment of time between two propositions that can be
+proved to be symbolic distinct, one is allowed to
+introduce quality and hence get a way to propagate
+new quality proposition in future moments.
+
+The reason for this mechanism is that in any moment of time, the information is relative to its internal state. So, there must be at least two separate physical states to store information from the past.
+Path semantical quality is a logical model of this phenomena.
+
+If you find this hard to think about, then you can just
+use the thumb rule "if two symbols are qual `a ~~ b`, then their meanings `(a : c) & (b : d)` are qual `c ~~ d`". This is a proper way of handling semantics of symbols in logic. Notice that you should not use "equal" because reflexivity and logical implication makes this unsound. The `~~` operator is sometimes thought of as a path, so the meaning of symbols using paths was why this field became "Path Semantics".
+
+In philosophy, path semantical quality is closely
+related to Hegel's philosophy of Being.
+Hegel's philosophy was rejected by Russel,
+who founded analytic philosophy.
+This turned out to be a mistake, likely because
+Russel was influenced by the language bias of First Order Logic, where all predicates are normal congruent.
+By using tautological congruence, one can reason about
+Hegel's philosophy just fine.
+However, this requires HOOO EP.
+
+Self quality `a ~~ a` is equivalent to `~a`,
+which is called a "qubit".
+In classical logic, one generates a random truth table of `~a` using `a` as the seed to the random generator.
+This makes `~a` behave as it is in super-position of all propositions,
+hence the name "qubit".
+One can also think about it as introducing a new proposition.
+
+Path semantical quality and qubit are tautological congruent.
+
 */
 
 use std::sync::Arc;
@@ -383,10 +484,11 @@ impl Context {
         match ty {
             Sym(s) => self.is_symbol_declared(s),
             True | False | Ty(_) | AllTy(_) => true,
-            Pow(ab) | And(ab) | Or(ab) | Imply(ab) | App(ab) | Sd(ab) | Jud(ab) =>
+            Pow(ab) | And(ab) | Or(ab) | Imply(ab) |
+            App(ab) | Sd(ab) | Jud(ab) | Q(ab) =>
                 self.is_type_declared(&ab.0) &&
                 self.is_type_declared(&ab.1),
-            All(a) | Nec(a) | Pos(a) => self.is_type_declared(a),
+            All(a) | Nec(a) | Pos(a) | Qu(a) => self.is_type_declared(a),
         }
     }
 
@@ -723,7 +825,13 @@ impl Term {
                 }
                 return Err("Internal error in type checker".into());
             }
-            Axiom(t) if t.has_bound(ty) => Ok(()),
+            Axiom(t) => {
+                if t.has_bound(ty) {return Ok(())}
+                else {return Err(format!(
+                    "Type check error #300\nExpected `{}`, found `{}`",
+                    ty, t
+                ))}
+            }
             FunDecl(t) if t.has_bound(ty) => Ok(()),
             LamDecl(t) if t.has_bound(ty) => Ok(()),
             Var(t) if t.has_bound(ty) => Ok(()),
@@ -767,6 +875,10 @@ pub enum Type {
     Nec(Box<Type>),
     /// Possibly (modal logoc).
     Pos(Box<Type>),
+    /// Path semantical qubit.
+    Qu(Box<Type>),
+    /// Path semantical quality.
+    Q(Box<(Type, Type)>),
 }
 
 #[derive(Copy, Clone)]
@@ -785,19 +897,25 @@ pub enum Op {
     Jud,
     Nec,
     Pos,
+    Qu,
+    Q,
 }
 
 fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
     use Type::*;
 
-    if ty.as_not().is_some() {
+    if ty.as_not().is_some() ||
+       ty.as_nec().is_some() ||
+       ty.as_pos().is_some() ||
+       ty.as_qu().is_some() {
         if let Some(Op::Pow) = parent_op {return true};
 
         return false;
     }
     if ty.as_excm().is_some() {return false};
     match ty {
-        True | False | Ty(_) | AllTy(_) | All(_) | App(_) | Sym(_) | Nec(_) => false,
+        True | False | Ty(_) | AllTy(_) | All(_) |
+        App(_) | Sym(_) | Nec(_) | Qu(_) => false,
         _ => {
             match (ty.op(), parent_op) {
                 (Some(Op::Pow), Some(Op::And) | Some(Op::Or) | Some(Op::Imply)) => false,
@@ -828,6 +946,8 @@ impl Type {
             Jud(_) => Some(Op::Jud),
             Nec(_) => Some(Op::Nec),
             Pos(_) => Some(Op::Pos),
+            Qu(_) => Some(Op::Qu),
+            Q(_) => Some(Op::Q),
         }
     }
 
@@ -843,6 +963,18 @@ impl Type {
         if let Type::Imply(ab) = self {
             if let Type::False = ab.1 {Some(&ab.0)} else {None}
         } else {None}
+    }
+
+    pub fn as_nec(&self) -> Option<&Type> {
+        if let Type::Nec(a) = self {Some(a)} else {None}
+    }
+
+    pub fn as_pos(&self) -> Option<&Type> {
+        if let Type::Pos(a) = self {Some(a)} else {None}
+    }
+
+    pub fn as_qu(&self) -> Option<&Type> {
+        if let Type::Qu(a) = self {Some(a)} else {None}
     }
 
     pub fn as_eq(&self) -> Option<(&Type, &Type)> {
@@ -955,6 +1087,8 @@ impl fmt::Display for Type {
             Jud(ab) => write!(w, "{} : {}", ab.0.to_str(false, op), ab.1.to_str(true, op))?,
             Nec(a) => write!(w, "□{}", a.to_str(false, op))?,
             Pos(a) => write!(w, "◇{}", a.to_str(false, op))?,
+            Qu(a) => write!(w, "~{}", a.to_str(false, op))?,
+            Q(ab) => write!(w, "{} ~~ {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
         }
         Ok(())
     }
@@ -984,6 +1118,8 @@ impl Type {
             Jud(_) => true,
             Nec(_) => true,
             Pos(_) => true,
+            Qu(_) => true,
+            Q(_) => true,
         }
     }
 
@@ -1017,6 +1153,8 @@ impl Type {
             Jud(ab) => jud(ab.0.lift(), ab.1.lift()),
             Nec(a) => nec(a.lift()),
             Pos(a) => pos(a.lift()),
+            Qu(a) => qu(a.lift()),
+            Q(ab) => q(ab.0.lift(), ab.1.lift()),
         }
     }
 
@@ -1048,7 +1186,8 @@ impl Type {
                 true
             }
             (Nec(a), Nec(b)) |
-            (Pos(a), Pos(b)) => {
+            (Pos(a), Pos(b)) |
+            (Qu(a), Qu(b)) => {
                 let (a, b) = if contra {(b, a)} else {(a, b)};
                 a.bind(contra, b, bind)
             }
@@ -1056,7 +1195,8 @@ impl Type {
             (Or(ab), Or(cd)) |
             (App(ab), App(cd)) |
             (Sd(ab), Sd(cd)) |
-            (Jud(ab), Jud(cd)) => {
+            (Jud(ab), Jud(cd)) |
+            (Q(ab), Q(cd)) => {
                 let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
                 if !ab.0.bind(contra, &cd.0, bind) {return false};
                 if !ab.1.bind(contra, &cd.1, bind) {return false};
@@ -1117,6 +1257,8 @@ impl Type {
             Jud(ab) => jud(ab.0.replace(bind), ab.1.replace(bind)),
             Nec(a) => nec(a.replace(bind)),
             Pos(a) => pos(a.replace(bind)),
+            Qu(a) => qu(a.replace(bind)),
+            Q(ab) => q(ab.0.replace(bind), ab.1.replace(bind)),
         }
     }
 
@@ -1156,11 +1298,13 @@ impl Type {
             (x, Or(ab)) if x.has_(contra, &ab.0) || x.has_(contra, &ab.1) => true,
             (All(a), All(b)) |
             (Nec(a), Nec(b)) |
-            (Pos(a), Pos(b)) if a.has_(contra, b) => true,
+            (Pos(a), Pos(b)) |
+            (Qu(a), Qu(b)) if a.has_(contra, b) => true,
             (Sym(a), Sym(b)) if a == b => true,
             (App(ab), App(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             (Sd(ab), Sd(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             (Jud(ab), Jud(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
+            (Q(ab), Q(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             _ => false,
         }
     }
@@ -1366,6 +1510,8 @@ pub fn sd(a: Type, b: Type) -> Type {Type::Sd(Box::new((a, b)))}
 pub fn jud(a: Type, b: Type) -> Type {Type::Jud(Box::new((a, b)))}
 pub fn nec(a: Type) -> Type {Type::Nec(Box::new(a))}
 pub fn pos(a: Type) -> Type {Type::Pos(Box::new(a))}
+pub fn qu(a: Type) -> Type {Type::Qu(Box::new(a))}
+pub fn q(a: Type, b: Type) -> Type {Type::Q(Box::new((a, b)))}
 
 #[cfg(test)]
 mod tests {
@@ -1473,6 +1619,20 @@ mod tests {
         let a: Type = "◇a".try_into().unwrap();
         assert_eq!(a, pos(ty("a")));
         assert_eq!(format!("{}", a), "◇a".to_string());
+    }
+
+    #[test]
+    fn test_parse_ps() {
+        let a: Type = "~a".try_into().unwrap();
+        assert_eq!(a, qu(ty("a")));
+        assert_eq!(format!("{}", a), "~a".to_string());
+
+        let a: Type = "~a & (a == b)^true  ->  ~b".try_into().unwrap();
+        assert_eq!(a, pow(qu(ty("b")), and(qu(ty("a")), tauto(eq(ty("a"), ty("b"))))));
+
+        let a: Type = "a ~~ b".try_into().unwrap();
+        assert_eq!(a, q(ty("a"), ty("b")));
+        assert_eq!(format!("{}", a), "a ~~ b".to_string());
     }
 
     #[test]
@@ -1602,6 +1762,13 @@ mod tests {
         let y: Type = "qu'(true)".try_into().unwrap();
         let mut bind = vec![];
         assert!(x.lift().bind(false, &y, &mut bind));
+
+        let x: Type = "(~b)^(~a & (a == b)^true)".try_into().unwrap();
+        let mut bind = vec![];
+        assert!(x.bind(false, &x, &mut bind));
+        let mut bind = vec![];
+        assert!(x.clone().lift().bind(false, &x, &mut bind));
+        assert!(x.has_bound(&x));
     }
 
     #[test]
