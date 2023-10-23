@@ -1,10 +1,10 @@
-fn test_refl a -> a {
+fn test_refl : a -> a {
     x : a;
     let y = () : a;
     return y;
 }
 
-fn test_sd sd(a, b) -> sd(b, a) {
+fn test_sd : sd(a, b) -> sd(b, a) {
     x : sd(a, b);
     use std::sd_symmetry;
     let r = sd_symmetry(x) : sd(b, a);
@@ -12,18 +12,34 @@ fn test_sd sd(a, b) -> sd(b, a) {
 }
 
 /*
-fn test_pow a -> a^b {
+fn test_pow : a -> a^b {
     x : a;
     let r = () : a^b;
     return r;
 }
 */
 
-fn foo true -> (a^b -> a^b) {
-    fn f a^b -> a^b {
+fn foo : true -> (a^b -> a^b) {
+    fn f : a^b -> a^b {
         x : a^b;
         return x;
     }
     return f;
+}
+
+sym foo;
+sym bar;
+sym p;
+
+fn test :
+    (b, foo'(a1)) & (b, bar'(a2)) &
+    (foo'(a1) : p') & (bar'(a2) : p')
+-> false {
+    arg : (b, foo'(a1)) & (b, bar'(a2)) & (foo'(a1) : p') & (bar'(a2) : p');
+    use std::ava_collide;
+    let x = ava_collide(arg) : !sd(foo', bar');
+    let y = () : sd(foo', bar');
+    let r = x(y) : false;
+    return r;
 }
 

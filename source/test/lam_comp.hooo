@@ -1,7 +1,7 @@
-fn lam_transitivity b^a & c^b -> a => c {
+fn lam_transitivity : b^a & c^b -> a => c {
     x : b^a;
     y : c^b;
-    lam f a => c {
+    lam f : a => c {
         z : a;
         let x2 = x(z) : b;
         let x3 = y(x2) : c;

@@ -1,5 +1,6 @@
 _seps: "',(){}=-<>^&|!-□◇~"
 
+22 pair = ["(" .w? .s!.(, type_or_fun:"arg") .w? ")"]
 21 jud = [type_or_pow:"left" .w? ":":"jud" .w? type_or_fun:"right"]
 20 sd = ["sd(":"sd" .w? type_or_fun:"left" , type_or_fun:"right" .w? ")"]
 19 or = .s!([.w? "|" .w?] and:"arg")
@@ -10,12 +11,12 @@ _seps: "',(){}=-<>^&|!-□◇~"
 14 app_left = var:"var"
 13 app = [!"all(" !"excm(" !"sd(" app_left:"left" "(" .w? .s!(, type_or_fun:"arg") .w? ")"]
 12 all = ["all(":"all" .w? type_or_fun:"arg" .w? ")"]
-11 type_or_fun = {fun:"pow" type}
+11 type_or_fun = fun:"bin"
 10 type_or_pow = {
-    pow:"pow"
+    pow:"bin"
     typeleft_or_un
 }
-9 fun = [type:"right" .w? "->":"pow" .w? type_or_fun:"left"]
+9 fun = [type:"right" ?[.w? "->":"pow" .w? type_or_fun:"left"]]
 8 excm = ["excm(":"excm" .w? type:"arg" .w? ")"]
 7 un = [{"!":"not" "□":"nec" "◇":"pos" "~":"qu"} typeleft_or_un:"arg"]
 6 eq = [type_or_pow:"left" .w? {
@@ -30,19 +31,19 @@ _seps: "',(){}=-<>^&|!-□◇~"
     typeleft
 }
 2 typeleft = {
-    ["(" .w? type_or_fun .w? ")"]
+    pair:"pair"
     excm:"un"
     all:"un"
-    sd:"sd"
+    sd:"bin"
     "true":"true"
     "false":"false"
     app:"app"
     var:"var"
 }
 1 type = {
-    imply:"imply"
-    eq:"eq"
-    jud:"jud"
+    imply:"bin"
+    eq:"bin"
+    jud:"bin"
     or:"or"
 }
 0 doc = [.w? type_or_fun:"type" .w?]

@@ -193,6 +193,7 @@ excm(a)    Excluded middle (sugar for `a | !a`)
 sd(a, b)   Symbolic distinction (see section [Symbolic distinction])
 ~a         Path semantical qubit (see section [Path Semantics])
 a ~~ b     Path semantical quality (see section [Path Semantics])
+(a, b)     Ordered pair (see section [Avatar Logic])
 true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types
@@ -413,3 +414,81 @@ hence the name "qubit".
 One can also think about it as introducing a new proposition.
 
 Path semantical quality and qubit are tautological congruent.
+
+### Avatar Logic
+
+Avatar Logic is an alternative to First Order Logic
+which is more suitable for higher dimensional mathematics.
+The reason is that it gets rid of predicates and replaces
+them with binary relations, avatars and roles.
+This design generalizes better over
+multiple dimensions of evaluation.
+
+You can experiment with Avatar Logic using [Avalog](https://github.com/advancedresearch/avalog), which is a Prolog-like language.
+
+There are two basic axioms in Avatar Logic:
+
+```text
+ava_univ : !~b & (a, b) & (b : c)  ->  c(a) == b;
+ava_ava : (a, b(c)) & (b(c) : d)  ->  d(a) => b(c);
+```
+
+The first axiom `ava_univ` that if `b` is unique, (expressed as `!~b`) and `b` has role `c` (expressed as `b : c`) then it is sufficient to say `(a, b)` (an ordered pair) to determine `c(a) == b`.
+
+In some sense, `ava_univ` says what it means to "compute" `b`. Another way to think of it is as a property `c` of `a`. When `b` is unique,
+it is forced to behave that way for all other objects.
+Every other object needs to use `b` the same way.
+This is why `b` is thought of as a unique universal binary relation.
+
+However, unique universal binary relations are too restrictive in many cases. This is why need an "avatar". An avatar is a symbol which wraps another expression, e.g. `ava'(a)` where `ava` is the avatar and `a` is the expression wrapped by `ava`.
+
+The second axiom `ava_ava` tells that when `b(c) : d`
+it is sufficient to say `(a, b(c))` to determine
+`d(a) => b(c)`. Notice that this is a weaker conclusion.
+
+For example, if `(carl', parent'(alice'))` and
+`parent'(alice') : mom'` then `mom'(carl') => parent'(alice')`. In this case, Carl is allowed to
+have more than two moms.
+
+If `~parent'(alice')`, then Carl has only one mom Alice, because `mom'(carl') == parent'(alice')`.
+
+Avatar Logic is well suited to handle complex relations
+between objects that are often found in the natural world, such as family relations. In some sense,
+Avatar Logic handles "exceptions to the rule" very well.
+
+There is one more axiom that handles collision between avatars:
+
+```text
+ava_collide :
+  (b, q1(a1)) & (b, q2(a2)) &
+  (q1(a1) : p) & (q2(a2) : p) -> !sd(q1, q2)
+```
+
+For example, if you try to use `foo'` and `bar'` as avatars in the same place,
+one can prove that they will collide:
+
+```text
+sym foo;
+sym bar;
+sym p;
+
+fn test :
+    (b, foo'(a1)) & (b, bar'(a2)) &
+    (foo'(a1) : p') & (bar'(a2) : p')
+-> false {
+    arg : (b, foo'(a1)) & (b, bar'(a2)) &
+          (foo'(a1) : p') & (bar'(a2) : p');
+    use std::ava_collide;
+    let x = ava_collide(arg) : !sd(foo', bar');
+    let y = () : sd(foo', bar');
+    let r = x(y) : false;
+    return r;
+}
+```
+
+If you want to treat a role `p` as unique for all its members,
+then you can use the following theorem:
+
+```text
+ava_lower_univ : !~p & (b, a) & (a : p) -> p(b) == a;
+```

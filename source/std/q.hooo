@@ -52,12 +52,12 @@ fn q_transitivity : (a ~~ b) & (b ~~ c)  ->  (a ~~ c) {
     let y3 = fst(y2) : b == c;
     use eq_transitivity;
     let x4 = eq_transitivity(x3, y3) : a == c;
-    
+
     use snd;
     let x5 = snd(x2) : ~a & ~b;
     let y5 = snd(y2) : ~b & ~c;
     use and_transitivity;
-    let x6 = and_transitivity(x5, y5) : ~a & ~c;    
+    let x6 = and_transitivity(x5, y5) : ~a & ~c;
 
     use refl;
     let x7 = refl(x4, x6) : (a == c) & ~a & ~c;
