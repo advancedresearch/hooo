@@ -352,7 +352,12 @@ There is a lot ot take in, so take your time.
 Path Semantics is just one approach to higher dimensional programming.
 Another approach is Cubical Type Theory.
 
-Since higher dimensions often explode in combinatorial complexity, there is no way we can explore the entire space of possibilities. Therefore, we have to be satisfied with proving some properties across multiple dimensions.
+#### Changing perspective of type hierachies
+
+Since higher dimensions often explode in combinatorial complexity,
+there is no way we can explore the entire space of possibilities.
+Therefore, we have to be satisfied with proving some properties
+across multiple dimensions.
 
 Naturally, we are used to think of types as a way of organizing data. However, if you have a powerful logic
 such as HOOO EP, then it also makes sense to reason
@@ -379,9 +384,12 @@ This means, that when one assumes equality in some
 moment of time between two propositions that can be
 proved to be symbolic distinct, one is allowed to
 introduce quality and hence get a way to propagate
-new quality proposition in future moments.
+new quality propositions in future moments.
 
-The reason for this mechanism is that in any moment of time, the information is relative to its internal state. So, there must be at least two separate physical states to store information from the past.
+The reason for this mechanism is that in any moment of time,
+the information is relative to its internal state.
+So, there must be at least two separate physical states
+to store information from the past.
 Path semantical quality is a logical model of this phenomena.
 
 If you find this hard to think about, then you can just
