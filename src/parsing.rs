@@ -75,67 +75,6 @@ fn run_ctx(
             break;
         }
        
-        match parse_var(meta_cache, "axiom", convert, ignored) {
-            Ok((range, (name, args, ty))) => {
-                convert.update(range);
-                if loader.run {
-                    if args.len() == 0 {
-                        ctx.new_term((name, Term::Axiom(ty)), search).map_err(|err| (range, err))?;
-                    } else {
-                        return Err((range, "Parsing axiom".into()));
-                    }
-                }
-                continue;
-            }
-            Err(Some(err)) => return Err((start_range, err)),
-            Err(None) => {}
-        } 
- 
-        match parse_var(meta_cache, "var", convert, ignored) {
-            Ok((range, (name, args, ty))) => {
-                convert.update(range);
-                if loader.run {
-                    if args.len() == 0 {
-                        ctx.new_term((name, Term::Var(ty)), search).map_err(|err| (range, err))?;
-                    } else {
-                        return Err((range, "Parsing variable".into()));
-                    }
-                }
-                continue;
-            }
-            Err(Some(err)) => return Err((start_range, err)),
-            Err(None) => {}
-        }
-
-        if let Ok((range, (name, args, ty))) = parse_var(meta_cache, "app", convert, ignored) {
-            convert.update(range);
-            if loader.run {
-                if args.len() >= 1 {
-                    ctx.new_term((name, Term::App(args[0].clone(), args[1..].into(), ty)), search)
-                        .map_err(|err| (range, err))?;
-                } else {
-                    return Err((range, "Parsing application: Expected arguments".into()));
-                }
-            }
-            continue;
-        } else if let Ok((range, (name, args, ty))) = parse_var(meta_cache, "match", convert, ignored) {
-            convert.update(range);
-            if loader.run {
-                if args.len() == 3 || args.len() == 1 {
-                    ctx.new_term((name, Term::Match(args, ty)), search).map_err(|err| (range, err))?;
-                } else {
-                    return Err((range, "Parsing application".into()));
-                }
-            }
-            continue;
-        } else if let Ok((range, (name, _, ty))) = parse_var(meta_cache, "check", convert, ignored) {
-            convert.update(range);
-            if loader.run {
-                ctx.new_term((name, Term::Check(ty)), search).map_err(|err| (range, err))?;
-            }
-            continue;
-        }
-
         match parse_var(meta_cache, "fun_decl", convert, ignored) {
             Ok((range, (name, _, ty))) => {
                 convert.update(range);
@@ -175,28 +114,124 @@ fn run_ctx(
             Err(None) => {}
         }
 
-        if let Ok((range, (name, _, ty))) = parse_var(meta_cache, "lam_decl", convert, ignored) {
+        if let Ok((range, val)) = convert.meta_string("sym") {
             convert.update(range);
-            if loader.run {
-                if !loader.silent {println!("lam {}", name)};
-                ctx.lam(range, name.clone(), ty.clone(), search, |ctx, search| {
-                    match run_ctx(meta_cache, ctx, search, loader, "script", convert, ignored) {
-                        Ok((range, ret)) => {
-                            convert.update(range);
-                            if let Some(ret) = ret {
-                                if let Type::Imply(ab) = &ty {
-                                    if ctx.has_term_ty(&ret, &ab.1) {
-                                        ctx.add_proof(ty.clone());
+            ctx.symbols.push(val);
+            continue;
+        }
+
+        if !loader.run {
+            let range = convert.ignore();
+            convert.update(range);
+            continue;
+        }        
+
+        match parse_var(meta_cache, "axiom", convert, ignored) {
+            Ok((range, (name, args, ty))) => {
+                convert.update(range);
+                if loader.run {
+                    if args.len() == 0 {
+                        ctx.new_term((name, Term::Axiom(ty)), search).map_err(|err| (range, err))?;
+                    } else {
+                        return Err((range, "Parsing axiom".into()));
+                    }
+                }
+                continue;
+            }
+            Err(Some(err)) => return Err((start_range, err)),
+            Err(None) => {}
+        } 
+ 
+        match parse_var(meta_cache, "var", convert, ignored) {
+            Ok((range, (name, args, ty))) => {
+                convert.update(range);
+                if loader.run {
+                    if args.len() == 0 {
+                        ctx.new_term((name, Term::Var(ty)), search).map_err(|err| (range, err))?;
+                    } else {
+                        return Err((range, "Parsing variable".into()));
+                    }
+                }
+                continue;
+            }
+            Err(Some(err)) => return Err((start_range, err)),
+            Err(None) => {}
+        }
+
+        match parse_var(meta_cache, "app", convert, ignored) {
+            Ok((range, (name, args, ty))) => {
+                convert.update(range);
+                if loader.run {
+                    if args.len() >= 1 {
+                        ctx.new_term((name, Term::App(args[0].clone(), args[1..].into(), ty)), search)
+                            .map_err(|err| (range, err))?;
+                    } else {
+                        return Err((range, "Parsing application: Expected arguments".into()));
+                    }
+                }
+                continue;
+            }
+            Err(Some(err)) => return Err((start_range, err)),
+            Err(None) => {}
+        }
+
+        match parse_var(meta_cache, "match", convert, ignored) {
+            Ok((range, (name, args, ty))) => {
+                convert.update(range);
+                if loader.run {
+                    if args.len() == 3 || args.len() == 1 {
+                        ctx.new_term((name, Term::Match(args, ty)), search).map_err(|err| (range, err))?;
+                    } else {
+                        return Err((range, "Parsing application".into()));
+                    }
+                }
+                continue;
+            }
+            Err(Some(err)) => return Err((start_range, err)),
+            Err(None) => {}
+        }
+
+        match parse_var(meta_cache, "check", convert, ignored) {
+            Ok((range, (name, _, ty))) => {
+                convert.update(range);
+                if loader.run {
+                    ctx.new_term((name, Term::Check(ty)), search).map_err(|err| (range, err))?;
+                }
+                continue;
+            }
+            Err(Some(err)) => return Err((start_range, err)),
+            Err(None) => {}
+        }
+
+        match parse_var(meta_cache, "lam_decl", convert, ignored) {
+            Ok((range, (name, _, ty))) => {
+                convert.update(range);
+                if loader.run {
+                    if !loader.silent {println!("lam {}", name)};
+                    ctx.lam(range, name.clone(), ty.clone(), search, |ctx, search| {
+                        match run_ctx(meta_cache, ctx, search, loader, "script", convert, ignored) {
+                            Ok((range, ret)) => {
+                                convert.update(range);
+                                if let Some(ret) = ret {
+                                    if let Type::Imply(ab) = &ty {
+                                        if ctx.has_term_ty(&ret, &ab.1) {
+                                            ctx.add_proof(ty.clone());
+                                        }
                                     }
                                 }
+                                Ok(())
                             }
-                            Ok(())
+                            Err(err) => Err(err),
                         }
-                        Err(err) => Err(err),
-                    }
-                })?;
+                    })?;
+                }
+                continue;
             }
-        } else if let Ok((range, val)) = convert.meta_string("return") {
+            Err(Some(err)) => return Err((start_range, err)),
+            Err(None) => {}
+        }
+
+        if let Ok((range, val)) = convert.meta_string("return") {
             convert.update(range);
             if loader.run {
                 if !ctx.has_term(&val) {return Err((range, format!("Could not find `{}`", val)))};
@@ -209,9 +244,6 @@ fn run_ctx(
                 let ty = loader.load_fun(&ns, &fun).map_err(|err| (range, err))?;
                 ctx.new_term((fun, Term::FunDecl(ty)), search).map_err(|err| (range, err))?;
             }
-        } else if let Ok((range, val)) = convert.meta_string("sym") {
-            convert.update(range);
-            ctx.symbols.push(val);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -307,22 +339,10 @@ fn parse_ty(
         if let Ok(range) = convert.end_node(node) {
             convert.update(range);
             break;
-        } else if let Ok((range, val)) = parse_bin("imply", convert, ignored) {
-            convert.update(range);
-            ty = Some(val);
-        } else if let Ok((range, val)) = parse_bin("pow", convert, ignored) {
-            convert.update(range);
-            ty = Some(val);
-        } else if let Ok((range, val)) = parse_bin("eq", convert, ignored) {
-            convert.update(range);
-            ty = Some(val);
-        } else if let Ok((range, val)) = parse_bin("sd", convert, ignored) {
-            convert.update(range);
-            ty = Some(val);
-        } else if let Ok((range, val)) = parse_bin("jud", convert, ignored) {
-            convert.update(range);
-            ty = Some(val);
         } else if let Ok((range, val)) = parse_or("or", convert, ignored) {
+            convert.update(range);
+            ty = Some(val);
+        } else if let Ok((range, val)) = parse_pair("pair", convert, ignored) {
             convert.update(range);
             ty = Some(val);
         } else if let Ok((range, (f, args))) = parse_app("app", convert, ignored) {
@@ -333,6 +353,9 @@ fn parse_ty(
             }
             ty = Some(val);
         } else if let Ok((range, val)) = parse_un("un", convert, ignored) {
+            convert.update(range);
+            ty = Some(val);
+        } else if let Ok((range, val)) = parse_bin("bin", convert, ignored) {
             convert.update(range);
             ty = Some(val);
         } else if let Ok((range, _)) = convert.meta_bool("true") {
@@ -355,6 +378,39 @@ fn parse_ty(
     }
 
     let ty = ty.ok_or(())?;
+    Ok((convert.subtract(start), ty))
+}
+
+fn parse_pair(
+    node: &str,
+    mut convert: Convert,
+    ignored: &mut Vec<Range>
+) -> Result<(Range, Type), ()> {
+    let start = convert;
+    let start_range = convert.start_node(node)?;
+    convert.update(start_range);
+
+    let mut args: Vec<Type> = vec![];
+    loop {
+        if let Ok(range) = convert.end_node(node) {
+            convert.update(range);
+            break;
+        } else if let Ok((range, val)) = parse_ty("arg", convert, ignored) {
+            convert.update(range);
+            args.push(val);
+        } else {
+            let range = convert.ignore();
+            convert.update(range);
+            ignored.push(range);
+        }
+    }
+
+    if args.len() == 0 {return Err(())};
+
+    let mut ty: Type = args.pop().unwrap();
+    while let Some(a) = args.pop() {
+        ty = pair(a, ty);
+    }
     Ok((convert.subtract(start), ty))
 }
 
@@ -532,11 +588,19 @@ fn parse_bin(
         } else if let Ok((range, _)) = convert.meta_bool("q") {
             convert.update(range);
             op = Some(Op::Q);
+        } else if let Ok((range, _)) = convert.meta_bool("pair") {
+            convert.update(range);
+            op = Some(Op::Pair);
         } else {
             let range = convert.ignore();
             convert.update(range);
             ignored.push(range);
         }
+    }
+
+    if left.is_none() {
+        let ty = right.ok_or(())?;
+        return Ok((convert.subtract(start), ty));
     }
 
     let left = left.ok_or(())?;
@@ -550,6 +614,7 @@ fn parse_bin(
         Op::Sd => sd(left, right),
         Op::Jud => jud(left, right),
         Op::Q => q(left, right),
+        Op::Pair => pair(left, right),
         _ => return Err(()),
     };
     Ok((convert.subtract(start), ty))

@@ -6,3 +6,33 @@ fn ps_core : (a ~~ b) & (a : c) & (b : d) -> (c ~~ d) {
     return r;
 }
 
+fn ps_sesh_mem : !(b ~~ b) & (a : b)  ->  !(a ~~ a) {
+    x : !(b ~~ b);
+    y : (a : b);
+    use ps_core;
+    let x2 = ps_core() : (a ~~ a) & (a : b) & (a : b) => (b ~~ b);
+    use modus_tollens;
+    let x3 = modus_tollens(x2) : !(b ~~ b) => !((a ~~ a) & (a : b) & (a : b));
+    let x4 = x3(x) : !((a ~~ a) & (a : b) & (a : b));
+    lam f : !(a ~~ a) {
+        x5 : a ~~ a;
+        let r = x4(x5, y, y) : false;
+        return r;
+    }
+    return f;
+}
+
+fn ps_nqu_mem : !~b & (a : b)  ->  !~a {
+    x : !~b;
+    y : (a : b);
+    use q_to_qu;
+    let x2 = q_to_qu() : (b ~~ b) => ~b;
+    use imply_transitivity;
+    let x3 = imply_transitivity(x2, x) : !(b ~~ b);
+    use ps_sesh_mem;
+    let x4 = ps_sesh_mem(x3, y) : !(a ~~ a);
+    use qu_to_q;
+    let x5 = qu_to_q() : ~a => (a ~~ a);
+    let r = imply_transitivity(x5, x4) : !~a;
+    return r;
+}

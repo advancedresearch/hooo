@@ -415,6 +415,84 @@ One can also think about it as introducing a new proposition.
 
 Path semantical quality and qubit are tautological congruent.
 
+### Avatar Logic
+
+Avatar Logic is an alternative to First Order Logic
+which is more suitable for higher dimensional mathematics.
+The reason is that it gets rid of predicates and replaces
+them with binary relations, avatars and roles.
+This design generalizes better over
+multiple dimensions of evaluation.
+
+You can experiment with Avatar Logic using [Avalog](https://github.com/advancedresearch/avalog), which is a Prolog-like language.
+
+There are two basic axioms in Avatar Logic:
+
+```text
+ava_univ : !~b & (a, b) & (b : c)  ->  c(a) == b;
+ava_ava : (a, b(c)) & (b(c) : d)  ->  d(a) => b(c);
+```
+
+The first axiom `ava_univ` that if `b` is unique, (expressed as `!~b`) and `b` has role `c` (expressed as `b : c`) then it is sufficient to say `(a, b)` (an ordered pair) to determine `c(a) == b`.
+
+In some sense, `ava_univ` says what it means to "compute" `b`. Another way to think of it is as a property `c` of `a`. When `b` is unique,
+it is forced to behave that way for all other objects.
+Every other object needs to use `b` the same way.
+This is why `b` is thought of as a unique universal binary relation.
+
+However, unique universal binary relations are too restrictive in many cases. This is why need an "avatar". An avatar is a symbol which wraps another expression, e.g. `ava'(a)` where `ava` is the avatar and `a` is the expression wrapped by `ava`.
+
+The second axiom `ava_ava` tells that when `b(c) : d`
+it is sufficient to say `(a, b(c))` to determine
+`d(a) => b(c)`. Notice that this is a weaker conclusion.
+
+For example, if `(carl', parent'(alice'))` and
+`parent'(alice') : mom'` then `mom'(carl') => parent'(alice')`. In this case, Carl is allowed to
+have more than two moms.
+
+If `~parent'(alice')`, then Carl has only one mom Alice, because `mom'(carl') == parent'(alice')`.
+
+Avatar Logic is well suited to handle complex relations
+between objects that are often found in the natural world, such as family relations. In some sense,
+Avatar Logic handles "exceptions to the rule" very well.
+
+There is one more axiom that handles collision between avatars:
+
+```text
+ava_collide :
+  (b, q1(a1)) & (b, q2(a2)) &
+  (q1(a1) : p) & (q2(a2) : p) -> !sd(q1, q2)
+```
+
+For example, if you try to use `foo'` and `bar'` as avatars in the same place,
+one can prove that they will collide:
+
+```text
+sym foo;
+sym bar;
+sym p;
+
+fn test :
+    (b, foo'(a1)) & (b, bar'(a2)) &
+    (foo'(a1) : p') & (bar'(a2) : p')
+-> false {
+    arg : (b, foo'(a1)) & (b, bar'(a2)) &
+          (foo'(a1) : p') & (bar'(a2) : p');
+    use std::ava_collide;
+    let x = ava_collide(arg) : !sd(foo', bar');
+    let y = () : sd(foo', bar');
+    let r = x(y) : false;
+    return r;
+}
+```
+
+If you want to treat a role `p` as unique for all its members,
+then you can use the following theorem:
+
+```text
+ava_lower_univ : !~p & (b, a) & (a : p) -> p(b) == a;
+```
+
 */
 
 use std::sync::Arc;
@@ -493,7 +571,7 @@ impl Context {
             Sym(s) => self.is_symbol_declared(s),
             True | False | Ty(_) | AllTy(_) => true,
             Pow(ab) | And(ab) | Or(ab) | Imply(ab) |
-            App(ab) | Sd(ab) | Jud(ab) | Q(ab) =>
+            App(ab) | Sd(ab) | Jud(ab) | Q(ab) | Pair(ab) =>
                 self.is_type_declared(&ab.0) &&
                 self.is_type_declared(&ab.1),
             All(a) | Nec(a) | Pos(a) | Qu(a) => self.is_type_declared(a),
@@ -887,6 +965,8 @@ pub enum Type {
     Qu(Box<Type>),
     /// Path semantical quality.
     Q(Box<(Type, Type)>),
+    /// Avatar Logic pair.
+    Pair(Box<(Type, Type)>),
 }
 
 #[derive(Copy, Clone)]
@@ -907,6 +987,7 @@ pub enum Op {
     Pos,
     Qu,
     Q,
+    Pair,
 }
 
 fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
@@ -923,7 +1004,7 @@ fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
     if ty.as_excm().is_some() {return false};
     match ty {
         True | False | Ty(_) | AllTy(_) | All(_) |
-        App(_) | Sym(_) | Nec(_) | Qu(_) => false,
+        App(_) | Sym(_) | Nec(_) | Qu(_) | Pair(_) => false,
         _ => {
             match (ty.op(), parent_op) {
                 (Some(Op::Pow), Some(Op::And) | Some(Op::Or) | Some(Op::Imply)) => false,
@@ -956,6 +1037,7 @@ impl Type {
             Pos(_) => Some(Op::Pos),
             Qu(_) => Some(Op::Qu),
             Q(_) => Some(Op::Q),
+            Pair(_) => Some(Op::Pair),
         }
     }
 
@@ -1097,6 +1179,7 @@ impl fmt::Display for Type {
             Pos(a) => write!(w, "◇{}", a.to_str(false, op))?,
             Qu(a) => write!(w, "~{}", a.to_str(false, op))?,
             Q(ab) => write!(w, "{} ~~ {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
+            Pair(ab) => write!(w, "({}, {})", ab.0.to_str(true, op), ab.1.to_str(true, op))?,
         }
         Ok(())
     }
@@ -1128,6 +1211,7 @@ impl Type {
             Pos(_) => true,
             Qu(_) => true,
             Q(_) => true,
+            Pair(_) => true,
         }
     }
 
@@ -1163,6 +1247,7 @@ impl Type {
             Pos(a) => pos(a.lift()),
             Qu(a) => qu(a.lift()),
             Q(ab) => q(ab.0.lift(), ab.1.lift()),
+            Pair(ab) => pair(ab.0.lift(), ab.1.lift()),
         }
     }
 
@@ -1204,7 +1289,8 @@ impl Type {
             (App(ab), App(cd)) |
             (Sd(ab), Sd(cd)) |
             (Jud(ab), Jud(cd)) |
-            (Q(ab), Q(cd)) => {
+            (Q(ab), Q(cd)) |
+            (Pair(ab), Pair(cd)) => {
                 let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
                 if !ab.0.bind(contra, &cd.0, bind) {return false};
                 if !ab.1.bind(contra, &cd.1, bind) {return false};
@@ -1267,6 +1353,7 @@ impl Type {
             Pos(a) => pos(a.replace(bind)),
             Qu(a) => qu(a.replace(bind)),
             Q(ab) => q(ab.0.replace(bind), ab.1.replace(bind)),
+            Pair(ab) => pair(ab.0.replace(bind), ab.1.replace(bind)),
         }
     }
 
@@ -1313,6 +1400,7 @@ impl Type {
             (Sd(ab), Sd(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             (Jud(ab), Jud(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             (Q(ab), Q(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
+            (Pair(ab), Pair(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
             _ => false,
         }
     }
@@ -1520,6 +1608,7 @@ pub fn nec(a: Type) -> Type {Type::Nec(Box::new(a))}
 pub fn pos(a: Type) -> Type {Type::Pos(Box::new(a))}
 pub fn qu(a: Type) -> Type {Type::Qu(Box::new(a))}
 pub fn q(a: Type, b: Type) -> Type {Type::Q(Box::new((a, b)))}
+pub fn pair(a: Type, b: Type) -> Type {Type::Pair(Box::new((a, b)))}
 
 #[cfg(test)]
 mod tests {
@@ -1641,6 +1730,13 @@ mod tests {
         let a: Type = "a ~~ b".try_into().unwrap();
         assert_eq!(a, q(ty("a"), ty("b")));
         assert_eq!(format!("{}", a), "a ~~ b".to_string());
+    }
+
+    #[test]
+    fn test_parse_ava() {
+        let a: Type = "(a, b)".try_into().unwrap();
+        assert_eq!(a, pair(ty("a"), ty("b")));
+        assert_eq!(format!("{}", a), "(a, b)".to_string());
     }
 
     #[test]

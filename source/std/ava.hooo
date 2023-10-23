@@ -1,0 +1,37 @@
+fn ava_univ : !~b & (a, b) & (b : c)  ->  c(a) == b {
+    axiom ava_univ : !~b & (a, b) & (b : c) -> c(a) == b;
+    x : !~b & (a, b) & (b : c);
+    let r = ava_univ(x) : c(a) == b;
+    return r;
+}
+
+fn ava_ava : (a, b(c)) & (b(c) : d)  ->  d(a) => b(c) {
+    axiom ava_ava : (a, b(c)) & (b(c) : d) -> d(a) => b(c);
+    x : (a, b(c)) & (b(c) : d);
+    let r = ava_ava(x) : d(a) => b(c);
+    return r;
+}
+
+fn ava_collide :
+  (b, q1(a1)) & (b, q2(a2)) &
+  (q1(a1) : p) & (q2(a2) : p) -> !sd(q1, q2)
+{
+    axiom ava_collide :
+      (b, q1(a1)) & (b, q2(a2)) & (q1(a1) : p) & (q2(a2) : p) -> !sd(q1, q2);
+    x : (b, q1(a1)) & (b, q2(a2)) & (q1(a1) : p) & (q2(a2) : p);
+    let r = ava_collide(x) : !sd(q1, q2);
+    return r;
+}
+
+fn ava_lower_univ :
+    !~p & (b, a) & (a : p)
+-> p(b) == a {
+    x : !~p;
+    y : (b, a);
+    z : a : p;
+    use ps_nqu_mem;
+    let x2 = ps_nqu_mem(x, z) : !~a;
+    use ava_univ;
+    let r = ava_univ(x2, y, z) : p(b) == a;
+    return r;
+}
