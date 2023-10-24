@@ -352,7 +352,7 @@ There is a lot ot take in, so take your time.
 Path Semantics is just one approach to higher dimensional programming.
 Another approach is Cubical Type Theory.
 
-#### Changing perspective of type hierachies
+#### Changing perspective of type hierarchies
 
 Since higher dimensions often explode in combinatorial complexity,
 there is no way we can explore the entire space of possibilities.
@@ -428,18 +428,18 @@ You can experiment with Avatar Logic using [Avalog](https://github.com/advancedr
 There are two basic axioms in Avatar Logic:
 
 ```text
-ava_univ : !~b & (a, b) & (b : c)  ->  c(a) == b;
-ava_ava : (a, b(c)) & (b(c) : d)  ->  d(a) => b(c);
+ava_univ : !~b & (a, b) & (b : c)  ->  c(a) == b
+ava_ava : (a, b(c)) & (b(c) : d)  ->  d(a) => b(c)
 ```
 
-The first axiom `ava_univ` that if `b` is unique, (expressed as `!~b`) and `b` has role `c` (expressed as `b : c`) then it is sufficient to say `(a, b)` (an ordered pair) to determine `c(a) == b`.
+The first axiom `ava_univ` says that if `b` is unique, (expressed as `!~b`) and `b` has the role `c` (expressed as `b : c`) then it is sufficient to say `(a, b)` (an ordered pair) to determine `c(a) == b`.
 
 In some sense, `ava_univ` says what it means to "compute" `b`. Another way to think of it is as a property `c` of `a`. When `b` is unique,
 it is forced to behave that way for all other objects.
 Every other object needs to use `b` the same way.
 This is why `b` is thought of as a unique universal binary relation.
 
-However, unique universal binary relations are too restrictive in many cases. This is why need an "avatar". An avatar is a symbol which wraps another expression, e.g. `ava'(a)` where `ava` is the avatar and `a` is the expression wrapped by `ava`.
+However, unique universal binary relations are too restrictive in many cases. This is why we need an "avatar". An avatar is a symbol which wraps another expression, e.g. `ava'(a)` where `ava'` is the avatar and `a` is the expression wrapped by `ava'`.
 
 The second axiom `ava_ava` tells that when `b(c) : d`
 it is sufficient to say `(a, b(c))` to determine
@@ -447,9 +447,9 @@ it is sufficient to say `(a, b(c))` to determine
 
 For example, if `(carl', parent'(alice'))` and
 `parent'(alice') : mom'` then `mom'(carl') => parent'(alice')`. In this case, Carl is allowed to
-have more than two moms.
+have more than one mom.
 
-If `~parent'(alice')`, then Carl has only one mom Alice, because `mom'(carl') == parent'(alice')`.
+If `!~parent'(alice')`, then Carl has only one mom Alice, because `mom'(carl') == parent'(alice')`.
 
 Avatar Logic is well suited to handle complex relations
 between objects that are often found in the natural world, such as family relations. In some sense,
@@ -489,5 +489,5 @@ If you want to treat a role `p` as unique for all its members,
 then you can use the following theorem:
 
 ```text
-ava_lower_univ : !~p & (b, a) & (a : p) -> p(b) == a;
+ava_lower_univ : !~p & (b, a) & (a : p) -> p(b) == a
 ```
