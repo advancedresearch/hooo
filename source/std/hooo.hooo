@@ -135,8 +135,7 @@ fn pow_transitivity : b^a & c^b -> c^a {
     let x2 = hooo_imply(f) : (b^a & c^b)^a => c^a;
     let x3 = pow_lift(x) : (b^a)^a;
     let y3 = pow_lift(y) : (c^b)^a;
-    let x4 = refl(x3, y3) : (b^a)^a & (c^b)^a;
-    let x5 = hooo_rev_and(x4) : (b^a & c^b)^a;
+    let x5 = hooo_rev_and(x3, y3) : (b^a & c^b)^a;
     let x6 = x2(x5) : c^a;
     return x6;
 }
