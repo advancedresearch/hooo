@@ -119,9 +119,7 @@ For example, in Hooo, one can prove that function composition is possible:
 ```text
 fn pow_transitivity : b^a & c^b -> c^a {
     use hooo_imply;
-    use pow_lift;
-    use refl;
-    use hooo_rev_and;
+    use pow_and_lift;
 
     x : b^a;
     y : c^b;
@@ -141,11 +139,9 @@ fn pow_transitivity : b^a & c^b -> c^a {
     }
 
     let x2 = hooo_imply(f) : (b^a & c^b)^a => c^a;
-    let x3 = pow_lift(x) : (b^a)^a;
-    let y3 = pow_lift(y) : (c^b)^a;
-    let x5 = hooo_rev_and(x3, y3) : (b^a & c^b)^a;
-    let x6 = x2(x5) : c^a;
-    return x6;
+    let x3 = pow_and_lift(x, y) : (b^a & c^b)^a;
+    let r = x2(x3) : c^a;
+    return r;
 }
 ```
 
