@@ -144,8 +144,7 @@ fn pow_transitivity : b^a & c^b -> c^a {
     let x2 = hooo_imply(f) : (b^a & c^b)^a => c^a;
     let x3 = pow_lift(x) : (b^a)^a;
     let y3 = pow_lift(y) : (c^b)^a;
-    let x4 = refl(x3, y3) : (b^a)^a & (c^b)^a;
-    let x5 = hooo_rev_and(x4) : (b^a & c^b)^a;
+    let x5 = hooo_rev_and(x3, y3) : (b^a & c^b)^a;
     let x6 = x2(x5) : c^a;
     return x6;
 }
@@ -194,6 +193,7 @@ excm(a)    Excluded middle (sugar for `a | !a`)
 sd(a, b)   Symbolic distinction (see section [Symbolic distinction])
 ~a         Path semantical qubit (see section [Path Semantics])
 a ~~ b     Path semantical quality (see section [Path Semantics])
+(a, b)     Ordered pair (see section [Avatar Logic])
 true       True (unit type)
 false      False (empty type)
 all(a)     Lifts `a` to matching all types
