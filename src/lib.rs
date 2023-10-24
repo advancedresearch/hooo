@@ -348,7 +348,7 @@ hence being a style of "point-free" theorem proving.
 
 The foundation of higher dimensional programming is notoriously hard,
 so you should not feel bad if you do not understand the entire theory.
-There is a lot ot take in, so take your time.
+There is a lot to take in, so take your time.
 
 Path Semantics is just one approach to higher dimensional programming.
 Another approach is Cubical Type Theory.
@@ -414,6 +414,42 @@ hence the name "qubit".
 One can also think about it as introducing a new proposition.
 
 Path semantical quality and qubit are tautological congruent.
+
+### Uniqueness, solutions and the imaginary
+
+Path semantical quality `~~`, or qubit `~`, are often used as
+"flags" for other theories to express uniqueness or solutions.
+
+- `!~a` an expression that `a` is unique
+- `~a` an expression that `a` has some solution
+
+By default, you are not able to prove `~a` or `!~a`,
+which means that you have a choice.
+You can design your theory leaning toward `~a`,
+or you can go in the opposite direction and lean toward `!~a`.
+The direction a theory is designed is called "language bias".
+Notice that they both are expressions of the underlying idea "there exists a solution".
+The way they differ is in plurarity,
+where `!~a` means "one" and `~a` means "many".
+
+Theories that lean toward `!~a` are called "Seshatic"
+from [Seshatism](https://github.com/advancedresearch/path_semantics/blob/master/papers-wip2/seshatism.pdf).
+On the other hand, theories that lean toward `~a` are called "Platonic" from Platonism.
+Seshatism is the dual of Platonism.
+They differ from each other in the way existence is
+biased by language, either toward "one-ness" (concrete)
+or "many-ness" (abstract).
+
+Intuitively, an abstract object can be copied,
+so it has a kind of "many-nesss" built into it.
+A concrete object can not be copied,
+because this would destroy its uniqueness.
+
+When mathematics works in absence of solutions
+we call it "imaginary" that has some kind of "zero-ness" to it,
+e.g. the imaginary unit `i` in complex numbers.
+In logic, this is simply theorems that do not need
+`!~a` or `~a`.
 
 ### Avatar Logic
 
