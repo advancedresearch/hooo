@@ -193,3 +193,41 @@ fn pow_modus_tollens : (a -> b)  ->  (!b -> !a) {
     return r;
 }
 
+fn pow_and_lift : a^b & c^d -> (a^b & c^d)^e {
+    use pow_lift;
+    use hooo_rev_and;
+
+    x : a^b;
+    y : c^d;
+    let x2 = pow_lift(x) : (a^b)^e;
+    let y2 = pow_lift(y) : (c^d)^e;
+    let r = hooo_rev_and(x2, y2) : (a^b & c^d)^e;
+    return r;
+}
+
+fn pow_or_lift : a^b | c^d -> (a^b | c^d)^e {
+    use hooo_rev_or;
+
+    x : a^b | c^d;
+
+    lam g : a^b => (a^b)^e | (c^d)^e {
+        y : a^b;
+        use pow_lift;
+        let y2 = pow_lift(y) : (a^b)^e;
+        use left;
+        let r = left(y2) : (a^b)^e | (c^d)^e;
+        return r;
+    }
+    lam h : c^d => (a^b)^e | (c^d)^e {
+        y3 : c^d;
+        use pow_lift;
+        let y4 = pow_lift(y3) : (c^d)^e;
+        use right;
+        let r = right(y4) : (a^b)^e | (c^d)^e;
+        return r;
+    }
+    let x2 = match x (g, h) : (a^b)^e | (c^d)^e;
+    let r = hooo_rev_or(x2) : (a^b | c^d)^e;
+    return r;
+}
+
