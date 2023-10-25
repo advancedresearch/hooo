@@ -32,20 +32,25 @@ impl MetaCache {
     }
 
     pub fn store(self, file: &str) {
-        use std::fs::File;    
+        use std::fs::File;
+        use deflate::write::DeflateEncoder;
+        use deflate::Compression;
 
         let store: MetaStore = self.into();
-        bincode::serialize_into(&mut File::create(file).unwrap(), &store).unwrap();
+        let mut w = DeflateEncoder::new(File::create(file).unwrap(), Compression::Default);
+        bincode::serialize_into(&mut w, &store).unwrap();
     }
 
     pub fn restore(file: &str) -> MetaCache {
         use std::fs::File;
+        use inflate::DeflateDecoder;
 
         let file = match File::open(file) {
             Ok(x) => x,
             Err(_) => return MetaCache::new(),
         };
-        let store: MetaStore = match bincode::deserialize_from(file) {
+        let r = DeflateDecoder::new(file);
+        let store: MetaStore = match bincode::deserialize_from(r) {
             Ok(x) => x,
             Err(_) => return MetaCache::new(),
         };
