@@ -1,8 +1,10 @@
 sym bool;
 sym tr;
 sym fa;
+sym fa1;
 sym not;
 sym idb;
+sym tr1;
 sym and;
 sym or;
 sym type;
@@ -50,6 +52,13 @@ fn bool_app_eq : (f : bool' => c) & (a == b) -> f(a) == f(b) {
     return r;
 }
 
+fn bool_fun_eq : (f : bool' => c) & (g : bool' => c) & (f == g) -> f(a) == g(a) {
+    axiom bool_fun_eq : (f : bool' => c) & (g : bool' => c) & (f == g) -> f(a) == g(a);
+    x : (f : bool' => c) & (g : bool' => c) & (f == g);
+    let r = bool_fun_eq(x) : f(a) == g(a);
+    return r;
+}
+
 fn bool_app_in_arg : (f : bool' => t) & (f(a) == b) & (a == c) -> f(c) == b {
     use bool_app_eq;
     use eq_symmetry;
@@ -60,6 +69,31 @@ fn bool_app_in_arg : (f : bool' => t) & (f(a) == b) & (a == c) -> f(c) == b {
     let x2 = bool_app_eq(f_ty, eq_a_b) : f(a) == f(c);
     let x3 = eq_symmetry(x2) : f(c) == f(a);
     let r = eq_transitivity(x3, f_app) : f(c) == b;
+    return r;
+}
+
+fn bool_fa1_ty : true -> (fa1' : bool' => bool') {
+    axiom bool_fa1_ty : true -> (fa1' : bool' => bool');
+    x : true;
+    let r = bool_fa1_ty(x) : (fa1' : bool' => bool');
+    return r;
+}
+
+fn bool_fa1 : (a : bool') -> fa1'(a) == fa' {
+    axiom bool_fa1 : (a : bool') -> fa1'(a) == fa';
+    x : (a : bool');
+    let r = bool_fa1(x) : fa1'(a) == fa';
+    return r;
+}
+
+fn bool_fa1_in_arg : (fa1'(a) == b) & (a == c) -> fa1'(c) == b {
+    use bool_app_in_arg;
+    use bool_fa1_ty;
+    use triv;
+    x : fa1'(a) == b;
+    y : a == c;
+    let fa1_ty = triv(bool_fa1_ty) : (fa1' : bool' => bool');
+    let r = bool_app_in_arg(fa1_ty, x, y) : fa1'(c) == b;
     return r;
 }
 
@@ -151,6 +185,32 @@ fn bool_idb_in_arg_sym : (idb'(a) == b) & (c == a) -> (idb'(c) == b) {
     return r;
 }
 
+fn bool_tr1_ty : true -> (tr1' : bool' => bool') {
+    axiom bool_tr1_ty : true -> (tr1' : bool' => bool');
+    x : true;
+    let r = bool_tr1_ty(x) : (tr1' : bool' => bool');
+    return r;
+}
+
+fn bool_tr1 : (a : bool') -> tr1'(a) == tr' {
+    axiom bool_tr1 : (a : bool') -> tr1'(a) == tr';
+    x : (a : bool');
+    let r = bool_tr1(x) : tr1'(a) == tr';
+    return r;
+}
+
+fn bool_tr1_in_arg : (tr1'(a) == b) & (a == c) -> tr1'(c) == b {
+    use bool_app_in_arg;
+    use bool_tr1_ty;
+    use triv;
+
+    x : tr1'(a) == b;
+    y : a == c;
+    let tr1_ty = triv(bool_tr1_ty) : (tr1' : bool' => bool');
+    let r = bool_app_in_arg(tr1_ty, x, y) : tr1'(c) == b;
+    return r;
+}
+
 fn bool_eq_idb_self : (a : bool') -> idb'(a) == a {
     x : (a : bool');
     use bool_def;
@@ -220,6 +280,190 @@ fn bool_eq_not_not_self : (a : bool') -> not'(not'(a)) == a {
         return r;
     }
     let r = match eq_fa_tr (f, g) : not'(not'(a)) == a;
+    return r;
+}
+
+fn bool_and_ty : true -> (and' : bool' => bool' => bool') {
+    axiom bool_and_ty : true -> (and' : bool' => bool' => bool');
+    x : true;
+    let r = bool_and_ty(x) : (and' : bool' => bool' => bool');
+    return r;
+}
+
+fn bool_and_fa : true -> and'(fa') == fa1' {
+    axiom bool_and_fa : true -> and'(fa') == fa1';
+    x : true;
+    let r = bool_and_fa(x) : and'(fa') == fa1';
+    return r;
+}
+
+fn bool_and_tr : true -> and'(tr') == idb' {
+    axiom bool_and_tr : true -> and'(tr') == idb';
+    x : true;
+    let r = bool_and_tr(x) : and'(tr') == idb';
+    return r;
+}
+
+fn bool_and_fa_fa : true -> and'(fa', fa') == fa' {
+    use bool_and_fa;
+    use bool_and_ty;
+    use bool_fa_ty;
+    use bool_fa1_ty;
+    use bool_fun_eq;
+    use bool_fa1;
+    use eq_transitivity;
+    use triv;
+    use ty_app;
+    
+    x : true;
+
+    let y2 = triv(bool_and_fa) : and'(fa') == fa1';
+    let fa1_ty = triv(bool_fa1_ty) : (fa1' : bool' => bool');
+    let fa_ty = triv(bool_fa_ty) : (fa' : bool');
+    let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
+    let and_fa_ty = ty_app(and_ty, fa_ty) : (and'(fa') : bool' => bool');
+    let y3 = bool_fun_eq(and_fa_ty, fa1_ty, y2) : and'(fa', fa') == fa1'(fa'); 
+    let y4 = bool_fa1(fa_ty) : fa1'(fa') == fa';
+    let r = eq_transitivity(y3, y4) : and'(fa', fa') == fa';
+    return r;
+}
+
+fn bool_and_fa_tr : true -> and'(fa', tr') == fa' {
+    use bool_and_fa;
+    use bool_and_ty;
+    use bool_fa_ty;
+    use bool_fa1;
+    use bool_fa1_ty;
+    use bool_tr_ty;
+    use bool_fun_eq;
+    use bool_tr1_ty;
+    use eq_transitivity;
+    use triv;
+    use ty_app;
+
+    x : true;
+
+    let fa_ty = triv(bool_fa_ty) : (fa' : bool');
+    let tr_ty = triv(bool_tr_ty) : (tr' : bool');
+    let fa1_ty = triv(bool_fa1_ty) : (fa1' : bool' => bool'); 
+    let y2 = triv(bool_and_fa) : and'(fa') == fa1';
+    let tr1_ty = triv(bool_tr1_ty) : (tr1' : bool' => bool');
+    let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
+    let and_fa_ty = ty_app(and_ty, fa_ty) : (and'(fa') : bool' => bool');
+    let y3 = bool_fun_eq(and_fa_ty, fa1_ty, y2) : and'(fa', tr') == fa1'(tr');
+    let y4 = bool_fa1(tr_ty) : fa1'(tr') == fa';
+    let r = eq_transitivity(y3, y4) : and'(fa', tr') == fa';
+    return r;
+}
+
+fn bool_and_tr_fa : true -> and'(tr', fa') == fa' {
+    use bool_and_tr;
+    use bool_and_ty;
+    use bool_fun_eq;
+    use bool_idb_fa;
+    use bool_idb_ty;
+    use bool_tr_ty;
+    use eq_transitivity;
+    use triv;
+    use ty_app;
+
+    x : true;
+
+    let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
+    let tr_ty = triv(bool_tr_ty) : (tr' : bool');
+    let y6 = ty_app(and_ty, tr_ty) : (and'(tr') : bool' => bool');
+    let y5 = triv(bool_idb_ty) : (idb' : bool' => bool');
+    let y4 = triv(bool_and_tr) : and'(tr') == idb';
+    let y3 = bool_fun_eq(y6, y5, y4) : and'(tr', fa') == idb'(fa');
+    let y2 = triv(bool_idb_fa) : idb'(fa') == fa';
+    let r = eq_transitivity(y3, y2) : and'(tr', fa') == fa';
+    return r;
+}
+
+fn bool_and_tr_tr : true -> and'(tr', tr') == tr' {
+    use bool_and_tr;
+    use bool_and_ty;
+    use bool_fun_eq;
+    use bool_idb_tr;
+    use bool_idb_ty;
+    use bool_tr_ty;
+    use eq_transitivity;
+    use triv;
+    use ty_app;
+
+    x : true;
+
+    let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
+    let tr_ty = triv(bool_tr_ty) : (tr' : bool');
+    let y6 = ty_app(and_ty, tr_ty) : (and'(tr') : bool' => bool');
+    let y5 = triv(bool_idb_ty) : (idb' : bool' => bool');
+    let y4 = triv(bool_and_tr) : and'(tr') == idb'; 
+    let y3 = bool_fun_eq(y6, y5, y4) : and'(tr', tr') == idb'(tr');
+    let y2 = triv(bool_idb_tr) : idb'(tr') == tr';
+    let r = eq_transitivity(y3, y2) : and'(tr', tr') == tr';
+    return r;
+}
+
+fn bool_and_same : (a : bool') -> and'(a, a) == a {
+    use bool_def;
+
+    x : (a : bool');
+
+    let x2 = bool_def(x) : (a == fa') | (a == tr');
+
+    lam f : (a == fa') => (and'(a, a) == a) {
+        use bool_and_fa_fa;
+        use bool_and_ty;
+        use bool_app_eq;
+        use bool_fa_ty;
+        use bool_fun_eq;
+        use eq_symmetry;
+        use eq_transitivity;
+        use triv;
+        use ty_app;
+
+        y : a == fa';
+
+        let fa_ty = triv(bool_fa_ty) : (fa' : bool');
+        let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
+        let and_a_ty = ty_app(and_ty, x) : (and'(a) : bool' => bool');
+        let y7 = bool_app_eq(and_a_ty, y) : and'(a, a) == and'(a, fa');
+        let and_fa_ty = ty_app(and_ty, fa_ty) : (and'(fa') : bool' => bool');
+        let y6 = bool_app_eq(and_ty, y) : and'(a) == and'(fa');
+        let y5 = bool_fun_eq(and_a_ty, and_fa_ty, y6) : and'(a, fa') == and'(fa', fa');
+        let y4 = eq_transitivity(y7, y5) : and'(a, a) == and'(fa', fa');
+        let y3 = eq_symmetry(y) : fa' == a;
+        let y2 = triv(bool_and_fa_fa) : and'(fa', fa') == fa';
+        let y1 = eq_transitivity(y4, y2) : and'(a, a) == fa';
+        let r = eq_transitivity(y1, y3) : and'(a, a) == a;
+        return r;
+    }
+    lam g : (a == tr') => (and'(a, a) == a) {
+        use bool_and_tr;
+        use bool_and_ty;
+        use bool_app_eq;
+        use bool_eq_idb_self;
+        use bool_fun_eq;
+        use bool_idb_ty;
+        use eq_symmetry;
+        use eq_transitivity;
+        use triv;
+        use ty_app;
+
+        y : a == tr';
+
+        let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
+        let y6 = triv(bool_and_tr) : and'(tr') == idb';
+        let y5 = bool_app_eq(and_ty, y) : and'(a) == and'(tr');
+        let and_a_ty = ty_app(and_ty, x) : (and'(a) : bool' => bool');
+        let idb_ty = triv(bool_idb_ty) : (idb' : bool' => bool');
+        let y4 = eq_transitivity(y5, y6) : and'(a) == idb';
+        let y3 = bool_fun_eq(and_a_ty, idb_ty, y4) : and'(a, a) == idb'(a);
+        let y2 = bool_eq_idb_self(x) : idb'(a) == a;
+        let r = eq_transitivity(y3, y2) : and'(a, a) == a;
+        return r;
+    }
+    let r = match x2 (f, g) : and'(a, a) == a;
     return r;
 }
 
