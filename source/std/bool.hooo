@@ -467,3 +467,177 @@ fn bool_and_same : (a : bool') -> and'(a, a) == a {
     return r;
 }
 
+fn bool_and_in_left_arg :
+    (a : bool') & (d : bool') & (and'(a, b) == c) & (a == d) -> and'(d, b) == c
+{
+    use bool_and_ty;
+    use bool_app_eq;
+    use bool_fun_eq;
+    use eq_symmetry;
+    use eq_transitivity;
+    use triv;
+    use ty_app;
+
+    a_ty : (a : bool');
+    d_ty : (d : bool');
+    x : and'(a, b) == c;
+    y : a == d;
+
+    let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
+    let and_d_ty = ty_app(and_ty, d_ty) : (and'(d) : bool' => bool');
+    let and_a_ty = ty_app(and_ty, a_ty) : (and'(a) : bool' => bool');
+    let y2 = eq_symmetry(y) : d == a;
+    let x3 = bool_app_eq(and_ty, y2) : and'(d) == and'(a);
+    let x2 = bool_fun_eq(and_d_ty, and_a_ty, x3) : and'(d, b) == and'(a, b);
+    let r = eq_transitivity(x2, x) : and'(d, b) == c;
+    return r;
+}
+
+fn bool_and_in_right_arg :
+    (a : bool') & (and'(a, b) == c) & (b == d) -> and'(a, d) == c
+{
+    use bool_and_ty;
+    use bool_app_eq;
+    use eq_symmetry;
+    use eq_transitivity;
+    use triv;
+    use ty_app;
+
+    a_ty : (a : bool');
+    x : and'(a, b) == c;
+    y : b == d;
+
+    let y2 = eq_symmetry(y) : d == b;
+    let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
+    let x3 = ty_app(and_ty, a_ty) : (and'(a) : bool' => bool');
+    let x2 = bool_app_eq(x3, y2) : and'(a, d) == and'(a, b);
+    let r = eq_transitivity(x2, x) : and'(a, d) == c;
+    return r;
+}
+
+fn bool_and_symmetry : (a : bool') & (b : bool') -> and'(a, b) == and'(b, a) {
+    use bool_def;
+
+    x : (a : bool');
+    y : (b : bool');
+
+    let x2 = bool_def(x) : (a == fa') | (a == tr');
+    let y2 = bool_def(y) : (b == fa') | (b == tr');
+    lam f1 : (a == fa') => (b == fa') => and'(a, b) == and'(b, a) {
+        x3 : a == fa';
+        lam r : (b == fa') => and'(a, b) == and'(b, a) {
+            use bool_and_fa_fa;
+            use bool_and_in_left_arg;
+            use bool_and_in_right_arg;
+            use bool_fa_ty;
+            use eq_symmetry;
+            use eq_transitivity_sym;
+            use triv;
+
+            x4 : b == fa';
+
+            let y3 = eq_symmetry(x3) : fa' == a;
+            let y4 = eq_symmetry(x4) : fa' == b;
+            let fa_ty = triv(bool_fa_ty) : (fa' : bool');
+            let and_fa_fa = triv(bool_and_fa_fa) : and'(fa', fa') == fa';
+            let x5 = bool_and_in_left_arg(fa_ty, x, and_fa_fa, y3) : and'(a, fa') == fa';
+            let x6 = bool_and_in_right_arg(x, x5, y4) : and'(a, b) == fa';
+            let x7 = bool_and_in_left_arg(fa_ty, y, and_fa_fa, y4) : and'(b, fa') == fa';
+            let x8 = bool_and_in_right_arg(y, x7, y3) : and'(b, a) == fa';
+            let r = eq_transitivity_sym(x6, x8) : and'(a, b) == and'(b, a);
+            return r;
+        }
+        return r;
+    }
+    lam f2 : (a == tr') => (b == fa') => and'(a, b) == and'(b, a) {
+        x3 : a == tr';
+        lam r : (b == fa') => and'(a, b) == and'(b, a) {
+            use bool_and_in_left_arg;
+            use bool_and_in_right_arg;
+            use bool_and_fa_tr;
+            use bool_and_tr_fa;
+            use bool_fa_ty;
+            use bool_tr_ty;
+            use eq_symmetry;
+            use eq_transitivity_sym;
+            use triv;
+ 
+            x4 : b == fa';
+
+            let fa_ty = triv(bool_fa_ty) : (fa' : bool');
+            let tr_ty = triv(bool_tr_ty) : (tr' : bool');
+            let y3 = eq_symmetry(x3) : tr' == a;
+            let y4 = eq_symmetry(x4) : fa' == b;
+            let and_tr_fa = triv(bool_and_tr_fa) : and'(tr', fa') == fa';
+            let x5 = bool_and_in_left_arg(tr_ty, x, and_tr_fa, y3) : and'(a, fa') == fa';
+            let x6 = bool_and_in_right_arg(x, x5, y4) : and'(a, b) == fa';
+            let and_fa_tr = triv(bool_and_fa_tr) : and'(fa', tr') == fa';
+            let x7 = bool_and_in_left_arg(fa_ty, y, and_fa_tr, y4) : and'(b, tr') == fa';
+            let x8 = bool_and_in_right_arg(y, x7, y3) : and'(b, a) == fa';
+            let r = eq_transitivity_sym(x6, x8) : and'(a, b) == and'(b, a);
+            return r;
+        }
+        return r;
+    }
+    lam f3 : (a == fa') => (b == tr') => and'(a, b) == and'(b, a) {
+        x3 : a == fa';
+        lam r : (b == tr') => and'(a, b) == and'(b, a) {
+            use bool_and_fa_tr;
+            use bool_and_tr_fa;
+            use bool_and_in_left_arg;
+            use bool_and_in_right_arg;
+            use bool_fa_ty;
+            use bool_tr_ty;
+            use eq_symmetry;
+            use eq_transitivity_sym;
+            use triv;
+
+            x4 : b == tr';
+
+            let fa_ty = triv(bool_fa_ty) : (fa' : bool');
+            let tr_ty = triv(bool_tr_ty) : (tr' : bool');
+            let y3 = eq_symmetry(x3) : fa' == a;
+            let y4 = eq_symmetry(x4) : tr' == b;
+            let and_fa_tr = triv(bool_and_fa_tr) : and'(fa', tr') == fa';
+            let x5 = bool_and_in_left_arg(fa_ty, x, and_fa_tr, y3) : and'(a, tr') == fa';
+            let x6 = bool_and_in_right_arg(x, x5, y4) : and'(a, b) == fa';
+            let and_tr_fa = triv(bool_and_tr_fa) : and'(tr', fa') == fa';
+            let x7 = bool_and_in_left_arg(tr_ty, y, and_tr_fa, y4) : and'(b, fa') == fa';
+            let x8 = bool_and_in_right_arg(y, x7, y3) : and'(b, a) == fa';
+            let r = eq_transitivity_sym(x6, x8) : and'(a, b) == and'(b, a);
+            return r;
+        }
+        return r;
+    }
+    lam f4 : (a == tr') => (b == tr') => and'(a, b) == and'(b, a) {
+        x3 : a == tr';
+        lam r : (b == tr') => and'(a, b) == and'(b, a) {
+            use bool_and_tr_tr;
+            use bool_and_in_left_arg;
+            use bool_and_in_right_arg;
+            use bool_tr_ty;
+            use eq_symmetry;
+            use eq_transitivity_sym;
+            use triv;
+ 
+            x4 : b == tr';
+
+            let tr_ty = triv(bool_tr_ty) : (tr' : bool');
+            let y3 = eq_symmetry(x3) : tr' == a;
+            let y4 = eq_symmetry(x4) : tr' == b;
+            let and_tr_tr = triv(bool_and_tr_tr) : and'(tr', tr') == tr';
+            let x5 = bool_and_in_left_arg(tr_ty, x, and_tr_tr, y3) : and'(a, tr') == tr';
+            let x6 = bool_and_in_right_arg(x, x5, y4) : and'(a, b) == tr';
+            let x7 = bool_and_in_left_arg(tr_ty, y, and_tr_tr, y4) : and'(b, tr') == tr';
+            let x8 = bool_and_in_right_arg(y, x7, y3) : and'(b, a) == tr';
+            let r = eq_transitivity_sym(x6, x8) : and'(a, b) == and'(b, a);
+            return r;
+        }
+        return r;
+    }
+    let f5 = match x2 (f1, f2) : (b == fa') => and'(a, b) == and'(b, a);
+    let f6 = match x2 (f3, f4) : (b == tr') => and'(a, b) == and'(b, a);
+    let r = match y2 (f5, f6) : and'(a, b) == and'(b, a);
+    return r;
+}
+
