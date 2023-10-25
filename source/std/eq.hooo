@@ -31,6 +31,17 @@ fn eq_transitivity : (a == b) & (b == c)  -> (a == c) {
     return x7;
 }
 
+fn eq_transitivity_sym : (a == b) & (c == b)  ->  (a == c) {
+    use eq_symmetry;
+    use eq_transitivity;
+
+    x : a == b;
+    y : c == b;
+    let y2 = eq_symmetry(y) : b == c;
+    let r = eq_transitivity(x, y2) : a == c;
+    return r;
+}
+
 fn eq_modus_tollens : (a == b)  ->  (!a == !b) {
     x : a == b;
     use fst;

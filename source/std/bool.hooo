@@ -1,0 +1,225 @@
+sym bool;
+sym tr;
+sym fa;
+sym not;
+sym idb;
+sym and;
+sym or;
+sym type;
+sym z;
+
+fn bool_ty : true -> (bool' : type'(z')) {
+    axiom bool_ty : true -> (bool' : type'(z'));
+    x : true;
+    let r = bool_ty(x) : (bool' : type'(z'));
+    return r;
+}
+
+fn bool_tr_ty : true -> (tr' : bool') {
+    axiom bool_tr_ty : true -> (tr' : bool');
+    x : true;
+    let r = bool_tr_ty(x) : (tr' : bool');
+    return r;
+}
+
+fn bool_fa_ty : true -> (fa' : bool') {
+    axiom bool_fa_ty : true -> (fa' : bool');
+    x : true;
+    let r = bool_fa_ty(x) : (fa' : bool');
+    return r;
+}
+
+fn bool_def : (a : bool') -> (a == fa') | (a == tr') {
+    axiom bool_def : (a : bool') -> (a == fa') | (a == tr');
+    x : (a : bool');
+    let r = bool_def(x) : (a == fa') | (a == tr');
+    return r;
+}
+
+fn bool_absurd : fa' == tr' -> false {
+    axiom bool_absurd : fa' == tr' -> false;
+    x : fa' == tr';
+    let r = bool_absurd(x) : false;
+    return r;
+}
+
+fn bool_app_eq : (f : bool' => c) & (a == b) -> f(a) == f(b) {
+    axiom bool_app_eq : (f : bool' => c) & (a == b) -> f(a) == f(b);
+    x : (f : bool' => c) & (a == b);
+    let r = bool_app_eq(x) : f(a) == f(b);
+    return r;
+}
+
+fn bool_app_in_arg : (f : bool' => t) & (f(a) == b) & (a == c) -> f(c) == b {
+    use bool_app_eq;
+    use eq_symmetry;
+    use eq_transitivity;
+    f_ty : (f : bool' => t);
+    eq_a_b : a == c;
+    f_app : f(a) == b;
+    let x2 = bool_app_eq(f_ty, eq_a_b) : f(a) == f(c);
+    let x3 = eq_symmetry(x2) : f(c) == f(a);
+    let r = eq_transitivity(x3, f_app) : f(c) == b;
+    return r;
+}
+
+fn bool_not_ty : true -> (not' : bool' => bool') {
+    axiom bool_not_ty : true -> (not' : bool' => bool');
+    x : true;
+    let r = bool_not_ty(x) : (not' : bool' => bool');
+    return r;
+}
+
+fn bool_not_tr : true -> not'(tr') == fa' {
+    axiom bool_not_tr : true -> not'(tr') == fa';
+    x : true;
+    let r = bool_not_tr(x) : not'(tr') == fa';
+    return r;
+}
+
+fn bool_not_fa : true -> not'(fa') == tr' {
+    axiom bool_not_fa : true -> not'(fa') == tr';
+    x : true;
+    let r = bool_not_fa(x) : not'(fa') == tr';
+    return r;
+}
+
+fn bool_not_in_arg : (not'(a) == b) & (a == c) -> (not'(c) == b) {
+    use bool_app_in_arg;
+    use bool_not_ty;
+    use triv;
+
+    x : not'(a) == b;
+    y : a == c;
+    let not_ty = triv(bool_not_ty) : (not' : bool' => bool');
+    let r = bool_app_in_arg(not_ty, x, y) : not'(c) == b;
+    return r;
+}
+
+fn bool_not_in_arg_sym : (not'(a) == b) & (c == a) -> (not'(c) == b) {
+    use bool_not_in_arg;
+    use eq_symmetry;
+
+    x : not'(a) == b;
+    y : c == a;
+    let y2 = eq_symmetry(y) : a == c;
+    let r = bool_not_in_arg(x, y2) : not'(c) == b;
+    return r;
+}
+
+fn bool_idb_ty : true -> (idb' : bool' => bool') {
+    axiom bool_idb_ty : true -> (idb' : bool' => bool');
+    x : true;
+    let r = bool_idb_ty(x) : (idb' : bool' => bool');
+    return r;
+}
+
+fn bool_idb_tr : true -> idb'(tr') == tr' {
+    axiom bool_idb_tr : true -> idb'(tr') == tr';
+    x : true;
+    let r = bool_idb_tr(x) : idb'(tr') == tr';
+    return r;
+}
+
+fn bool_idb_fa : true -> idb'(fa') == fa' {
+    axiom bool_idb_fa : true -> idb'(fa') == fa';
+    x : true;
+    let r = bool_idb_fa(x) : idb'(fa') == fa';
+    return r;
+}
+
+fn bool_idb_in_arg : (idb'(a) == b) & (a == c) -> (idb'(c) == b) {
+    use bool_app_in_arg;
+    use bool_idb_ty;
+    use triv;
+
+    x : idb'(a) == b;
+    y : a == c;
+    let idb_ty = triv(bool_idb_ty) : (idb' : bool' => bool');
+    let r = bool_app_in_arg(idb_ty, x, y) : idb'(c) == b;
+    return r;
+}
+
+fn bool_idb_in_arg_sym : (idb'(a) == b) & (c == a) -> (idb'(c) == b) {
+    use bool_idb_in_arg;
+    use eq_symmetry;
+
+    x : idb'(a) == b;
+    y : c == a;
+    let y2 = eq_symmetry(y) : a == c;
+    let r = bool_idb_in_arg(x, y2) : idb'(c) == b;
+    return r;
+}
+
+fn bool_eq_idb_self : (a : bool') -> idb'(a) == a {
+    x : (a : bool');
+    use bool_def;
+    let x2 = bool_def(x) : (a == fa') | (a == tr');
+    lam f : (a == fa') => idb'(a) == a {
+        use bool_idb_in_arg_sym;
+        use bool_idb_fa;
+        use eq_transitivity_sym;
+        use triv;
+        
+        y : a == fa';
+        
+        let y2 = triv(bool_idb_fa) : idb'(fa') == fa';
+        let y3 = bool_idb_in_arg_sym(y2, y) : idb'(a) == fa';
+        let r = eq_transitivity_sym(y3, y) : idb'(a) == a;
+        return r;
+    }
+    lam g : (a == tr') => idb'(a) == a { 
+        use bool_idb_in_arg_sym;
+        use bool_idb_tr;
+        use eq_transitivity_sym;
+        use triv;
+
+        y : a == tr';
+    
+        let y2 = triv(bool_idb_tr) : idb'(tr') == tr';
+        let y3 = bool_idb_in_arg_sym(y2, y) : idb'(a) == tr';
+        let r = eq_transitivity_sym(y3, y) : idb'(a) == a;
+        return r;
+    }
+    let r = match x2 (f, g) : idb'(a) == a;
+    return r;
+}
+
+fn bool_eq_not_not_self : (a : bool') -> not'(not'(a)) == a {
+    use bool_def;
+    use bool_not_fa;
+    use bool_not_tr;
+    use triv;
+
+    x : (a : bool');
+
+    let eq_fa_tr = bool_def(x) : (a == fa') | (a == tr');
+    let not_fa = triv(bool_not_fa) : (not'(fa') == tr');
+    let not_tr = triv(bool_not_tr) : (not'(tr') == fa');
+
+    lam f : (a == fa') => not'(not'(a)) == a {
+        use bool_not_in_arg_sym;
+        use eq_transitivity_sym;
+
+        y : a == fa';
+
+        let y2 = bool_not_in_arg_sym(not_fa, y) : not'(a) == tr';
+        let y3 = bool_not_in_arg_sym(not_tr, y2) : not'(not'(a)) == fa';
+        let r = eq_transitivity_sym(y3, y) : not'(not'(a)) == a;
+        return r;
+    }
+    lam g : (a == tr') => not'(not'(a)) == a {
+        use bool_not_in_arg_sym;
+        use eq_transitivity_sym;
+
+        y : a == tr';
+
+        let y2 = bool_not_in_arg_sym(not_tr, y) : not'(a) == fa';
+        let y3 = bool_not_in_arg_sym(not_fa, y2) : not'(not'(a)) == tr';
+        let r = eq_transitivity_sym(y3, y) : not'(not'(a)) == a;
+        return r;
+    }
+    let r = match eq_fa_tr (f, g) : not'(not'(a)) == a;
+    return r;
+}
+
