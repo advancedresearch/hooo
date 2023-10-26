@@ -177,6 +177,8 @@ You can write the type of function pointers as `a -> b` or `b^a`.
 ## Syntax
 
 ```text
+true       True (unit type)
+false      False (empty type)
 a -> b     Exponential/function pointer/inference rule
 b^a        Exponential/function pointer/inference rule
 a => b     Imply (lambda/closure)
@@ -190,18 +192,18 @@ sd(a, b)   Symbolic distinction (see section [Symbolic distinction])
 ~a         Path semantical qubit (see section [Path Semantics])
 a ~~ b     Path semantical quality (see section [Path Semantics])
 (a, b)     Ordered pair (see section [Avatar Logic])
-true       True (unit type)
-false      False (empty type)
 all(a)     Lifts `a` to matching all types
 □a         Necessary `a` (modal logic)
 ◇a         Possibly `a` (modal logic)
-foo'       Symbol `foo`
+foo'       Symbol `foo` (see section [Symbols])
 foo'(a)    Apply symbol `foo` to `a`
+sym(f, f') Symbolic block (see section [Symbolic blocks])
 
 x : a      Premise/argument
 let y      Theorem/variable
 
-return x   Helps the solver make a conclusion
+return x                    Make a conclusion (safe)
+unsafe return x             Override safety (unsafe)
 
 sym foo;                    Declare a symbol `foo'`.
 axiom foo : a               Introduce axiom `foo` of type `a`
@@ -220,6 +222,9 @@ The `^` operator has high precedence, while `->` has low precedence.
 E.g. `b^a => b` is parsed as `(b^a) => b`.
 `b -> a => b` is parsed as `b -> (a => b)`.
 
+The `unsafe return` is used when the safety heuristics
+of the solver are too strong. One application of is when needing to reason about unsafe reasoning.
+
 ### Symbols
 
 The current version of Hooo uses simple symbols.
@@ -232,6 +237,48 @@ sym foo;
 ```
 
 Symbols are global, so `foo'` is `foo'` everywhere.
+
+### Symbolic blocks
+
+Since Hooo uses implicit quantification by lifting all
+variables in `all(..)` expressions, it needs a way to
+"freeze" variables to express some statements.
+
+For example, `all(a & b -> a)` lifts `a -> a` to all types `a` and `b`. This is OK for statements that are provable,
+but it is not safe when one has an assumption `a -> b`.
+An assumption `all(a -> b)` is absurd.
+
+```text
+fn sym_all_pow_absurd : all(a -> b) -> false {
+    x : all(a -> b);
+    let x2 = x() : a -> b;
+    let x3 = x() : (a -> b) -> false;
+    let r = x3(x2) : false;
+    return r;
+}
+```
+
+Hooo automatically lifts `fn` statements.
+This means `all(..)` is not needed in most places.
+
+However, sometimes we need to reason using hypothetical axioms.
+The problem is that since `all(..)` lifts all variables,
+there is no way to prevent some symbols from being lifted.
+This is why we need symbolic blocks.
+
+```text
+fn sym_absurd : a & sym(a, all(a' -> b))(a) -> false {
+    x : a;
+    y : sym(a, all(a' -> b))(a);
+    let y2 = y() : a -> false;
+    let r = y2(x) : false;
+    return r;
+}
+```
+
+In the `sym_absurd` example, one needs `a` and a symbolic block
+`sym(a, all(a' -> b))` applied to `a` to prove `false`.
+The applied symbolic block alone is not strong enough.
 
 ### Congruence
 
@@ -1852,7 +1899,7 @@ mod tests {
         let a: Type = "f(a, b)".try_into().unwrap();
         assert_eq!(a, app(app(ty("f"), ty("a")), ty("b")));
         assert_eq!(format!("{}", a), "f(a, b)");
-    
+
         let a: Type = "sym(a, a')".try_into().unwrap();
         assert_eq!(a, sym_block(Arc::new("a".into()), sym("a")));
         assert_eq!(format!("{}", a), "sym(a, a')");
@@ -2006,11 +2053,11 @@ mod tests {
         let x: Type = pow(ty("a"), Type::AllTy(Arc::new("b".into())));
         let y: Type = "a^b".try_into().unwrap();
         assert!(x.has_(false, &y));
-    
+
         let x: Type = "all(a)".try_into().unwrap();
         let y: Type = "b".try_into().unwrap();
         assert!(x.has_bound(&y));
-    
+
         let x: Type = "all(a -> a)".try_into().unwrap();
         let y: Type = "all(a -> b)".try_into().unwrap();
         assert!(!x.has_bound(&y));
@@ -2099,14 +2146,14 @@ mod tests {
 
         let a: Type = "q'(a, b)".try_into().unwrap();
         assert_eq!(a, app(app(sym("q"), ty("a")), ty("b")));
-    
+
         let a: Type = "sym(a, a')".try_into().unwrap();
         let b: Type = "sym(b, b')".try_into().unwrap();
         assert!(a.has_bound(&b));
         assert!(b.has_bound(&a));
         assert!(a.has_bound_contra(&b));
         assert!(b.has_bound_contra(&a));
- 
+
         let a: Type = "sym(a, a')(b)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
         assert!(a.has_bound(&b));
@@ -2125,12 +2172,12 @@ mod tests {
         assert!(b.has_bound(&a));
         assert!(a.has_bound_contra(&b));
         assert!(b.has_bound_contra(&a));
- 
+
         let a: Type = "sym(a, all(b))(a)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
         assert!(a.has_bound(&b));
         assert!(b.has_bound(&a));
-    
+
         let a: Type = "sym(a, b)(a)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
         assert!(a.has_bound(&b));
@@ -2144,11 +2191,11 @@ mod tests {
         assert!(b.has_bound(&a));
         assert!(a.has_bound_contra(&b));
         assert!(b.has_bound_contra(&a));
-        
+
         let a: Type = "all((a => c) -> c)".try_into().unwrap();
         let b: Type = "a => c -> c".try_into().unwrap();
         assert!(a.has_bound(&b));
-        
+
         let a: Type = "(a => c) -> c".try_into().unwrap();
         let b: Type = "sym(b, a => c)(b) -> c".try_into().unwrap();
         assert!(a.has_bound(&b));
@@ -2165,10 +2212,10 @@ mod tests {
 
         let b: Type = "sym(b, a => d)(b) -> c".try_into().unwrap();
         assert!(!a.has_bound(&b));
-    
+
         let a: Type = "all((e => f) => f)".try_into().unwrap();
         let b: Type = "sym(b, a => d)(b) => c".try_into().unwrap();
-        assert!(!a.has_bound(&b));    
+        assert!(!a.has_bound(&b));
 
         let a: Type = "all(f => (e => f))".try_into().unwrap();
         let b: Type = "c => sym(b, a => c)(b)".try_into().unwrap();
@@ -2176,10 +2223,10 @@ mod tests {
 
         let b: Type = "c => sym(b, a => d)(b)".try_into().unwrap();
         assert!(!a.has_bound(&b));
-   
+
         let b: Type = "sym(a, all((a' => f) => f))(b)".try_into().unwrap();
         assert!(!a.has_bound(&b));
-        assert!(!b.has_bound(&a)); 
+        assert!(!b.has_bound(&a));
 
         let a: Type = "sym(a, a')(b)".try_into().unwrap();
         let b: Type = "sym(a, c)(b)".try_into().unwrap();
@@ -2189,4 +2236,3 @@ mod tests {
         assert!(!b.has_bound_contra(&a));
     }
 }
-
