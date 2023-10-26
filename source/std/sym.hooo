@@ -1,0 +1,22 @@
+
+fn sym_from : sym(a, a')(a) -> a {
+    x : sym(a, a')(a);
+    let r = x() : a;
+    return r;
+}
+
+fn sym_unwrap : sym(a, b)(a) -> b {
+    x : sym(a, b)(a);
+    let r = x() : b;
+    return r;
+}
+
+fn sym_pow_to_pow_tauto : sym(f, a^b)(f) -> sym(f, a^(b^true))(f) {
+    x : sym(f, a^b)(f);
+    let x2 = x() : a^b;
+    use pow_to_pow_tauto;
+    let x3 = pow_to_pow_tauto(x2) : a^(b^true);
+    let r = x3() : sym(f, a^(b^true))(f);
+    unsafe return r;
+}
+

@@ -1,45 +1,40 @@
-fn test_refl : a -> a {
-    x : a;
-    let y = () : a;
-    return y;
+
+fn test_sym_block : sym(a, a') -> sym(b, b') {
+    x : sym(b, b');
+    return x;
 }
 
-fn test_sd : sd(a, b) -> sd(b, a) {
-    x : sd(a, b);
-    use std::sd_symmetry;
-    let r = sd_symmetry(x) : sd(b, a);
+fn test_sym_block_2 : sym(a, all(a' | b))(c) -> c | b {
+    x : sym(a, all(a' | b))(c);
+    let r = x() : c | b;
     return r;
 }
 
-/*
-fn test_pow : a -> a^b {
+fn test_sym_block_3 : a -> sym(b, b')(a) {
     x : a;
-    let r = () : a^b;
+    let r = x() : sym(b, b')(a);
+    unsafe return r;
+}
+
+fn test_sym_block_5 : all(a) -> sym(b, b')(a) {
+    x : all(a);
+    let r = x() : sym(b, b')(a);
+    unsafe return r;
+}
+
+fn test_sym_block_6 : true -> true {
+    x : true;
+    
+    axiom y : all((a => c) -> c);
+    let y2 = y() : sym(b, a => c)(b) -> c;
+
+    let r = () : true;
     return r;
 }
-*/
 
-fn foo : true -> (a^b -> a^b) {
-    fn f : a^b -> a^b {
-        x : a^b;
-        return x;
-    }
-    return f;
-}
-
-sym foo;
-sym bar;
-sym p;
-
-fn test :
-    (b, foo'(a1)) & (b, bar'(a2)) &
-    (foo'(a1) : p') & (bar'(a2) : p')
--> false {
-    arg : (b, foo'(a1)) & (b, bar'(a2)) & (foo'(a1) : p') & (bar'(a2) : p');
-    use std::ava_collide;
-    let x = ava_collide(arg) : !sd(foo', bar');
-    let y = () : sd(foo', bar');
-    let r = x(y) : false;
+fn test_sym_block_7 : sym(a, all(a'))(a) -> a {
+    x : sym(a, all(a'))(a);
+    let r = x() : a;
     return r;
 }
 
