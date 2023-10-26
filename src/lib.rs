@@ -637,7 +637,7 @@ impl Context {
         search: &mut Search,
         loader: &mut Loader,
         meta_cache: &MetaCache,
-    ) -> Result<Option<Arc<String>>, String> {
+    ) -> Result<Option<(bool, Arc<String>)>, String> {
         parsing::run_str(self, script, search, loader, meta_cache)
     }
 
@@ -647,7 +647,7 @@ impl Context {
         search: &mut Search,
         loader: &mut Loader,
         meta_cache: &MetaCache,
-    ) -> Result<Option<Arc<String>>, String> {
+    ) -> Result<Option<(bool, Arc<String>)>, String> {
         use std::fs::File;
         use std::io::Read;
 
@@ -680,7 +680,7 @@ impl Context {
     }
 
     #[must_use]
-    pub fn fun<F: FnOnce(&mut Context, &mut Search) -> Result<(), (Range, String)>>(
+    pub fn fun<F: FnOnce(&mut Context, &mut Search) -> Result<bool, (Range, String)>>(
         &mut self,
         range: Range,
         name: Arc<String>,
@@ -688,15 +688,14 @@ impl Context {
         search: &mut Search,
         f: F
     ) -> Result<(), (Range, String)> {
-        if !ty.is_safe_to_prove() {
-            return Err((range, format!("Not safe to prove `{}`", ty.to_str(true, None))));
-        }
-
         if let Type::Pow(_) = &ty {
             let mut ctx = Context::new();
             ctx.symbols = self.symbols.clone();
-            f(&mut ctx, search)?;
+            let unsafe_flag = f(&mut ctx, search)?;
             if ctx.prove(ty.clone(), search) && ctx.safe(&ty) {
+                if !unsafe_flag && !ty.is_safe_to_prove() {
+                    return Err((range, format!("Not safe to prove `{}`\nUse `unsafe return`", ty.to_str(true, None))));
+                }
                 // Force the proof since it is safe.
                 let ty = ty.lift();
                 self.add_proof(ty.clone());
@@ -887,14 +886,11 @@ impl Term {
                     if args.len() == 0 {
                         if ty_f.has_bound(t) {return Ok(())}
                         else {
-                            if let Type::All(_) = ty_f {return Err("Did not expect `all(..)`".into())}
-                            else {
-                                return if Type::All(Box::new(ty_f.clone())).has_bound(ty) {
-                                    Ok(())
-                                } else {
-                                    Err(format!("Expected `{}`, found `{}`", ty, ty_f))
-                                };
-                            }
+                            return if Type::All(Box::new(ty_f.clone())).has_bound(ty) {
+                                Ok(())
+                            } else {
+                                Err(format!("Expected `{}`, found `{}`", ty, ty_f))
+                            };
                         }
                     } else {
                         let arg_ind = arg_inds.pop().unwrap();
@@ -1253,7 +1249,9 @@ impl Type {
             Pow(ab) => ab.0.is_safe_to_prove(),
             AllTy(_) | All(_) => false,
             Sym(_) => true,
-            App(_) => true,
+            App(ab) => {
+                if let SymBlock(_) = &ab.0 {false} else {true}
+            }
             Sd(_) => true,
             Jud(_) => true,
             Nec(_) => true,
@@ -1443,7 +1441,7 @@ impl Type {
                 if let Type::SymBlock(s_ab) = &ab.0 {
                     let _ = self.bind(contra, &s_ab.1, bind);
                     let mut bind2 = vec![];
-                    let contra = true;
+                    let contra = false;
                     if val.bind(contra, &self.replace(bind), &mut bind2) {
                         let ty = val.replace(&bind2);
                         if ty.has_(contra, &self) {
@@ -2105,13 +2103,21 @@ mod tests {
         let a: Type = "sym(a, a')".try_into().unwrap();
         let b: Type = "sym(b, b')".try_into().unwrap();
         assert!(a.has_bound(&b));
-    
+        assert!(b.has_bound(&a));
+        assert!(a.has_bound_contra(&b));
+        assert!(b.has_bound_contra(&a));
+ 
         let a: Type = "sym(a, a')(b)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
         assert!(a.has_bound(&b));
         assert!(b.has_bound(&a));
         assert!(a.has_bound_contra(&b));
         assert!(b.has_bound_contra(&a));
+
+        let a: Type = "sym(a, a')(b)".try_into().unwrap();
+        let b: Type = "a'".try_into().unwrap();
+        assert!(!a.has_bound(&b));
+        assert!(!b.has_bound(&a));
 
         let a: Type = "sym(a, a')(b) -> c".try_into().unwrap();
         let b: Type = "b -> c".try_into().unwrap();
@@ -2123,7 +2129,7 @@ mod tests {
         let a: Type = "sym(a, all(b))(a)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
         assert!(a.has_bound(&b));
-        assert!(!b.has_bound(&a));
+        assert!(b.has_bound(&a));
     
         let a: Type = "sym(a, b)(a)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
@@ -2153,20 +2159,34 @@ mod tests {
         let a: Type = "all((e => f) -> f)".try_into().unwrap();
         let b: Type = "sym(b, a => c)(b) -> c".try_into().unwrap();
         assert!(a.has_bound(&b));
+        assert!(!b.has_bound(&a));
+        assert!(!a.has_bound_contra(&b));
+        assert!(!b.has_bound_contra(&a));
 
         let b: Type = "sym(b, a => d)(b) -> c".try_into().unwrap();
         assert!(!a.has_bound(&b));
     
         let a: Type = "all((e => f) => f)".try_into().unwrap();
         let b: Type = "sym(b, a => d)(b) => c".try_into().unwrap();
-        assert!(!a.has_bound(&b));
-    
+        assert!(!a.has_bound(&b));    
+
         let a: Type = "all(f => (e => f))".try_into().unwrap();
         let b: Type = "c => sym(b, a => c)(b)".try_into().unwrap();
-        assert!(a.has_bound(&b));
+        assert!(!a.has_bound(&b));
 
         let b: Type = "c => sym(b, a => d)(b)".try_into().unwrap();
         assert!(!a.has_bound(&b));
+   
+        let b: Type = "sym(a, all((a' => f) => f))(b)".try_into().unwrap();
+        assert!(!a.has_bound(&b));
+        assert!(!b.has_bound(&a)); 
+
+        let a: Type = "sym(a, a')(b)".try_into().unwrap();
+        let b: Type = "sym(a, c)(b)".try_into().unwrap();
+        assert!(!a.has_bound(&b));
+        assert!(!b.has_bound(&a));
+        assert!(!a.has_bound_contra(&b));
+        assert!(!b.has_bound_contra(&a));
     }
 }
 

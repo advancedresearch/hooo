@@ -13,7 +13,7 @@ _ty: ";{}"
 10 match = [let "match" .w! .._seps!:"arg" .w? ?["(" .w?
     .._seps!:"arg" , .._seps!:"arg"
 .w? ")" .w?] ":" ..._ty!:"ty"]
-9 return = ["return" .w! .._seps!:"return"]
+9 return = [?["unsafe":"unsafe" .w!] "return" .w! .._seps!:"return"]
 8 lam_decl = ["lam" .w! .._seps!:"name" .w? ":" .w? ..._ty!:"ty"]
 7 app = [let .._seps!:"arg" "(" .w? .s?.(, .._seps!:"arg") .w? ")" .w? ":" ..._ty!:"ty"]
 6 fun_decl = ["fn" .w! .._seps!:"name" .w? ":" .w? ..._ty!:"ty"]
