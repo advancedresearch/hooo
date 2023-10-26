@@ -62,13 +62,14 @@ fn run_ctx(
     node: &str,
     mut convert: Convert,
     ignored: &mut Vec<Range>
-) -> Result<(Range, Option<Arc<String>>), (Range, String)> {
+) -> Result<(Range, Option<(bool, Arc<String>)>), (Range, String)> {
     let start = convert;
     let start_range = convert.start_node(node)
         .map_err(|()| (convert.ignore(), format!("Expected start node {}", node)))?;
     convert.update(start_range);
 
-    let mut ret: Option<Arc<String>> = None;
+    let mut ret: Option<(bool, Arc<String>)> = None;
+    let mut unsafe_flag = false;
     loop {
         if let Ok(range) = convert.end_node(node) {
             convert.update(range);
@@ -86,14 +87,14 @@ fn run_ctx(
                         match run_ctx(meta_cache, ctx, search, loader, "script", convert, ignored) {
                             Ok((range, ret)) => {
                                 convert.update(range);
-                                if let Some(ret) = ret {
+                                if let Some((unsafe_flag, ret)) = ret {
                                     if let Type::Pow(ab) = &ty {
                                         if ctx.has_term_ty(&ret, &ab.0) {
                                             ctx.add_proof(ty.clone());
                                         }
                                     }
-                                }
-                                Ok(())
+                                    Ok(unsafe_flag)
+                                } else {Ok(false)}
                             }
                             Err(err) => Err(err),
                         }
@@ -212,7 +213,7 @@ fn run_ctx(
                         match run_ctx(meta_cache, ctx, search, loader, "script", convert, ignored) {
                             Ok((range, ret)) => {
                                 convert.update(range);
-                                if let Some(ret) = ret {
+                                if let Some((_, ret)) = ret {
                                     if let Type::Imply(ab) = &ty {
                                         if ctx.has_term_ty(&ret, &ab.1) {
                                             ctx.add_proof(ty.clone());
@@ -236,8 +237,12 @@ fn run_ctx(
             if loader.run {
                 if !ctx.has_term(&val) {return Err((range, format!("Could not find `{}`", val)))};
 
-                ret = Some(val);
+                ret = Some((unsafe_flag, val));
+                unsafe_flag = false;
             }
+        } else if let Ok((range, _)) = convert.meta_bool("unsafe") {
+            convert.update(range);
+            unsafe_flag = true;
         } else if let Ok((range, (ns, fun))) = parse_use("use", convert, ignored) {
             convert.update(range);
             if loader.run {
@@ -736,7 +741,7 @@ pub fn run_str(
     search: &mut Search,
     loader: &mut Loader,
     meta_cache: &MetaCache,
-) -> Result<Option<Arc<String>>, String> {
+) -> Result<Option<(bool, Arc<String>)>, String> {
     use piston_meta::{parse_errstr, ParseErrorHandler};
     use crate::meta_cache::Key;
 
