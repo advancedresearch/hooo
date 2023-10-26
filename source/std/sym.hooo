@@ -1,3 +1,18 @@
+fn sym_all_pow_absurd : all(a -> b) -> false {
+    x : all(a -> b);
+    let x2 = x() : a -> b;
+    let x3 = x() : (a -> b) -> false;
+    let r = x3(x2) : false;
+    return r;
+}
+
+fn sym_absurd : a & sym(a, all(a' -> b))(a) -> false {
+    x : a;
+    y : sym(a, all(a' -> b))(a);
+    let y2 = y() : a -> false;
+    let r = y2(x) : false;
+    return r;
+}
 
 fn sym_from : sym(a, a')(a) -> a {
     x : sym(a, a')(a);
