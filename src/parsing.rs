@@ -631,6 +631,7 @@ fn parse_un(
 
     let mut arg: Option<Type> = None;
     let mut op: Option<Op> = None;
+    let mut sym: Option<Arc<String>> = None;
     loop {
         if let Ok(range) = convert.end_node(node) {
             convert.update(range);
@@ -656,6 +657,10 @@ fn parse_un(
         } else if let Ok((range, _)) = convert.meta_bool("qu") {
             convert.update(range);
             op = Some(Op::Qu);
+        } else if let Ok((range, val)) = convert.meta_string("sym") {
+            convert.update(range);
+            op = Some(Op::SymBlock);
+            sym = Some(val);
         } else {
             let range = convert.ignore();
             convert.update(range);
@@ -672,6 +677,10 @@ fn parse_un(
         Op::Pos => pos(arg),
         Op::Excm => excm(arg),
         Op::Qu => qu(arg),
+        Op::SymBlock => {
+            let sym = sym.ok_or(())?;
+            sym_block(sym, arg)
+        }
         _ => return Err(()),
     };
     Ok((convert.subtract(start), ty))
