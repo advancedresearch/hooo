@@ -231,3 +231,14 @@ fn pow_or_lift : a^b | c^d -> (a^b | c^d)^e {
     return r;
 }
 
+fn pow_to_pow_tauto : a^b -> a^(b^true) {
+    use pow_transitivity;
+    use triv;
+
+    x : a^b;
+
+    let x2 = triv() : b^true -> b;
+    let r = pow_transitivity(x2, x) : a^(b^true);
+    return r;
+}
+
