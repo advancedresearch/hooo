@@ -1,0 +1,86 @@
+
+sym cong;
+sym tauto_cong;
+
+fn cong_app : cong'(f) -> cong'(f(a)) {
+    axiom cong_app : cong'(f) -> cong'(f(a));
+    x : cong'(f);
+    let r = cong_app(x) : cong'(f(a));
+    return x;
+}
+
+fn cong_fun_eq : cong'(f) & cong'(g) & (f == g) -> f(a) == g(a) {
+    axiom cong_fun_eq : cong'(f) & cong'(g) & (f == g) -> f(a) == g(a);
+    x : cong'(f) & cong'(g) & (f == g);
+    let r = cong_fun_eq(x) : f(a) == g(a);
+    return r;
+}
+
+fn cong_to : cong'(f) -> sym(f, (a == b) -> (f'(a) == f'(b)))(f) {
+    axiom cong_to : cong'(f) -> sym(f, (a == b) -> (f'(a) == f'(b)))(f);
+    x : cong'(f);
+    let r = cong_to(x) : sym(f, (a == b) -> f'(a) == f'(b))(f);
+    unsafe return r;
+}
+
+fn cong_from : sym(f, (a == b) -> (f'(a) == f'(b)))(f) -> cong'(f) {
+    axiom cong_from : sym(f, (a == b) -> (f'(a) == f'(b)))(f) -> cong'(f);
+    x : sym(f, (a == b) -> (f'(a) == f'(b)))(f);
+    let r = cong_from(x) : cong'(f);
+    return x;
+}
+
+fn tauto_cong_to : tauto_cong'(f) -> sym(f, (a == b)^true -> (f'(a) == f'(b)))(f) {
+    axiom tauto_cong_to : tauto_cong'(f) -> sym(f, (a == b)^true -> (f'(a) == f'(b)))(f);
+    x : tauto_cong'(f);
+    let r = tauto_cong_to(x) : sym(f, (a == b)^true -> (f'(a) == f'(b)))(f);
+    unsafe return r;
+}
+
+fn tauto_cong_from : sym(f, (a == b)^true -> (f'(a) == f'(b)))(f) -> tauto_cong'(f) {
+    axiom tauto_cong_from : sym(f, (a == b)^true -> (f'(a) == f'(b)))(f) -> tauto_cong'(f);
+    x : sym(f, (a == b)^true -> (f'(a) == f'(b)))(f);
+    let r = tauto_cong_from(x) : tauto_cong'(f);
+    return r;
+}
+
+fn cong_to_tauto_cong : cong'(f) -> tauto_cong'(f) {
+    use cong_to;
+    use sym_pow_to_pow_tauto;
+    use tauto_cong_from;
+
+    x : cong'(f);
+
+    let x2 = cong_to(x) : sym(f, (a == b) -> (f'(a) == f'(b)))(f);
+    let x3 = sym_pow_to_pow_tauto(x2) : sym(f, (a == b)^true -> (f'(a) == f'(b)))(f);    
+    let r = tauto_cong_from(x3) : tauto_cong'(f);
+    return r;
+}
+
+fn cong_app_eq : cong'(f) & (a == b) -> f(a) == f(b) {
+    use cong_to;
+
+    x : cong'(f);
+    y : a == b;
+
+    let x2 = cong_to(x) : sym(f, (a == b) -> (f'(a) == f'(b)))(f);
+    let x3 = x2() : (a == b) -> f(a) == f(b);
+    let r = x3(y) : f(a) == f(b);
+    return r;
+}
+
+fn cong_app_in_arg : cong'(f) & (f(a) == b) & (a == c) -> (f(c) == b) {
+    use cong_app_eq;
+    use eq_symmetry;
+    use eq_transitivity;
+
+    x : cong'(f);
+    y : f(a) == b;
+    z : a == c;
+
+    let x2 = cong_app_eq(x, z) : f(a) == f(c);
+    let x3 = eq_symmetry(x2) : f(c) == f(a);
+    let r = eq_transitivity(x3, y) : f(c) == b;
+    return r;
+}
+
