@@ -1355,7 +1355,15 @@ impl Type {
             (True, True) => true,
             (False, False) => true,
             (Ty(a), Ty(b)) => a == b,
-            (Sym(a), Sym(b)) if a == b => true,
+            (Sym(a), Sym(b)) => {
+                let (a, b) = if contra {(b, a)} else {(a, b)};
+                for (ty, v) in bind.iter() {
+                    if let Type::Sym(name) = ty {
+                        if name == a && val == v {return true}
+                    }
+                }
+                a == b
+            }
             (Sym(a), b) if !contra => {
                 for (ty, val) in bind.iter() {
                     if let Type::Sym(name) = ty {
@@ -1465,7 +1473,17 @@ impl Type {
                 true
             }
             (All(a), All(b)) => {
-                let mut bind = vec![];
+                let mut bind: Vec<(Type, Type)> = bind.iter()
+                    .filter(|(a, b)| {
+                        if contra {
+                            if let Sym(_) = b {true} else {false}
+                        } else {
+                            if let Sym(_) = a {true} else {false}
+                        }
+                    })
+                    .map(|(a, b)| if contra {(b.clone(), a.clone())}
+                                  else {(a.clone(), b.clone())})
+                    .collect();
                 if a.bind(contra, b, &mut bind) {
                     bind.push((self.clone(), All(Box::new(a.replace(&bind)))));
                     true
@@ -2234,5 +2252,9 @@ mod tests {
         assert!(!b.has_bound(&a));
         assert!(!a.has_bound_contra(&b));
         assert!(!b.has_bound_contra(&a));
+    
+        let a: Type = "sym(a, all(a'))(c)".try_into().unwrap();
+        let b: Type = "sym(b, all(b'))(c)".try_into().unwrap();
+        assert!(a.has_bound(&b));
     }
 }
