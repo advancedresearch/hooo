@@ -26,12 +26,44 @@ fn sym_unwrap : sym(a, b)(a) -> b {
     return r;
 }
 
+fn sym_to_all : a -> sym(a, all(a'))(a) {
+    x : a;
+    let r = x() : sym(a, all(a'))(a);
+    unsafe return r;
+}
+
+fn sym_from_all : sym(a, all(a'))(a) -> a {
+    x : sym(a, all(a'))(a);
+    let r = x() : a;
+    return r;
+}
+
+fn sym_all_conv : sym(a, all(a'))(a) -> sym(b, all(b'))(a) {
+    x : sym(a, all(a'))(a);
+    let r = x() : sym(b, all(b'))(a);
+    unsafe return r;
+}
+
 fn sym_pow_to_pow_tauto : sym(f, a^b)(f) -> sym(f, a^(b^true))(f) {
     x : sym(f, a^b)(f);
     let x2 = x() : a^b;
     use pow_to_pow_tauto;
     let x3 = pow_to_pow_tauto(x2) : a^(b^true);
     let r = x3() : sym(f, a^(b^true))(f);
+    unsafe return r;
+}
+
+fn sym_pow_lift : a^b -> (sym(a, all(a'))(a))^(sym(b, all(b'))(b)) {
+    use sym_to_all;
+    use sym_from_all;
+    use pow_transitivity;
+
+    x : a^b;
+
+    let f = sym_from_all() : sym(b, all(b'))(b) -> b;
+    let x2 = pow_transitivity(f, x) : sym(b, all(b'))(b) -> a;
+    let g = sym_to_all() : a -> sym(a, all(a'))(a);
+    let r = pow_transitivity(x2, g) : sym(b, all(b'))(b) -> sym(a, all(a'))(a);
     unsafe return r;
 }
 
