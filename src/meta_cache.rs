@@ -11,7 +11,7 @@ pub struct Key {
 }
 
 pub struct MetaCache {
-    pub cache: Arc<Mutex<HashMap<Key, Vec<Range<MetaData>>>>>,
+    pub cache: Arc<Mutex<HashMap<Key, Result<Vec<Range<MetaData>>, String>>>>,
 }
 
 impl MetaCache {
@@ -21,24 +21,42 @@ impl MetaCache {
         }
     }
 
-    pub fn get(&self, key: &Key) -> Option<Vec<Range<MetaData>>> {
+    pub fn is_empty(&self) -> bool {
         let guard = self.cache.lock().unwrap();
+        (&*guard).is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        let guard = self.cache.lock().unwrap();
+        (&*guard).values().count()
+    }
+
+    pub fn get(&self, key: &Key) -> Option<Result<Vec<Range<MetaData>>, String>> {
+        let guard = match self.cache.lock() {
+            Ok(x) => x,
+            Err(_) => panic!("Could not lock mutex in meta cache"),
+        };
         guard.get(key).map(|n| n.clone())
     }
 
-    pub fn insert(&self, key: Key, data: Vec<Range<MetaData>>) {
-        let mut guard = self.cache.lock().unwrap();
+    pub fn insert(&self, key: Key, data: Result<Vec<Range<MetaData>>, String>) {
+        let mut guard = match self.cache.lock() {
+            Ok(x) => x,
+            Err(_) => panic!("Could not lock mutex in meta cache"),
+        };
         guard.insert(key, data);
     }
 
-    pub fn store(self, file: &str) {
+    pub fn store(self, file: &str) -> Result<(), String> {
         use std::fs::File;
         use deflate::write::DeflateEncoder;
         use deflate::Compression;
 
         let store: MetaStore = self.into();
-        let mut w = DeflateEncoder::new(File::create(file).unwrap(), Compression::Default);
-        bincode::serialize_into(&mut w, &store).unwrap();
+        let mut w = DeflateEncoder::new(File::create(file)
+            .map_err(|_| format!("Could not write to `{}`", file))?, Compression::Default);
+        bincode::serialize_into(&mut w, &store)
+            .map_err(|_| format!("Serialization to file `{}` failed", file))
     }
 
     pub fn restore(file: &str) -> MetaCache {
@@ -61,7 +79,7 @@ impl MetaCache {
 #[derive(Serialize, Deserialize)]
 pub struct MetaStore {
     pub strings: Vec<String>,
-    pub data: HashMap<(u32, u32), Vec<(u32, u32, MetaDataStore)>>,
+    pub data: Vec<((u32, u32), Result<Vec<(u32, u32, MetaDataStore)>, String>)>,
 }
 
 impl From<MetaStore> for MetaCache {
@@ -71,8 +89,11 @@ impl From<MetaStore> for MetaCache {
         let mut map = HashMap::new();
         let strings: Vec<Arc<String>> = strings.into_iter().map(|n| Arc::new(n)).collect();
         for (key, val) in data.into_iter() {
-            let val = val.into_iter().map(|n| Range::new(n.0 as usize, n.1 as usize)
-                .wrap(n.2.to(&strings))).collect();
+            let val = match val {
+                Ok(val) => Ok(val.into_iter().map(|n| Range::new(n.0 as usize, n.1 as usize)
+                    .wrap(n.2.to(&strings))).collect()),
+                Err(err) => Err(err)
+            };
             map.insert(Key {source: strings[key.0 as usize].clone(),
                             syntax: strings[key.1 as usize].clone()}, val);
         }
@@ -84,21 +105,26 @@ impl From<MetaStore> for MetaCache {
 
 impl From<MetaCache> for MetaStore {
     fn from(cache: MetaCache) -> MetaStore {
-        let mut map = HashMap::new();
+        let mut data = vec![];
         let cache = cache.cache.lock().unwrap();
         let mut strings = vec![];
         let mut strings_cache: HashMap<String, u32> = HashMap::new();
         for (key, val) in cache.iter() {
-            let val = val.iter().map(|n| {
-                (n.offset as u32, n.length as u32, MetaDataStore::from(n.data.clone(), &mut strings, &mut strings_cache))
-            }).collect();
+            let val = match val {
+                Ok(val) => Ok(val.iter().map(|n| {
+                    (n.offset as u32,
+                     n.length as u32,
+                     MetaDataStore::from(n.data.clone(), &mut strings, &mut strings_cache))
+                }).collect()),
+                Err(err) => Err(err.clone()),
+            };
             let source = id(&**key.source, &mut strings, &mut strings_cache);
             let syntax = id(&**key.syntax, &mut strings, &mut strings_cache);
-            map.insert((source, syntax), val);
+            data.push(((source, syntax), val));
         }
         MetaStore {
             strings,
-            data: map,
+            data,
         }
     }
 }

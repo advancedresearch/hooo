@@ -871,8 +871,9 @@ pub enum Term {
 }
 
 lazy_static! {
-    static ref MATCH_TYPE: Result<Type, String> = {
-        "(a | b) & ((a => c) & (b => c))  ->  c".try_into()
+    static ref MATCH_TYPE: Type = {
+        // `(a | b) & ((a => c) & (b => c))  ->  c`.
+        pow(ty("c"), and(or(ty("a"), ty("b")), and(imply(ty("a"), ty("c")), imply(ty("b"), ty("c")))))
     };
 }
 
@@ -989,8 +990,8 @@ impl Term {
                 for arg_ind in arg_inds.into_iter().rev() {
                     ty_arg = and(ctx.terms[arg_ind.unwrap()].get_type(), ty_arg);
                 }
-                let ty_f: Type = if args.len() == 1 {"false -> a".try_into().unwrap()}
-                    else {MATCH_TYPE.as_ref().unwrap().clone()};
+                let ty_f: Type = if args.len() == 1 {pow(crate::ty("a"), Type::False)}
+                    else {MATCH_TYPE.clone()};
                 if let Type::Pow(ab) = ty_f.lift() {
                     if ty_arg.app_to_has_bound(&ab.1, &ab.0, t) {
                         return Ok(());
