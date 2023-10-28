@@ -703,18 +703,24 @@ pub fn parse_ty_str(data: &str, meta_cache: &MetaCache) -> Result<Type, String> 
     use piston_meta::{parse_errstr};
     use crate::meta_cache::Key;
 
-    let syntax = TYPE_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
-
     let mut meta_data = vec![];
     let key = Key {
         source: Arc::new(data.into()),
         syntax: Arc::new(include_str!("../assets/syntax.txt").into()),
     };
-    if let Some(data) = meta_cache.get(&key) {
-        meta_data = data;
+    if let Some(res) = meta_cache.get(&key) {
+        meta_data = res?;
     } else {
-        parse_errstr(&syntax, &data, &mut meta_data)?;
-        meta_cache.insert(key, meta_data.clone());
+        let syntax = TYPE_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
+        match parse_errstr(&syntax, &data, &mut meta_data) {
+            Ok(()) => {
+                meta_cache.insert(key, Ok(meta_data.clone()));
+            }
+            Err(err) => {
+                meta_cache.insert(key, Err(err.clone()));
+                return Err(err);
+            }
+        }
     }
 
     // piston_meta::json::print(&meta_data);
@@ -745,18 +751,24 @@ pub fn run_str(
     use piston_meta::{parse_errstr, ParseErrorHandler};
     use crate::meta_cache::Key;
 
-    let syntax = SCRIPT_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
-
     let mut meta_data = vec![];
     let key = Key {
         source: Arc::new(data.into()),
         syntax: Arc::new(include_str!("../assets/syntax-script.txt").into()),
     };
     if let Some(data) = meta_cache.get(&key) {
-        meta_data = data;
+        meta_data = data?;
     } else {
-        parse_errstr(&syntax, &data, &mut meta_data)?;
-        meta_cache.insert(key, meta_data.clone());
+        let syntax = SCRIPT_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
+        match parse_errstr(&syntax, &data, &mut meta_data) {
+            Ok(()) => {
+                meta_cache.insert(key, Ok(meta_data.clone()));
+            }
+            Err(err) => {
+                meta_cache.insert(key, Err(err.clone()));
+                return Err(err);
+            }
+        }
     }
 
     // piston_meta::json::print(&meta_data);
@@ -788,11 +800,27 @@ pub fn lib_str(
     meta_cache: &MetaCache,
 ) -> Result<LibInfo, String> {
     use piston_meta::parse_errstr;
-
-    let syntax = LIB_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
+    use crate::meta_cache::Key;
 
     let mut meta_data = vec![];
-    parse_errstr(&syntax, &data, &mut meta_data)?;
+    let key = Key {
+        source: Arc::new(data.into()),
+        syntax: Arc::new(include_str!("../assets/syntax-lib.txt").into()),
+    };
+    if let Some(data) = meta_cache.get(&key) {
+        meta_data = data?;
+    } else {
+        let syntax = LIB_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?; 
+        match parse_errstr(&syntax, &data, &mut meta_data) {
+            Ok(()) => {
+                meta_cache.insert(key, Ok(meta_data.clone()));
+            }
+            Err(err) => {
+                meta_cache.insert(key, Err(err.clone()));
+                return Err(err);
+            }
+        }
+    }
 
     // piston_meta::json::print(&meta_data);
 

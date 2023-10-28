@@ -47,7 +47,10 @@ fn main() {
                 }
             }
         }
-        meta_cache.store(meta_store_file);
+        match meta_cache.store(meta_store_file) {
+            Ok(()) => {}
+            Err(err) => eprintln!("ERROR:\n{}", err),
+        }
     } else {
         eprintln!("hooo <file.hooo>");
     }
