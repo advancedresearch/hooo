@@ -213,14 +213,14 @@ fn run_ctx(
                         match run_ctx(meta_cache, ctx, search, loader, "script", convert, ignored) {
                             Ok((range, ret)) => {
                                 convert.update(range);
-                                if let Some((_, ret)) = ret {
+                                if let Some((unsafe_flag, ret)) = ret {
                                     if let Type::Imply(ab) = &ty {
                                         if ctx.has_term_ty(&ret, &ab.1) {
                                             ctx.add_proof(ty.clone());
                                         }
                                     }
-                                }
-                                Ok(())
+                                    Ok(unsafe_flag)
+                                } else {Ok(false)}
                             }
                             Err(err) => Err(err),
                         }
