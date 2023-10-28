@@ -754,7 +754,7 @@ impl Context {
     }
 
     #[must_use]
-    pub fn lam<F: FnOnce(&mut Context, &mut Search) -> Result<(), (Range, String)>>(
+    pub fn lam<F: FnOnce(&mut Context, &mut Search) -> Result<bool, (Range, String)>>(
         &mut self,
         range: Range,
         name: Arc<String>,
@@ -762,14 +762,14 @@ impl Context {
         search: &mut Search,
         f: F
     ) -> Result<(), (Range, String)> {
-        if !ty.is_safe_to_prove() {
-            return Err((range, format!("Not safe to prove `{}`", ty.to_str(true, None))));
-        }
-
         if let Type::Imply(_) = ty {
             let mut ctx = self.clone();
-            f(&mut ctx, search)?;
+            let unsafe_flag = f(&mut ctx, search)?;
             if ctx.prove(ty.clone(), search) {
+                if !unsafe_flag && !ty.is_safe_to_prove() {
+                    return Err((range, format!("Not safe to prove `{}`", ty.to_str(true, None))));
+                }
+
                 // Force the proof since it is safe.
                 self.add_proof(ty.clone());
                 self.new_term((name, Term::LamDecl(ty)), search)
@@ -1578,13 +1578,51 @@ impl Type {
         }
     }
 
+    /// Prepease type for Herbrandization.
+    pub fn de_all(&self) -> Option<Type> {
+        use Type::*;
+
+        match self {
+            True | False | Ty(_) | Sym(_) => Some(self.clone()),
+            All(s) => Some((**s).clone()),
+            And(ab) => Some(and(ab.0.de_all()?, ab.1.de_all()?)),
+            Or(ab) => Some(or(ab.0.de_all()?, ab.1.de_all()?)),
+            Imply(ab) => Some(imply(ab.0.de_all()?, ab.1.de_all()?)),
+            Pair(ab) => Some(pair(ab.0.de_all()?, ab.1.de_all()?)),
+            App(ab) => Some(app(ab.0.de_all()?, ab.1.de_all()?)),
+            Sd(ab) => Some(sd(ab.0.de_all()?, ab.1.de_all()?)),
+            Jud(ab) => Some(jud(ab.0.de_all()?, ab.1.de_all()?)),
+            Q(ab) => Some(q(ab.0.de_all()?, ab.1.de_all()?)),
+            Pow(ab) => Some(pow(ab.0.de_all()?, ab.1.de_all()?)),
+            Nec(a) => Some(nec(a.de_all()?)),
+            Pos(a) => Some(pos(a.de_all()?)),
+            Qu(a) => Some(qu(a.de_all()?)),
+            SymBlock(ab) => Some(sym_block(ab.0.clone(), ab.1.de_all()?)),
+            AllTy(_) => None,
+        }
+    }
+
+    pub fn herbrandization(&self, f_in: &Type, f_out: &Type, exp_t: &Type) -> bool {
+        use Type::*;
+
+        if let All(exp) = exp_t {
+            let s = &if let Some(x) = self.de_all() {x} else {return false};
+            let mut bind = vec![];
+            let contra = true;
+            if f_in.bind(contra, s, &mut bind) {
+                if f_out.replace(&bind).has_(false, exp) {return true}
+            }
+        }
+        false
+    }
+
     /// Whether application type checks.
     pub fn app_to_has_bound(&self, f_in: &Type, f_out: &Type, exp_t: &Type) -> bool {
         let mut bind = vec![];
         let contra = true;
         if f_in.bind(contra, self, &mut bind) {
             if f_out.replace(&bind).has_(false, exp_t) {return true} else {false}
-        } else {false}
+        } else {self.herbrandization(f_in, f_out, exp_t)}
     }
 
     pub fn has_bound(&self, other: &Type) -> bool {
