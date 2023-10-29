@@ -79,7 +79,7 @@ impl MetaCache {
 #[derive(Serialize, Deserialize)]
 pub struct MetaStore {
     pub strings: Vec<String>,
-    pub data: Vec<((u32, u32), Result<Vec<(u32, u32, MetaDataStore)>, String>)>,
+    pub data: Vec<((u32, u32), Result<Vec<(u32, u32, MetaDataStore)>, u32>)>,
 }
 
 impl From<MetaStore> for MetaCache {
@@ -92,7 +92,7 @@ impl From<MetaStore> for MetaCache {
             let val = match val {
                 Ok(val) => Ok(val.into_iter().map(|n| Range::new(n.0 as usize, n.1 as usize)
                     .wrap(n.2.to(&strings))).collect()),
-                Err(err) => Err(err)
+                Err(err) => Err((*strings[err as usize]).clone())
             };
             map.insert(Key {source: strings[key.0 as usize].clone(),
                             syntax: strings[key.1 as usize].clone()}, val);
@@ -116,7 +116,7 @@ impl From<MetaCache> for MetaStore {
                      n.length as u32,
                      MetaDataStore::from(n.data.clone(), &mut strings, &mut strings_cache))
                 }).collect()),
-                Err(err) => Err(err.clone()),
+                Err(err) => Err(id(&**err, &mut strings, &mut strings_cache)),
             };
             let source = id(&**key.source, &mut strings, &mut strings_cache);
             let syntax = id(&**key.syntax, &mut strings, &mut strings_cache);
