@@ -63,3 +63,29 @@ fn ty_fun_ty : true -> (type'(a) => type'(b) : type'(z')) {
     return r;
 }
 
+fn ty_in_left_arg : (a : b) & (a == c) -> (c : b) {
+    use ty_eq_left;
+    use fst;
+    
+    x : (a : b);
+    y : a == c;
+    
+    let x2 = ty_eq_left(y) : (a : b) == (c : b);
+    let x3 = fst(x2) : (a : b) => (c : b);
+    let r = x3(x) : (c : b);
+    return r;
+}
+
+fn ty_in_right_arg : (a : b) & (b == c) -> (a : c) {
+    use ty_eq_right;
+    use fst;
+    
+    x : (a : b);
+    y : b == c;
+    
+    let x2 = ty_eq_right(y) : (a : b) == (a : c);
+    let x3 = fst(x2) : (a : b) => (a : c);
+    let r = x3(x) : (a : c);
+    return r;
+}
+
