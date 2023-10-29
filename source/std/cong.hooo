@@ -94,3 +94,35 @@ fn cong_app_in_arg : cong'(f) & (f(a) == b) & (a == c) -> (f(c) == b) {
     return r;
 }
 
+fn cong_sym : true -> cong'(sym(f, all(a == b -> f'(a) == f'(b)))) {
+    axiom cong_sym : true -> cong'(sym(f, all(a == b -> f'(a) == f'(b))));
+    x : true;
+    let r = cong_sym(x) : cong'(sym(f, all(a == b -> f'(a) == f'(b))));
+    return r;
+}
+
+fn cong_in_arg : cong'(f) & (f == g) -> cong'(g) {
+    use cong_app_eq;
+    use cong_from;
+    use cong_sym;
+    use cong_to;
+    use fst;
+    use triv;
+
+    x : cong'(f);
+    y : f == g;
+
+    let x2 = cong_to(x) : sym(f, all(a == b -> f'(a) == f'(b)))(f);
+    let x3 = triv(cong_sym) : cong'(sym(f, all(a == b -> f'(a) == f'(b))));
+    let x5 = cong_app_eq(x3, y) :
+        sym(f, all(a == b -> f'(a) == f'(b)))(f) ==
+        sym(f, all(a == b -> f'(a) == f'(b)))(g);
+    let x6 = fst(x5) :
+        sym(f, all(a == b -> f'(a) == f'(b)))(f) =>
+        sym(f, all(a == b -> f'(a) == f'(b)))(g);
+    let x7 = x6(x2) : sym(f, all(a == b -> f'(a) == f'(b)))(g);
+    let x8 = x7() : sym(g, all(a == b -> g'(a) == g'(b)))(g);
+    let r = cong_from(x8) : cong'(g);
+    return r;
+}
+
