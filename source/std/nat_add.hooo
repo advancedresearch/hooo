@@ -3,12 +3,13 @@
 Addition of natural numbers.
 */
 
-sym add;
 sym nat;
-sym z;
-sym s;
-sym 1;
-sym 2;
+use z;
+use s;
+use 1;
+use 2;
+
+sym add;
 
 fn nat_add_ty : true -> (add' : nat' => nat' => nat') {
     axiom add_ty : true -> (add' : nat' => nat' => nat');

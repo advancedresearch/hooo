@@ -1,5 +1,6 @@
 
-sym z;
+use z;
+
 sym type;
 
 fn ty_eq_left : a == b  ->  (a : c) == (b : c) {

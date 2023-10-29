@@ -1,9 +1,11 @@
+
+use ex;
+use type;
+
 sym nat;
-sym type;
 sym z;
 sym s;
 sym prev;
-sym ex;
 sym 1;
 sym 2;
 
