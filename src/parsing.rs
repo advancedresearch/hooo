@@ -132,7 +132,9 @@ fn run_ctx(
                 convert.update(range);
                 if loader.run {
                     if args.len() == 0 {
-                        ctx.new_term((name, Term::Axiom(ty)), search).map_err(|err| (range, err))?;
+                        let is_use = false;
+                        ctx.new_term((name, Term::Axiom(ty)), is_use, search)
+                            .map_err(|err| (range, err))?;
                     } else {
                         return Err((range, "Parsing axiom".into()));
                     }
@@ -148,7 +150,9 @@ fn run_ctx(
                 convert.update(range);
                 if loader.run {
                     if args.len() == 0 {
-                        ctx.new_term((name, Term::Var(ty)), search).map_err(|err| (range, err))?;
+                        let is_use = false;
+                        ctx.new_term((name, Term::Var(ty)), is_use, search)
+                            .map_err(|err| (range, err))?;
                     } else {
                         return Err((range, "Parsing variable".into()));
                     }
@@ -164,7 +168,13 @@ fn run_ctx(
                 convert.update(range);
                 if loader.run {
                     if args.len() >= 1 {
-                        ctx.new_term((name, Term::App(args[0].clone(), args[1..].into(), ty)), search)
+                        let is_use = false;
+                        ctx.new_term(
+                            (name,
+                             Term::App(
+                                args[0].clone(),
+                                args[1..].into(), ty)),
+                            is_use, search)
                             .map_err(|err| (range, err))?;
                     } else {
                         return Err((range, "Parsing application: Expected arguments".into()));
@@ -181,7 +191,10 @@ fn run_ctx(
                 convert.update(range);
                 if loader.run {
                     if args.len() == 3 || args.len() == 1 {
-                        ctx.new_term((name, Term::Match(args, ty)), search).map_err(|err| (range, err))?;
+                        let is_use = false;
+                        ctx.new_term(
+                            (name, Term::Match(args, ty)), is_use, search)
+                            .map_err(|err| (range, err))?;
                     } else {
                         return Err((range, "Parsing application".into()));
                     }
@@ -196,7 +209,9 @@ fn run_ctx(
             Ok((range, (name, _, ty))) => {
                 convert.update(range);
                 if loader.run {
-                    ctx.new_term((name, Term::Check(ty)), search).map_err(|err| (range, err))?;
+                    let is_use = false;
+                    ctx.new_term((name, Term::Check(ty)), is_use, search)
+                        .map_err(|err| (range, err))?;
                 }
                 continue;
             }
@@ -247,7 +262,9 @@ fn run_ctx(
             convert.update(range);
             if loader.run {
                 let ty = loader.load_fun(&ns, &fun).map_err(|err| (range, err))?;
-                ctx.new_term((fun, Term::FunDecl(ty)), search).map_err(|err| (range, err))?;
+                let is_use = true;
+                ctx.new_term((fun, Term::FunDecl(ty)), is_use, search)
+                    .map_err(|err| (range, err))?;
             }
         } else {
             let range = convert.ignore();
