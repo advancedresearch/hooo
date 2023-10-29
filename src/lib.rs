@@ -709,10 +709,11 @@ impl Context {
     pub fn new_term(
         &mut self,
         (name, t): (Arc<String>, Term),
+        is_use: bool,
         search: &mut Search
     ) -> Result<(), String> {
         let ty = t.get_type();
-        if !self.is_type_declared(&ty, &mut vec![]) {
+        if !is_use && !self.is_type_declared(&ty, &mut vec![]) {
             return Err("Some symbols where not declared".into())
         }
         match t.has_type(&ty, self, search) {
@@ -746,7 +747,8 @@ impl Context {
                 // Force the proof since it is safe.
                 let ty = ty.lift();
                 self.add_proof(ty.clone());
-                self.new_term((name, Term::FunDecl(ty)), search)
+                let is_use = false;
+                self.new_term((name, Term::FunDecl(ty)), is_use, search)
                     .map_err(|err| (range, err))?;
                 Ok(())
             } else {Err((range, format!("Could not prove `{}`", ty.to_str(true, None))))}
@@ -772,7 +774,8 @@ impl Context {
 
                 // Force the proof since it is safe.
                 self.add_proof(ty.clone());
-                self.new_term((name, Term::LamDecl(ty)), search)
+                let is_use = false;
+                self.new_term((name, Term::LamDecl(ty)), is_use, search)
                     .map_err(|err| (range, err))?;
                 Ok(())
             } else {Err((range, format!("Could not prove `{}`", ty.to_str(true, None))))}
@@ -1889,7 +1892,9 @@ mod tests {
     #[test]
     fn test_replace() {
         let mut ctx = Context::new();
-        ctx.new_term(var("x", "a^b".try_into().unwrap()), &mut Search::new()).unwrap();
+        let is_use = false;
+        ctx.new_term(var("x", "a^b".try_into().unwrap()), is_use,
+            &mut Search::new()).unwrap();
         assert!(!ctx.prove("d^c".try_into().unwrap(), &mut Search::new()));
     }
 
