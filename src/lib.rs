@@ -380,14 +380,16 @@ impl Term {
                             return if ty_arg.app_to_has_bound(&ab.1, &ab.0, t) {
                                 Ok(())
                             } else {
-                                Err(format!("Type check error #200\nExpected `{}`, could not apply `{}` to `{}`",
+                                Err(format!("Type check error #200\nExpected:\n\n  {}\n\n\
+                                    Could not apply:\n\n  {}\n\nTo:\n\n  {}\n",
                                     t, ty_f.to_str(true, None), ty_arg))
                             };
                         } else if let Type::Imply(ab) = &ty_f {
                             return if ty_arg.app_to_has_bound(&ab.0, &ab.1, t) {
                                 Ok(())
                             } else {
-                                Err(format!("Expected `{}`', could not apply `{}` to `{}`",
+                                Err(format!("Expected:\n\n  {}\n\n\
+                                    Could not apply:\n\n  {}\n\n To:\n\n  {}\n",
                                     t, ty_f, ty_arg))
                             };
                         } else {
