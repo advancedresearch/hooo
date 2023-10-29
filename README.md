@@ -229,10 +229,16 @@ of the solver are too strong. One application of is when needing to reason about
 The current version of Hooo uses simple symbols.
 This means that instead of declaring data structures,
 one can just use e.g. `foo'(a, b)`.
-A symbol must be declared before use:
+A symbol must be declared once before use:
 
 ```text
 sym foo;
+```
+
+In other places, one must use the symbol:
+
+```text
+use foo;
 ```
 
 Symbols are global, so `foo'` is `foo'` everywhere.
