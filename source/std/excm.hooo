@@ -1,0 +1,22 @@
+
+/*
+Excluded middle axiom `a | !a`
+Formal expression `Excm'`
+*/
+
+sym Excm;
+
+fn excm_to : Excm' -> all(a | !a) {
+    axiom excm_to : Excm' -> all(a | !a);
+    x : Excm';
+    let r = excm_to(x) : all(a | !a);
+    unsafe return r;
+}
+
+fn excm_from : all(a | !a) -> Excm' {
+    axiom excm_from : all(a | !a) -> Excm';
+    x : all(a | !a);
+    let r = excm_from(x) : Excm';
+    return r;
+}
+
