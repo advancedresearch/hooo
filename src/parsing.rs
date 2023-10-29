@@ -692,10 +692,9 @@ fn parse_un(
 }
 
 lazy_static! {
-    static ref TYPE_SYNTAX_RULES: Result<Syntax, String> = {
-        let syntax = include_str!("../assets/syntax.txt");
-        syntax_errstr(syntax)
-    };
+    static ref TYPE_SYNTAX: Arc<String> = Arc::new(include_str!("../assets/syntax.txt").into());
+
+    static ref TYPE_SYNTAX_RULES: Result<Syntax, String> = syntax_errstr(&*TYPE_SYNTAX);
 }
 
 /// Parses a type string.
@@ -706,7 +705,7 @@ pub fn parse_ty_str(data: &str, meta_cache: &MetaCache) -> Result<Type, String> 
     let mut meta_data = vec![];
     let key = Key {
         source: Arc::new(data.into()),
-        syntax: Arc::new(include_str!("../assets/syntax.txt").into()),
+        syntax: TYPE_SYNTAX.clone(),
     };
     if let Some(res) = meta_cache.get(&key) {
         meta_data = res?;
@@ -734,10 +733,10 @@ pub fn parse_ty_str(data: &str, meta_cache: &MetaCache) -> Result<Type, String> 
 }
 
 lazy_static! {
-    static ref SCRIPT_SYNTAX_RULES: Result<Syntax, String> = {
-        let syntax = include_str!("../assets/syntax-script.txt");
-        syntax_errstr(syntax)
-    };
+    static ref SCRIPT_SYNTAX: Arc<String> =
+        Arc::new(include_str!("../assets/syntax-script.txt").into());
+
+    static ref SCRIPT_SYNTAX_RULES: Result<Syntax, String> = syntax_errstr(&*SCRIPT_SYNTAX);
 }
 
 /// Executes a string as script.
@@ -754,7 +753,7 @@ pub fn run_str(
     let mut meta_data = vec![];
     let key = Key {
         source: Arc::new(data.into()),
-        syntax: Arc::new(include_str!("../assets/syntax-script.txt").into()),
+        syntax: SCRIPT_SYNTAX.clone(),
     };
     if let Some(data) = meta_cache.get(&key) {
         meta_data = data?;
@@ -788,10 +787,9 @@ pub fn run_str(
 }
 
 lazy_static! {
-    static ref LIB_SYNTAX_RULES: Result<Syntax, String> = {
-        let syntax = include_str!("../assets/syntax-lib.txt");
-        syntax_errstr(syntax)
-    };
+    static ref LIB_SYNTAX: Arc<String> = Arc::new(include_str!("../assets/syntax-lib.txt").into());
+
+    static ref LIB_SYNTAX_RULES: Result<Syntax, String> = syntax_errstr(&*LIB_SYNTAX);
 }
 
 /// Parses library format.
@@ -805,7 +803,7 @@ pub fn lib_str(
     let mut meta_data = vec![];
     let key = Key {
         source: Arc::new(data.into()),
-        syntax: Arc::new(include_str!("../assets/syntax-lib.txt").into()),
+        syntax: LIB_SYNTAX.clone(),
     };
     if let Some(data) = meta_cache.get(&key) {
         meta_data = data?;
