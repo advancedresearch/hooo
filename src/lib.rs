@@ -680,12 +680,13 @@ impl Context {
 
     pub fn run_str(
         &mut self,
+        file: &str,
         script: &str,
         search: &mut Search,
         loader: &mut Loader,
         meta_cache: &MetaCache,
     ) -> Result<Option<(bool, Arc<String>)>, String> {
-        parsing::run_str(self, script, search, loader, meta_cache)
+        parsing::run_str(file, self, script, search, loader, meta_cache)
     }
 
     pub fn run(
@@ -703,7 +704,7 @@ impl Context {
         let mut data = String::new();
         data_file.read_to_string(&mut data)
             .map_err(|err| format!("Could not open `{}`, {}", file, err))?;
-        self.run_str(&data, search, loader, meta_cache)
+        self.run_str(file, &data, search, loader, meta_cache)
     }
 
     pub fn new_term(
@@ -1687,6 +1688,7 @@ pub struct Loader {
     pub dir: Arc<String>,
     /// Function type cache.
     pub functions: HashMap<Arc<String>, Type>,
+    pub function_files: HashMap<Arc<String>, usize>,
     /// Whether to execute script when parsing.
     ///
     /// First time when traversing a project,
@@ -1708,6 +1710,7 @@ impl Loader {
         let mut loader = Loader {
             dir: dir.clone(),
             functions: HashMap::default(),
+            function_files: HashMap::default(),
             run: false,
             dependencies: vec![],
             trace: vec![],
@@ -1750,8 +1753,11 @@ impl Loader {
                     return None;
                 }
             }
-            for fun in loader.functions.into_iter() {
-                tx.send(fun).unwrap();
+            for (name, ty) in loader.functions.into_iter() {
+                tx.send((name, (ty, i))).unwrap();
+            }
+            for sym in ctx.symbols.into_iter() {
+               tx.send((sym.clone(), (Type::Sym(sym), i))).unwrap();
             }
             Some(i)
         }).while_some().max();
@@ -1761,8 +1767,9 @@ impl Loader {
         let error = error.lock().unwrap();
         let _ = error.as_ref().map_err(|err| err.clone())?;
 
-        while let Ok(x) = rx.recv() {
-            loader.functions.insert(x.0, x.1);
+        while let Ok((name, (ty, i))) = rx.recv() {
+            loader.functions.insert(name.clone(), ty);
+            loader.function_files.insert(name, i);
         }
 
         loader.files = files;

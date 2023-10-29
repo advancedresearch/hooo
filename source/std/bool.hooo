@@ -1,3 +1,7 @@
+use cong;
+use z;
+use type;
+
 sym bool;
 sym tr;
 sym fa;
@@ -7,9 +11,6 @@ sym idb;
 sym tr1;
 sym and;
 sym or;
-sym type;
-sym z;
-sym cong;
 
 fn bool_ty : true -> (bool' : type'(z')) {
     axiom bool_ty : true -> (bool' : type'(z'));

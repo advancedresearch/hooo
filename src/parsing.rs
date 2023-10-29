@@ -55,6 +55,7 @@ fn parse_lib(
 }
 
 fn run_ctx(
+    file: &str,
     meta_cache: &MetaCache,
     ctx: &mut Context,
     search: &mut Search,
@@ -84,7 +85,9 @@ fn run_ctx(
                     loader.trace.push(name.clone());
                     if !loader.silent {println!("fn {}", name)};
                     ctx.fun(range, name.clone(), ty.clone(), search, |ctx, search| {
-                        match run_ctx(meta_cache, ctx, search, loader, "script", convert, ignored) {
+                        match run_ctx(file, meta_cache, ctx, search, loader,
+                            "script", convert, ignored)
+                        {
                             Ok((range, ret)) => {
                                 convert.update(range);
                                 if let Some((unsafe_flag, ret)) = ret {
@@ -117,6 +120,17 @@ fn run_ctx(
 
         if let Ok((range, val)) = convert.meta_string("sym") {
             convert.update(range);
+            if loader.load_fun(&[], &val).is_ok() {
+                if let Some(i) = loader.function_files.get(&val) {
+                    let other_file = &loader.files[*i];
+                    if file != other_file {
+                        return Err((range, format!(
+                            "Name `{}` already declared in `{}`.\n\
+                            Try `use {};` instead.",
+                            val, loader.files[*i], val)));
+                    }
+                }
+            }
             ctx.symbols.push(val);
             continue;
         }
@@ -225,7 +239,9 @@ fn run_ctx(
                 if loader.run {
                     if !loader.silent {println!("lam {}", name)};
                     ctx.lam(range, name.clone(), ty.clone(), search, |ctx, search| {
-                        match run_ctx(meta_cache, ctx, search, loader, "script", convert, ignored) {
+                        match run_ctx(file, meta_cache, ctx, search, loader,
+                            "script", convert, ignored)
+                        {
                             Ok((range, ret)) => {
                                 convert.update(range);
                                 if let Some((unsafe_flag, ret)) = ret {
@@ -262,9 +278,17 @@ fn run_ctx(
             convert.update(range);
             if loader.run {
                 let ty = loader.load_fun(&ns, &fun).map_err(|err| (range, err))?;
-                let is_use = true;
-                ctx.new_term((fun, Term::FunDecl(ty)), is_use, search)
-                    .map_err(|err| (range, err))?;
+                match ty {
+                    Type::Pow(_) => {
+                        let is_use = true;
+                        ctx.new_term((fun, Term::FunDecl(ty)), is_use, search)
+                            .map_err(|err| (range, err))?;
+                    }
+                    Type::Sym(name) => {
+                        ctx.symbols.push(name);
+                    }
+                    _ => return Err((range, format!("Unexpected type `{}`", ty))),
+                }
             }
         } else {
             let range = convert.ignore();
@@ -758,6 +782,7 @@ lazy_static! {
 
 /// Executes a string as script.
 pub fn run_str(
+    file: &str,
     ctx: &mut Context,
     data: &str,
     search: &mut Search,
@@ -791,7 +816,7 @@ pub fn run_str(
 
     let convert = Convert::new(&meta_data);
     let mut ignored = vec![];
-    match run_ctx(meta_cache, ctx, search, loader, "script", convert, &mut ignored) {
+    match run_ctx(file, meta_cache, ctx, search, loader, "script", convert, &mut ignored) {
         Err((range, err)) => {
             let (range, _) = meta_data[range.offset].clone().decouple();
             let mut handler = ParseErrorHandler::new(data);
