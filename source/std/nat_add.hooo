@@ -46,47 +46,52 @@ fn nat_add_eq_right : a == b -> add'(c, a) == add'(c, b) {
     return r;
 }
 
+fn nat_add_eq_both : (a == c) & (b == d) -> add'(a, b) == add'(c, d) {
+    use eq_transitivity;
+    use nat_add_eq_left;
+    use nat_add_eq_right;
+
+    x : a == c;
+    y : b == d;
+
+    let x2 = nat_add_eq_left(x) : add'(a, b) == add'(c, b);
+    let x3 = nat_add_eq_right(y) : add'(c, b) == add'(c, d);
+    let r = eq_transitivity(x2, x3) : add'(a, b) == add'(c, d);
+    return r;
+}
+
 fn nat_one_plus_one_equals_two : true -> add'(1', 1') == 2' {
+    use eq_symmetry;
+    use eq_transitivity;
+    use eq_transitivity_sym;
+    use nat_add_eq_both;
+    use nat_add_succ;
+    use nat_add_zero;
+    use nat_one_eq;
+    use nat_one_ty;
+    use nat_succ_eq;
+    use nat_two_ty;
+    use nat_two_eq;
+    use nat_zero_ty;
+    use ty_in_left_arg;
+
     x : true;
 
-    use nat_one_eq;
     let x2 = nat_one_eq(x) : 1' == s'(z');
-    use nat_one_ty;
     let x3 = nat_one_ty(x) : (1' : nat');
-    use ty_eq_left;
-    let x4 = ty_eq_left(x2) : (1' : nat') == (s'(z') : nat');
-    use fst;
-    let x5 = fst(x4) : (1' : nat') => (s'(z') : nat');
-    let succ_ty = x5(x3) : (s'(z') : nat');
-    use nat_zero_ty;
+    let succ_ty = ty_in_left_arg(x3, x2) : (s'(z') : nat');
     let zero_ty = nat_zero_ty(x) : (z' : nat');
-    use nat_add_succ;
     let x7 = nat_add_succ(succ_ty, zero_ty) : add'(s'(z'), s'(z')) == s'(add'(s'(z'), z'));
 
-    use nat_add_zero;
     let y1 = nat_add_zero(succ_ty) : add'(s'(z'), z') == s'(z');
-    use nat_succ_eq;
     let y2 = nat_succ_eq(y1) : s'(add'(s'(z'), z')) == s'(s'(z'));
-    use eq_transitivity;
     let y3 = eq_transitivity(x7, y2) : add'(s'(z'), s'(z')) == s'(s'(z'));
 
-    use nat_two_ty;
-    let x8 = nat_two_ty(x) : (2' : nat');
-    use nat_two_eq;
     let x9 = nat_two_eq(x) : 2' == s'(s'(z'));
-    let x10 = ty_eq_left(x9) : (2' : nat') == (s'(s'(z')) : nat');
-    let x11 = fst(x10) : (2' : nat') => (s'(s'(z')) : nat');
-    let x12 = x11(x8) : (s'(s'(z')) : nat');
-    use nat_add_zero;
-    use eq_symmetry;
-    let x15 = eq_symmetry(x9) : s'(s'(z')) == 2';
-    let x16 = eq_transitivity(y3, x15) : add'(s'(z'), s'(z')) == 2';
-    use nat_add_eq_left;
-    let x17 = nat_add_eq_left(x2) : add'(1', s'(z')) == add'(s'(z'), s'(z'));
-    let x18 = eq_transitivity(x17, x16) : add'(1', s'(z')) == 2';
-    use nat_add_eq_right;
-    let x19 = nat_add_eq_right(x2) : add'(1', 1') == add'(1', s'(z'));
-    let r = eq_transitivity(x19, x18) : add'(1', 1') == 2';
+    let x16 = eq_transitivity_sym(y3, x9) : add'(s'(z'), s'(z')) == 2';
+    let x17 = nat_add_eq_both(x2, x2) : add'(1', 1') == add'(s'(z'), s'(z'));
+
+    let r = eq_transitivity(x17, x16) : add'(1', 1') == 2';
     return r;
 }
 
