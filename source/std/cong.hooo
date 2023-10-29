@@ -126,3 +126,30 @@ fn cong_in_arg : cong'(f) & (f == g) -> cong'(g) {
     return r;
 }
 
+fn cong_eq_left : cong'(f) & (a == b) -> f(a, c) == f(b, c) {
+    use cong_app;
+    use cong_app_eq;
+    use cong_fun_eq;
+
+    x : cong'(f);
+    y : a == b;
+
+    let x2 = cong_app(x) : cong'(f(a));
+    let x3 = cong_app(x) : cong'(f(b));
+    let x4 = cong_app_eq(x, y) : f(a) == f(b);
+    let r = cong_fun_eq(x2, x3, x4) : f(a, c) == f(b, c);
+    return r;
+}
+
+fn cong_eq_right : cong'(f) & (a == b) -> f(c, a) == f(c, b) {
+    use cong_app;
+    use cong_app_eq;
+
+    x : cong'(f);
+    y : a == b;
+
+    let x2 = cong_app(x) : cong'(f(c));
+    let r = cong_app_eq(x2, y) : f(c, a) == f(c, b);
+    return r;
+}
+
