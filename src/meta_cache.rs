@@ -17,7 +17,7 @@ pub struct MetaCache {
 impl MetaCache {
     pub fn new() -> MetaCache {
         MetaCache {
-            cache: Arc::new(HashMap::new().into()),
+            cache: Arc::new(HashMap::default().into()),
         }
     }
 
@@ -86,7 +86,7 @@ impl From<MetaStore> for MetaCache {
     fn from(store: MetaStore) -> MetaCache {
         let MetaStore {data, strings} = store;
 
-        let mut map = HashMap::new();
+        let mut map = HashMap::default();
         let strings: Vec<Arc<String>> = strings.into_iter().map(|n| Arc::new(n)).collect();
         for (key, val) in data.into_iter() {
             let val = match val {
@@ -108,7 +108,7 @@ impl From<MetaCache> for MetaStore {
         let mut data = vec![];
         let cache = cache.cache.lock().unwrap();
         let mut strings = vec![];
-        let mut strings_cache: HashMap<String, u32> = HashMap::new();
+        let mut strings_cache: HashMap<String, u32> = HashMap::default();
         for (key, val) in cache.iter() {
             let val = match val {
                 Ok(val) => Ok(val.iter().map(|n| {

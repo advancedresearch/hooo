@@ -17,7 +17,7 @@ fn parse_lib(
     let mut name: Option<Arc<String>> = None;
     let mut version: Option<Arc<String>> = None;
     let mut description: Option<Arc<String>> = None;
-    let mut functions: HashMap<Arc<String>, Type> = HashMap::new();
+    let mut functions: HashMap<Arc<String>, Type> = HashMap::default();
     let mut dependencies: Vec<Dep> = vec![];
     loop {
         if let Ok(range) = convert.end_node(node) {
