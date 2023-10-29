@@ -575,8 +575,8 @@ ava_lower_univ : !~p & (b, a) & (a : p) -> p(b) == a
 */
 
 use std::sync::Arc;
-use std::collections::HashSet;
-use std::collections::HashMap;
+use rustc_hash::FxHashSet as HashSet;
+use rustc_hash::FxHashMap as HashMap;
 use std::fmt;
 use std::path::Path;
 use piston_meta::Range;
@@ -632,7 +632,7 @@ impl Context {
             terms: vec![],
             term_names: vec![],
             proofs: vec![],
-            proof_cache: HashSet::new(),
+            proof_cache: HashSet::default(),
         }
     }
 
@@ -1704,7 +1704,7 @@ impl Loader {
 
         let mut loader = Loader {
             dir: dir.clone(),
-            functions: HashMap::new(),
+            functions: HashMap::default(),
             run: false,
             dependencies: vec![],
             trace: vec![],

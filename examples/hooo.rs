@@ -1,3 +1,28 @@
+/*
+
+Hooo type checker
+
+Usage:
+
+```
+> hooo <file.hooo>
+```
+
+To type check a whole project:
+
+```
+> hooo <project directory>
+```
+
+Flags:
+
+```
+--overwrite         Automatically overwrite old `Hooo.config` file
+--no_overwrite      Do not overwrite old `Hooo.config` file
+```
+
+*/
+
 use hooo::*;
 use hooo::meta_cache::MetaCache;
 
@@ -9,6 +34,15 @@ fn main() {
     let file = std::env::args_os()
         .nth(1)
         .and_then(|s| s.into_string().ok());
+    let overwrite = std::env::args_os()
+        .nth(2)
+        .and_then(|s| s.into_string().ok());
+    let overwrite: Option<bool> = match overwrite.as_ref().map(|n| &**n) {
+        Some("--overwrite") => Some(true),
+        Some("--no_overwrite") => Some(false),
+        _ => None,
+    };
+
     if let Some(file) = file {
         use std::path::Path;
 
@@ -23,7 +57,7 @@ fn main() {
                     return;
                 }
             };
-            match lib_check(loader, &mut meta_cache) {
+            match lib_check(loader, &mut meta_cache, overwrite) {
                 Ok(()) => {}
                 Err(err) => {
                     eprintln!("\nERROR:\n{}", err);
@@ -47,6 +81,7 @@ fn main() {
                 }
             }
         }
+
         match meta_cache.store(meta_store_file) {
             Ok(()) => {}
             Err(err) => eprintln!("ERROR:\n{}", err),
@@ -56,7 +91,11 @@ fn main() {
     }
 }
 
-fn lib_check(loader: &mut Loader, meta_cache: &MetaCache) -> Result<(), String> {
+fn lib_check(
+    loader: &mut Loader,
+    meta_cache: &MetaCache,
+    overwrite: Option<bool>,
+) -> Result<(), String> {
     use std::fmt::Write;
     use std::path::Path;
     use std::fs::File;
@@ -128,7 +167,9 @@ fn lib_check(loader: &mut Loader, meta_cache: &MetaCache) -> Result<(), String> 
     println!("");
     println!("=== New Hooo.config ===");
     println!("{}", s);
-    if path.exists() {
+
+    if overwrite == Some(false) {return Ok(())};
+    if overwrite.is_none() && path.exists() {
         println!("");
         println!("The file `{}` will be overwritten.", path.to_str().unwrap());
         println!("Type `Y` and Enter to continue.");
