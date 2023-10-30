@@ -350,3 +350,91 @@ fn tauto_cong_eq_both :
     return r;
 }
 
+fn cong_in_left_arg : cong'(f) & f(a, b) & (a == c) -> f(c, b) {
+    use cong_eq_left;
+    use fst;
+
+    x : cong'(f);
+    y : f(a, b);
+    z : a == c;
+
+    let x2 = cong_eq_left(x, z) : f(a, b) == f(c, b);
+    let x3 = fst(x2) : f(a, b) => f(c, b);
+    let r = x3(y) : f(c, b);
+    return r;
+}
+
+fn tauto_cong_in_left_arg : tauto_cong'(f)^true & f(a, b) & (a == c)^true -> f(c, b) {
+    use fst;
+    use tauto_cong_eq_left;
+
+    x : tauto_cong'(f)^true;
+    y : f(a, b);
+    z : (a == c)^true;
+
+    let x2 = tauto_cong_eq_left(x, z) : f(a, b) == f(c, b);
+    let x3 = fst(x2) : f(a, b) => f(c, b);
+    let r = x3(y) : f(c, b);
+    return r;
+}
+
+fn cong_in_right_arg : cong'(f) & f(a, b) & (b == c) -> f(a, c) {
+    use cong_eq_right;
+    use fst;
+
+    x : cong'(f);
+    y : f(a, b);
+    z : b == c;
+
+    let x2 = cong_eq_right(x, z) : f(a, b) == f(a, c);
+    let x3 = fst(x2) : f(a, b) => f(a, c);
+    let r = x3(y) : f(a, c);
+    return r;
+}
+
+fn tauto_cong_in_right_arg : tauto_cong'(f) & f(a, b) & (b == c)^true -> f(a, c) {
+    use fst;
+    use tauto_cong_eq_right;    
+
+    x : tauto_cong'(f);
+    y : f(a, b);
+    z : (b == c)^true;
+
+    let x2 = tauto_cong_eq_right(x, z) : f(a, b) == f(a, c);
+    let x3 = fst(x2) : f(a, b) => f(a, c);
+    let r = x3(y) : f(a, c);
+    return r;
+}
+
+fn cong_in_both_args : cong'(f) & f(a, b) & (a == c) & (b == d) -> f(c, d) {
+    use cong_in_left_arg;
+    use cong_in_right_arg;
+
+    x : cong'(f);
+    y : f(a, b);
+    z : a == c;
+    w : b == d;
+
+    let x2 = cong_in_left_arg(x, y, z) : f(c, b);
+    let r = cong_in_right_arg(x, x2, w) : f(c, d);
+    return r;
+}
+
+fn tauto_cong_in_both_args :
+    tauto_cong'(f)^true & f(a, b) & (a == c)^true & (b == d)^true -> f(c, d)
+{
+    use tauto_cong_in_left_arg;
+    use tauto_cong_in_right_arg;
+    use triv;
+
+    x : tauto_cong'(f)^true;
+    y : f(a, b);
+    z : (a == c)^true;
+    w : (b == d)^true;
+
+    let x2 = triv(x) : tauto_cong'(f);
+    let x3 = tauto_cong_in_left_arg(x, y, z) : f(c, b);
+    let r = tauto_cong_in_right_arg(x2, x3, w) : f(c, d);
+    return r;
+}
+
