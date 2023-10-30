@@ -37,8 +37,21 @@ fn eq_transitivity_sym : (a == b) & (c == b)  ->  (a == c) {
 
     x : a == b;
     y : c == b;
+    
     let y2 = eq_symmetry(y) : b == c;
     let r = eq_transitivity(x, y2) : a == c;
+    return r;
+}
+
+fn eq_transitivity_rev_sym : (a == b) & (a == c) -> (b == c) {
+    use eq_symmetry;
+    use eq_transitivity;
+
+    x : a == b;
+    y : a == c;
+
+    let x2 = eq_symmetry(x) : b == a;
+    let r = eq_transitivity(x2, y) : b == c;
     return r;
 }
 
