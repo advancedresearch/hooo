@@ -694,7 +694,7 @@ impl fmt::Display for Type {
             And(ab) => write!(w, "{} & {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             Or(ab) => write!(w, "{} | {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             Imply(ab) => write!(w, "{} => {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
-            All(a) => write!(w, "all({})", a)?,
+            All(a) => write!(w, "all({})", a.to_str(true, op))?,
             Sym(a) => write!(w, "{}'", a)?,
             App(ab) => write!(w, "{}({})", ab.0.to_str(false, op), ab.1)?,
             Sd(ab) => write!(w, "sd({}, {})", ab.0, ab.1)?,
@@ -1526,6 +1526,9 @@ mod tests {
 
         let a: Type = "q'(a, b)".try_into().unwrap();
         assert_eq!(format!("{}", a), "q'(a, b)".to_string());
+    
+        let a: Type = "all(a -> b)".try_into().unwrap();
+        assert_eq!(format!("{}", a), "all(a -> b)".to_string());
     }
 
     #[test]
