@@ -1,3 +1,20 @@
+use tauto_cong;
+
+sym sd;
+
+fn sd_def : true -> sd'(a, b) == sd(a, b) {
+    axiom sd_def : true -> sd'(a, b) == sd(a, b);
+    x : true;
+    let r = sd_def(x) : sd'(a, b) == sd(a, b);
+    return r;
+}
+
+fn sd_tauto_cong : true -> tauto_cong'(sd') {
+    axiom sd_tauto_cong : true -> tauto_cong'(sd');
+    x : true;
+    let r = sd_tauto_cong(x) : tauto_cong'(sd');
+    return r;
+}
 
 fn sd_symmetry : sd(a, b) -> sd(b, a) {
     axiom sd_symmetry : sd(a, b) -> sd(b, a);
@@ -6,10 +23,113 @@ fn sd_symmetry : sd(a, b) -> sd(b, a) {
     return r;
 }
 
+fn sd_conv_eq_from : sd'(a, b) == sd'(c, d) -> sd(a, b) == sd(c, d) {
+    use eq_transitivity;
+    use eq_transitivity_rev_sym;
+    use sd_def;
+    use triv;
+
+    x : sd'(a, b) == sd'(c, d);
+
+    let x2 = triv(sd_def) : sd'(a, b) == sd(a, b);
+    let x3 = triv(sd_def) : sd'(c, d) == sd(c, d);
+    let x4 = eq_transitivity_rev_sym(x2, x) : sd(a, b) == sd'(c, d);
+    let r = eq_transitivity(x4, x3) : sd(a, b) == sd(c, d);
+    return r;
+}
+
+fn sd_conv_eq_to : sd(a, b) == sd(c, d) -> sd'(a, b) == sd'(c, d) {
+    use eq_transitivity;
+    use eq_transitivity_sym;
+    use sd_def;
+    use triv;
+
+    x : sd(a, b) == sd(c, d);
+
+    let x2 = triv(sd_def) : sd'(a, b) == sd(a, b);
+    let x3 = triv(sd_def) : sd'(c, d) == sd(c, d);
+    let x4 = eq_transitivity(x2, x) : sd'(a, b) == sd(c, d);
+    let r = eq_transitivity_sym(x4, x3) : sd'(a, b) == sd'(c, d);
+    return r;
+}
+
+fn sd_conv_from : sd'(a, b) -> sd(a, b) {
+    use fst;
+    use sd_def;
+    use triv;
+
+    x : sd'(a, b);
+
+    let x2 = triv(sd_def) : sd'(a, b) == sd(a, b);
+    let x3 = fst(x2) : sd'(a, b) => sd(a, b);
+    let r = x3(x) : sd(a, b);
+    return r;
+}
+
+fn sd_conv_to : sd(a, b) -> sd'(a, b) {
+    use sd_def;
+    use snd;
+    use triv;
+
+    x : sd(a, b);
+
+    let x2 = triv(sd_def) : sd'(a, b) == sd(a, b);
+    let x3 = snd(x2) : sd(a, b) => sd'(a, b);
+    let r = x3(x) : sd'(a, b);
+    return r;
+}
+
+fn sd_eq_left : (a == b)^true -> sd(a, c) == sd(b, c) {
+    use sd_conv_eq_from;
+    use sd_tauto_cong;
+    use tauto_cong_eq_left;
+
+    x : (a == b)^true;
+
+    let x2 = tauto_cong_eq_left(sd_tauto_cong, x) : sd'(a, c) == sd'(b, c);
+    let r = sd_conv_eq_from(x2) : sd(a, c) == sd(b, c);    
+    return r;
+}
+
+fn sd_eq_right : (a == b)^true -> sd(c, a) == sd(c, b) {
+    use sd_conv_eq_from;
+    use sd_tauto_cong;
+    use tauto_cong_eq_right;
+    use triv;
+
+    x : (a == b)^true;
+
+    let x2 = triv(sd_tauto_cong) : tauto_cong'(sd');
+    let x3 = tauto_cong_eq_right(x2, x) : sd'(c, a) == sd'(c, b);
+    let r = sd_conv_eq_from(x3) : sd(c, a) == sd(c, b);
+    return r;
+}
+
+fn sd_eq_both : (a == b)^true & (c == d)^true -> sd(a, c) == sd(b, d) {
+    use sd_conv_eq_from;
+    use sd_tauto_cong;
+    use tauto_cong_eq_both;
+
+    x : (a == b)^true;
+    y : (c == d)^true;
+
+    let x2 = tauto_cong_eq_both(sd_tauto_cong, x, y) : sd'(a, c) == sd'(b, d);
+    let r = sd_conv_eq_from(x2) : sd(a, c) == sd(b, d);
+    return r;
+}
+
 fn sd_in_left_arg : sd(a, b) & (a == c)^true -> sd(c, b) {
-    axiom sd_in_left_arg : sd(a, b) & (a == c)^true -> sd(c, b);
-    x : sd(a, b) & (a == c)^true;
-    let r = sd_in_left_arg(x) : sd(c, b);
+    use sd_conv_from;
+    use sd_conv_to;
+    use sd_tauto_cong;
+    use tauto_cong_in_left_arg;
+
+    x : sd(a, b);
+    y : (a == c)^true;
+
+    let x2 = sd_conv_to(x) : sd'(a, b);
+    let x3 = tauto_cong_in_left_arg(sd_tauto_cong, x2, y) : sd'(c, b);
+    let r = sd_conv_from(x3) : sd(c, b);
     return r;
 }
 
