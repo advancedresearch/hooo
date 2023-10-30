@@ -1,10 +1,42 @@
+use cong;
+
 sym Lob;
 sym N;
 sym N2;
 sym K;
 sym T;
+sym nec;
 sym NecToPos;
+sym pos;
 sym PosToNec;
+
+fn nec_def : true -> nec'(a) == □a {
+    axiom nec_def : true -> nec'(a) == □a;
+    x : true;
+    let r = nec_def(x) : nec'(a) == □a;
+    return r;
+}
+
+fn pos_def : true -> pos'(a) == ◇a {
+    axiom pos_def : true -> pos'(a) == ◇a;
+    x : true;
+    let r = pos_def(x) : pos'(a) == ◇a;
+    return r;
+}
+
+fn nec_cong : true -> cong'(nec') {
+    axiom nec_cong : true -> cong'(nec');
+    x : true;
+    let r = nec_cong(x) : cong'(nec');
+    return r;
+}
+
+fn pos_cong : true -> cong'(pos') {
+    axiom pos_cong : true -> cong'(pos');
+    x : true;
+    let r = pos_cong(x) : cong'(pos');
+    return r;
+}
 
 /// `□(□p => p)`.
 fn lob_triv : (p^true => p)^true {
@@ -243,19 +275,53 @@ fn modal_pos_to_nec_from : all(◇a == !□!a)  ->  PosToNec' {
 
 /// `□a & (a == b)  ->  □a`.
 fn modal_nec_in_arg : □a & (a == b)  ->  □b {
-    axiom modal_nec_in_arg : □a & (a == b) -> □b;
+    use cong_to;
+    use eq_transitivity;
+    use eq_transitivity_rev_sym;
+    use fst;
+    use nec_cong;
+    use nec_def;
+    use triv;
+
     x : □a;
     y : a == b;
-    let r = modal_nec_in_arg(x, y) : □b;
+
+    let x2 = triv(nec_cong) : cong'(nec');
+    let x3 = cong_to(x2) : sym(f, all(a == b -> f'(a) == f'(b)))(nec');
+    let x4 = x3() : a == b -> nec'(a) == nec'(b);
+    let x5 = x4(y) : nec'(a) == nec'(b);
+    let x6 = triv(nec_def) : nec'(a) == □a;
+    let x7 = triv(nec_def) : nec'(b) == □b;
+    let x8 = eq_transitivity_rev_sym(x6, x5) : □a == nec'(b);
+    let x9 = eq_transitivity(x8, x7) : □a == □b;
+    let x10 = fst(x9) : □a => □b;
+    let r = x10(x) : □b;
     return r;
 }
 
 /// `◇a & (a == b)  ->  ◇b`.
 fn modal_pos_in_arg : ◇a & (a == b)  ->  ◇b {
-    axiom modal_pos_in_arg : ◇a & (a == b) -> ◇b;
+    use cong_to;
+    use eq_transitivity;
+    use eq_transitivity_rev_sym;
+    use fst;
+    use pos_cong;
+    use pos_def;
+    use triv;
+
     x : ◇a;
     y : a == b;
-    let r = modal_pos_in_arg(x, y) : ◇b;
+
+    let x2 = triv(pos_cong) : cong'(pos');
+    let x3 = cong_to(x2) : sym(f, all(a == b -> f'(a) == f'(b)))(pos');
+    let x4 = x3() : a == b -> pos'(a) == pos'(b);
+    let x5 = x4(y) : pos'(a) == pos'(b);
+    let x6 = triv(pos_def) : pos'(a) == ◇a;
+    let x7 = triv(pos_def) : pos'(b) == ◇b;
+    let x8 = eq_transitivity_rev_sym(x6, x5) : ◇a == pos'(b);
+    let x9 = eq_transitivity(x8, x7) : ◇a == ◇b;
+    let x10 = fst(x9) : ◇a => ◇b;
+    let r = x10(x) : ◇b;
     return r;
 }
 
