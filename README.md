@@ -317,7 +317,7 @@ Since Hooo uses implicit quantification by lifting all
 variables in `all(..)` expressions, it needs a way to
 "freeze" variables to express some statements.
 
-For example, `all(a & b -> a)` lifts `a -> a` to all types `a` and `b`. This is OK for statements that are provable,
+For example, `all(a & b -> a)` lifts `a & b -> a` to all types `a` and `b`. This is OK for statements that are provable,
 but it is not safe when one has an assumption `a -> b`.
 An assumption `all(a -> b)` is absurd.
 
@@ -336,7 +336,7 @@ This means `all(..)` is not needed in most places.
 
 However, sometimes we need to reason using hypothetical axioms.
 The problem is that since `all(..)` lifts all variables,
-there is no way to prevent some symbols from being lifted.
+there is no way to prevent some parts from being lifted.
 This is why we need symbolic blocks.
 
 ```text
