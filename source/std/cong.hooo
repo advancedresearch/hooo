@@ -1,6 +1,72 @@
+/*
+
+Congruence
+
+There are two forms of congruence: Normal congruence and tautological congruence.
+
+Normal congruence for `f`:
+
+    (a == b) -> f(a) == f(b)
+
+Tautological congruence for `f`:
+
+    (a == b)^true -> f(a) == f(b)
+
+Most operators are normal congruent.
+All normal congruent operators are tautological congruent.
+
+In some theories, normal congruence is assumed.
+This limits the theories to what they can express.
+
+In Path Semantics, some operators are tautological congruent, but not normal congruent.
+For example, path semantical quality and symbolic distinction.
+
+Normal congruence might be thought of as a kind of dynamic invariance.
+The type `a == b` might have a proof at run-time, but not necessary at compile-time.
+
+Tautological congruence might be thought of as a akind of static invariance.
+The type `(a == b)^true` might have a proof at compile-time.
+However, this is a loose analogy, since `(a == b)^true` might be assumed at run-time.
+
+If you find this hard to reason about, then you are not the only one.
+
+It can be confusing to try understand nuances like:
+
+    tauto_cong'(f)      vs      tauto_cong'(f)^true
+
+E.g. in `tauto_cong_eq_left`.
+
+Compared to normal congruence, tautological congruence harder for the human brain.
+Sometimes it is best to leave it up to HOOO EP to figure out what is true.
+Path Semanticists are used to things being hard to think about,
+so they try not to overthink too much, but instead building an intuition over time.
+
+HOOO EP was designed specificially to deal with foundations of Path Semantics.
+The motivation of this development came from realizing that some operators
+are tautological congruent but not normal congruent.
+
+*/
 
 sym cong;
 sym tauto_cong;
+
+fn cong_sym : true -> cong'(sym(f, all(a == b -> f'(a) == f'(b)))) {
+    axiom cong_sym : true -> cong'(sym(f, all(a == b -> f'(a) == f'(b))));
+    x : true;
+    let r = cong_sym(x) : cong'(sym(f, all(a == b -> f'(a) == f'(b))));
+    return r;
+}
+
+fn tauto_cong_sym :
+    true -> tauto_cong'(sym(f, all((a == b)^true -> f'(a) == f'(b))))
+{
+    axiom tauto_cong_sym :
+        true -> tauto_cong'(sym(f, all((a == b)^true -> f'(a) == f'(b))));
+    x : true;
+    let r = tauto_cong_sym(x) :
+        tauto_cong'(sym(f, all((a == b)^true -> f'(a) == f'(b))));
+    return r;
+}
 
 fn cong_app : cong'(f) -> cong'(f(a)) {
     axiom cong_app : cong'(f) -> cong'(f(a));
@@ -9,10 +75,24 @@ fn cong_app : cong'(f) -> cong'(f(a)) {
     return x;
 }
 
+fn tauto_cong_app : tauto_cong'(f) -> tauto_cong'(f(a)) {
+    axiom tauto_cong_app : tauto_cong'(f) -> tauto_cong'(f(a));
+    x : tauto_cong'(f);
+    let r = tauto_cong_app(x) : tauto_cong'(f(a));
+    return r;
+}
+
 fn cong_fun_eq : cong'(f) & cong'(g) & (f == g) -> f(a) == g(a) {
     axiom cong_fun_eq : cong'(f) & cong'(g) & (f == g) -> f(a) == g(a);
     x : cong'(f) & cong'(g) & (f == g);
     let r = cong_fun_eq(x) : f(a) == g(a);
+    return r;
+}
+
+fn tauto_cong_fun_eq : tauto_cong'(f) & tauto_cong'(g) & (f == g)^true -> f(a) == g(a) {
+    axiom tauto_cong_fun_eq : tauto_cong'(f) & tauto_cong'(g) & (f == g)^true -> f(a) == g(a);
+    x : tauto_cong'(f) & tauto_cong'(g) & (f == g)^true;
+    let r = tauto_cong_fun_eq(x) : f(a) == g(a);
     return r;
 }
 
@@ -79,25 +159,43 @@ fn cong_app_eq : cong'(f) & (a == b) -> f(a) == f(b) {
     return r;
 }
 
+fn tauto_cong_app_eq : tauto_cong'(f) & (a == b)^true -> f(a) == f(b) {
+    use tauto_cong_to;
+
+    x : tauto_cong'(f);
+    y : (a == b)^true;
+
+    let x2 = tauto_cong_to(x) : sym(f, (a == b)^true -> f'(a) == f'(b))(f);
+    let x3 = x2() : (a == b)^true -> f(a) == f(b);
+    let r = x3(y) : f(a) == f(b);
+    return r;
+}
+
 fn cong_app_in_arg : cong'(f) & (f(a) == b) & (a == c) -> (f(c) == b) {
     use cong_app_eq;
-    use eq_symmetry;
-    use eq_transitivity;
+    use eq_transitivity_rev_sym;
 
     x : cong'(f);
     y : f(a) == b;
     z : a == c;
 
     let x2 = cong_app_eq(x, z) : f(a) == f(c);
-    let x3 = eq_symmetry(x2) : f(c) == f(a);
-    let r = eq_transitivity(x3, y) : f(c) == b;
+    let r = eq_transitivity_rev_sym(x2, y) : f(c) == b;
     return r;
 }
 
-fn cong_sym : true -> cong'(sym(f, all(a == b -> f'(a) == f'(b)))) {
-    axiom cong_sym : true -> cong'(sym(f, all(a == b -> f'(a) == f'(b))));
-    x : true;
-    let r = cong_sym(x) : cong'(sym(f, all(a == b -> f'(a) == f'(b))));
+fn tauto_cong_app_in_arg :
+    tauto_cong'(f) & (f(a) == b) & (a == c)^true -> (f(c) == b)
+{
+    use tauto_cong_app_eq;
+    use eq_transitivity_rev_sym;
+
+    x : tauto_cong'(f);
+    y : f(a) == b;
+    z : (a == c)^true;
+
+    let x2 = tauto_cong_app_eq(x, z) : f(a) == f(c);
+    let r = eq_transitivity_rev_sym(x2, y) : f(c) == b;
     return r;
 }
 
@@ -126,6 +224,31 @@ fn cong_in_arg : cong'(f) & (f == g) -> cong'(g) {
     return r;
 }
 
+fn tauto_cong_in_arg : tauto_cong'(f) & (f == g)^true -> tauto_cong'(g) {
+    use tauto_cong_app_eq;
+    use tauto_cong_from;
+    use tauto_cong_sym;
+    use tauto_cong_to;
+    use fst;
+    use triv;
+
+    x : tauto_cong'(f);
+    y : (f == g)^true;
+
+    let x2 = tauto_cong_to(x) : sym(f, all((a == b)^true -> f'(a) == f'(b)))(f);
+    let x3 = triv(tauto_cong_sym) : tauto_cong'(sym(f, all((a == b)^true -> f'(a) == f'(b))));
+    let x5 = tauto_cong_app_eq(x3, y) :
+        sym(f, all((a == b)^true -> f'(a) == f'(b)))(f) ==
+        sym(f, all((a == b)^true -> f'(a) == f'(b)))(g);
+    let x6 = fst(x5) :
+        sym(f, all((a == b)^true -> f'(a) == f'(b)))(f) =>
+        sym(f, all((a == b)^true -> f'(a) == f'(b)))(g);
+    let x7 = x6(x2) : sym(f, all((a == b)^true -> f'(a) == f'(b)))(g);
+    let x8 = x7() : sym(g, all((a == b)^true -> g'(a) == g'(b)))(g);
+    let r = tauto_cong_from(x8) : tauto_cong'(g);
+    return r;
+}
+
 fn cong_eq_left : cong'(f) & (a == b) -> f(a, c) == f(b, c) {
     use cong_app;
     use cong_app_eq;
@@ -141,6 +264,34 @@ fn cong_eq_left : cong'(f) & (a == b) -> f(a, c) == f(b, c) {
     return r;
 }
 
+/// Notice that the first argument is tautological.
+/// This is needed because otherwise one can not prove `(f(a) == f(b))^true`.
+fn tauto_cong_eq_left : tauto_cong'(f)^true & (a == b)^true -> f(a, c) == f(b, c) {
+    use hooo_rev_and;
+    use pow_lift;
+    use pow_transitivity;
+    use tauto_cong_app;
+    use tauto_cong_app_eq;
+    use tauto_cong_fun_eq;
+    use triv;
+
+    x : tauto_cong'(f)^true;
+    y : (a == b)^true;
+
+    let z = triv(x) : tauto_cong'(f);
+    let y2 = pow_lift(y) : ((a == b)^true)^true;
+    let x2 = hooo_rev_and(x, y2) : (tauto_cong'(f) & (a == b)^true)^true;
+    let y3 = pow_transitivity() :
+        (tauto_cong'(f) & (a == b)^true)^true &
+        (f(a) == f(b))^(tauto_cong'(f) & (a == b)^true) ->
+        (f(a) == f(b))^true;
+    let x3 = y3(x2, tauto_cong_app_eq) : (f(a) == f(b))^true;
+    let x4 = tauto_cong_app(z) : tauto_cong'(f(a));
+    let x5 = tauto_cong_app(z) : tauto_cong'(f(b));
+    let r = tauto_cong_fun_eq(x4, x5, x3) : f(a, c) == f(b, c);
+    return r;
+}
+
 fn cong_eq_right : cong'(f) & (a == b) -> f(c, a) == f(c, b) {
     use cong_app;
     use cong_app_eq;
@@ -150,6 +301,18 @@ fn cong_eq_right : cong'(f) & (a == b) -> f(c, a) == f(c, b) {
 
     let x2 = cong_app(x) : cong'(f(c));
     let r = cong_app_eq(x2, y) : f(c, a) == f(c, b);
+    return r;
+}
+
+fn tauto_cong_eq_right : tauto_cong'(f) & (a == b)^true -> f(c, a) == f(c, b) {
+    use tauto_cong_app;
+    use tauto_cong_app_eq;
+
+    x : tauto_cong'(f);
+    y : (a == b)^true;
+
+    let x2 = tauto_cong_app(x) : tauto_cong'(f(c));
+    let r = tauto_cong_app_eq(x2, y) : f(c, a) == f(c, b);
     return r;
 }
 
@@ -164,6 +327,25 @@ fn cong_eq_both : cong'(f) & (a == b) & (c == d) -> f(a, c) == f(b, d) {
 
     let x2 = cong_eq_left(x, y) : f(a, c) == f(b, c);
     let x3 = cong_eq_right(x, z) : f(b, c) == f(b, d);
+    let r = eq_transitivity(x2, x3) : f(a, c) == f(b, d);
+    return r;
+}
+
+fn tauto_cong_eq_both :
+    tauto_cong'(f)^true & (a == b)^true & (c == d)^true -> f(a, c) == f(b, d)
+{
+    use eq_transitivity;
+    use tauto_cong_eq_left;
+    use tauto_cong_eq_right;
+    use triv;
+
+    x : tauto_cong'(f)^true;
+    y : (a == b)^true;
+    z : (c == d)^true;
+
+    let triv_x = triv(x) : tauto_cong'(f);
+    let x2 = tauto_cong_eq_left(x, y) : f(a, c) == f(b, c);
+    let x3 = tauto_cong_eq_right(triv_x, z) : f(b, c) == f(b, d);
     let r = eq_transitivity(x2, x3) : f(a, c) == f(b, d);
     return r;
 }
