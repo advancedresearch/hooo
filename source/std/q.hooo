@@ -1,3 +1,14 @@
+use tauto_cong;
+
+sym q;
+
+fn q_def : true -> q'(a, b) == (a ~~ b) {
+    axiom q_def : true -> q'(a, b) == (a ~~ b);
+    x : true;
+    let r = q_def(x) : q'(a, b) == (a ~~ b);
+    return r;
+}
+
 fn q_lift : sd(a, b) & (a == b) -> a ~~ b {
     axiom q_lift : sd(a, b) & (a == b) -> a ~~ b;
     x : sd(a, b) & (a == b);
