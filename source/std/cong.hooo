@@ -153,3 +153,18 @@ fn cong_eq_right : cong'(f) & (a == b) -> f(c, a) == f(c, b) {
     return r;
 }
 
+fn cong_eq_both : cong'(f) & (a == b) & (c == d) -> f(a, c) == f(b, d) {
+    use cong_eq_left;
+    use cong_eq_right;
+    use eq_transitivity;
+
+    x : cong'(f);
+    y : a == b;
+    z : c == d;
+
+    let x2 = cong_eq_left(x, y) : f(a, c) == f(b, c);
+    let x3 = cong_eq_right(x, z) : f(b, c) == f(b, d);
+    let r = eq_transitivity(x2, x3) : f(a, c) == f(b, d);
+    return r;
+}
+
