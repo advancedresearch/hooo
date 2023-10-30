@@ -8,6 +8,7 @@ use z;
 use s;
 use 1;
 use 2;
+use cong;
 
 sym add;
 
@@ -16,6 +17,13 @@ fn nat_add_ty : true -> (add' : nat' => nat' => nat') {
     x : true;
     let r = add_ty(x) : (add' : nat' => nat' => nat');
     return r;
+}
+
+fn nat_add_cong : true -> cong'(add') {
+    axiom nat_add_cong : true -> cong'(add');
+    x : true;
+    let r = nat_add_cong(x) : cong'(add');
+    return x;
 }
 
 fn nat_add_zero : (a : nat') -> add'(a, z') == a {
@@ -33,30 +41,39 @@ fn nat_add_succ : (a : nat') & (b : nat') -> add'(a, s'(b)) == s'(add'(a, b)) {
 }
 
 fn nat_add_eq_left : a == b -> add'(a, c) == add'(b, c) {
-    axiom nat_add_eq_left : a == b -> add'(a, c) == add'(b, c);
+    use cong_eq_left;
+    use nat_add_cong;
+    use triv;
+
     x : a == b;
-    let r = nat_add_eq_left(x) : add'(a, c) == add'(b, c);
+
+    let x2 = triv(nat_add_cong) : cong'(add');
+    let r = cong_eq_left(x2, x) : add'(a, c) == add'(b, c);
     return r;
 }
 
 fn nat_add_eq_right : a == b -> add'(c, a) == add'(c, b) {
-    axiom nat_add_eq_right : a == b -> add'(c, a) == add'(c, b);
+    use cong_eq_right;
+    use nat_add_cong;
+    use triv;
+
     x : a == b;
-    let r = nat_add_eq_right(x) : add'(c, a) == add'(c, b);
+
+    let x2 = triv(nat_add_cong) : cong'(add');
+    let r = cong_eq_right(x2, x) : add'(c, a) == add'(c, b);
     return r;
 }
 
 fn nat_add_eq_both : (a == c) & (b == d) -> add'(a, b) == add'(c, d) {
-    use eq_transitivity;
-    use nat_add_eq_left;
-    use nat_add_eq_right;
+    use cong_eq_both;
+    use nat_add_cong;
+    use triv;
 
     x : a == c;
     y : b == d;
 
-    let x2 = nat_add_eq_left(x) : add'(a, b) == add'(c, b);
-    let x3 = nat_add_eq_right(y) : add'(c, b) == add'(c, d);
-    let r = eq_transitivity(x2, x3) : add'(a, b) == add'(c, d);
+    let x2 = triv(nat_add_cong) : cong'(add');
+    let r = cong_eq_both(x2, x, y) : add'(a, b) == add'(c, d);
     return r;
 }
 
