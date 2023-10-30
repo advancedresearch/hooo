@@ -1,9 +1,46 @@
+use tauto_cong;
+
+sym qu;
+
+fn qu_def : true -> qu'(a) == ~a {
+    axiom qu_def : true -> qu'(a) == ~a;
+    x : true;
+    let r = qu_def(x) : qu'(a) == ~a;
+    return r;
+}
+
+fn qu_tauto_cong : true -> tauto_cong'(qu') {
+    axiom qu_tauto_cong : true -> tauto_cong'(qu');
+    x : true;
+    let r = qu_tauto_cong(x) : tauto_cong'(qu');
+    return r;
+}
 
 fn qu_in_arg : ~a & (a == b)^true  ->  ~b {
-    axiom qu_in_arg : ~a & (a == b)^true  ->  ~b;
+    use fst;
+    use pow_transitivity;
+    use qu_def;
+    use qu_tauto_cong;
+    use snd;
+    use tauto_cong_to;
+    use triv;
+
     x : ~a;
     y : (a == b)^true;
-    let r = qu_in_arg(x, y) : ~b;
+
+    let x2 = triv(qu_def) : qu'(a) == ~a;
+    let x3 = snd(x2) : ~a => qu'(a);
+    let x4 = triv(qu_tauto_cong) : tauto_cong'(qu');
+    let x5 = tauto_cong_to(x4) :
+        sym(f, all((a == b)^true -> f'(a) == f'(b)))(qu');
+    let x6 = x5() : (a == b)^true -> qu'(a) == qu'(b);
+    let x7 = x6(y) : qu'(a) == qu'(b);
+    let x8 = fst(x7) : qu'(a) => qu'(b);
+    let x9 = x3(x) : qu'(a);
+    let x10 = x8(x9) : qu'(b);
+    let x11 = triv(qu_def) : qu'(b) == ~b;
+    let x12 = fst(x11) : qu'(b) => ~b;
+    let r = x12(x10) : ~b;
     return r;
 }
 
