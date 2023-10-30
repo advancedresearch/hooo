@@ -221,8 +221,76 @@ The `^` operator has high precedence, while `->` has low precedence.
 E.g. `b^a => b` is parsed as `(b^a) => b`.
 `b -> a => b` is parsed as `b -> (a => b)`.
 
-The `unsafe return` is used when the safety heuristics
-of the solver are too strong. One application of is when needing to reason about unsafe reasoning.
+### Terms and types design
+
+In Hooo, the design is based on a principle of
+making terms simple, while making types complex.
+This is because terms are mostly used as tactics,
+while types are statements one wants to prove.
+
+The philosophy of this principle is that the user
+wants to focus on what to prove, not how to prove it.
+Therefore, how to prove it should be easy to keep in mind while having a clear overview over the progress.
+
+The types are always listed on the right side,
+to make it easy to read the proof:
+
+```text
+let <name> = <term> : <type>;
+```
+
+Hooo's design is optimized for three use cases:
+
+1. Type checking performance
+2. Proof readability
+3. Source code maintenance
+
+This leads to some design decisions that might seem
+a bit strange from the perspective of normal programming.
+
+The user is forced by the syntax of Hooo to perform
+each step explicitly:
+
+```text
+let y = foo(x) : a;         // Allowed
+let y = foo(bar(z)) : a;    // Disallowed
+```
+
+This is because, otherwise,
+users are tempted to compress proofs into unreadable form.
+Writing proofs in Hooo is an investment into the
+future.
+People who complain about the length of proofs
+are usually using the wrong approach when evaluating proof systems.
+
+The cost of unreadable proofs over long periods of time outweighs the short term benefits of compressible code.
+However, Hooo does not prevent people from working on making proofs shorter.
+Since Hooo supports meta-theorem proving,
+it is encouraging users to reuse generic theorems.
+This is the proper way of producing formal proofs.
+
+### Safety heuristics
+
+Safety heuristics are used to cover two cases:
+
+1. when proving something can lead to unsoundness
+2. when the user might have intended to prove something else
+
+Safety heuristic kicks in when trying
+to prove `all(..)` or `sym(..)(..)`.
+This is unusual and discouraged under normal theorem proving. For example, if the user is designing axioms
+of this form, it is best to be extra careful,
+since it easily can lead to unintentional absurdity.
+
+The `unsafe return` syntax is used when the safety heuristics
+of the solver are too strong. This is a way for the
+user to communicate that this part should be payed some attention.
+
+One application of unsafe return is when needing to reason about unsound reasoning.
+Since Hooo is used to check other mathematical languages,
+it is sometimes useful to not only be able to reason
+about cases that are done right, but also cases
+which go wrong. When used properly, this can be done safely in Hooo by guarding the unsound reasoning behind well designed axioms.
 
 ### Symbols
 
@@ -307,6 +375,9 @@ However, in [Path Semantics](https://github.com/advancedresearch/path_semantics/
 are some operators which are tautological congruent.
 
 For example, path semantical quality and symbolic distinction are tautological congruent.
+
+Since Hooo can not assume congruence for all operators, it must be axiomized per operator.
+To learn more, see "source/std/cong.hooo".
 
 ### Symbolic distinction
 
@@ -442,14 +513,19 @@ to store information from the past.
 Path semantical quality is a logical model of this phenomena.
 
 If you find this hard to think about, then you can just
-use the thumb rule "if two symbols are qual `a ~~ b`, then their meanings `(a : c) & (b : d)` are qual `c ~~ d`". This is a proper way of handling semantics of symbols in logic. Notice that you should not use "equal" because reflexivity and logical implication makes this unsound. The `~~` operator is sometimes thought of as a path, so the meaning of symbols using paths was why this field became "Path Semantics".
+use the thumb rule "if two symbols are qual `a ~~ b`, then their meanings `(a : c) & (b : d)` are qual `c ~~ d`". This is a proper way of handling semantics of symbols in logic. Notice that you should not use "equal" because reflexivity and logical implication makes this unsound.
+
+Path semantical quality `~~` is a way to express an
+intentional equivalence relation in logic.
+Like, solutions or some existence of unification.
+The operator is sometimes thought of as a path, so the meaning of symbols using paths was why this field became "Path Semantics".
 
 In philosophy, path semantical quality is closely
 related to Hegel's philosophy of Being.
-Hegel's philosophy was rejected by Russel,
+Hegel's philosophy was rejected by Russell,
 who founded analytic philosophy.
 This turned out to be a mistake, likely because
-Russel was influenced by the language bias of First Order Logic, where all predicates are normal congruent.
+Russell was influenced by the language bias of First Order Logic, where all predicates are normal congruent.
 By using tautological congruence, one can reason about
 Hegel's philosophy just fine.
 However, this requires HOOO EP.
@@ -457,7 +533,7 @@ However, this requires HOOO EP.
 Self quality `a ~~ a` is equivalent to `~a`,
 which is called a "qubit".
 In classical logic, one generates a random truth table of `~a` using `a` as the seed to the random generator.
-This makes `~a` behave as it is in super-position of all propositions,
+This makes `~a` behave as if it is in super-position of all propositions,
 hence the name "qubit".
 One can also think about it as introducing a new proposition.
 
@@ -468,8 +544,8 @@ Path semantical quality and qubit are tautological congruent.
 Path semantical quality `~~`, or qubit `~`, are often used as
 "flags" for other theories to express uniqueness or solutions.
 
-- `!~a` an expression that `a` is unique
-- `~a` an expression that `a` has some solution
+- `!~a` is an expression that `a` is unique
+- `~a` is an expression that `a` has some solution
 
 By default, you are not able to prove `~a` or `!~a`,
 which means that you have a choice.
@@ -477,7 +553,7 @@ You can design your theory leaning toward `~a`,
 or you can go in the opposite direction and lean toward `!~a`.
 The direction a theory is designed is called "language bias".
 Notice that they both are expressions of the underlying idea "there exists a solution".
-The way they differ is in plurarity,
+The way they differ is in plurality,
 where `!~a` means "one" and `~a` means "many".
 
 Theories that lean toward `!~a` are called "Seshatic"
