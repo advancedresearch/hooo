@@ -32,6 +32,13 @@ fn q_to : a ~~ b  ->  (a == b) & ~a & ~b {
     return r;
 }
 
+fn q_tauto_cong : true -> tauto_cong'(q') {
+    axiom q_tauto_cong : true -> tauto_cong'(q');
+    x : true;
+    let r = q_tauto_cong(x) : tauto_cong'(q');
+    return r;
+}
+
 fn q_symmetry : a ~~ b  ->  b ~~ a {
     x : a ~~ b;
     use q_to;
