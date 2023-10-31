@@ -1,0 +1,17 @@
+/*
+
+# Tuples
+
+A tuple is an ordered pair `(a, b)`.
+
+*/
+
+use inv;
+
+fn tup_inv_def : true -> inv'((f, g)) == (inv'(f), inv'(g)) {
+    axiom par_inv_def : true -> inv'((f, g)) == (inv'(f), inv'(g));
+    x : true;
+    let r = par_inv_def(x) : inv'((f, g)) == (inv'(f), inv'(g));
+    return r;
+}
+
