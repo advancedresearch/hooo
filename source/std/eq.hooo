@@ -69,3 +69,25 @@ fn eq_modus_tollens : (a == b)  ->  (!a == !b) {
     return r;
 }
 
+fn eq_to_left : (a == b) & b -> a {
+    use snd;
+
+    x : a == b;
+    y : b;
+
+    let x2 = snd(x) : b => a;
+    let r = x2(y) : a;
+    return r;
+}
+
+fn eq_to_right : (a == b) & a -> b {
+    use fst;
+
+    x : a == b;
+    y : a;
+
+    let x2 = fst(x) : a => b;
+    let r = x2(y) : b;
+    return r;
+}
+
