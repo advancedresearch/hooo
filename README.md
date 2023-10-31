@@ -276,7 +276,7 @@ Safety heuristics are used to cover two cases:
 1. when proving something can lead to unsoundness
 2. when the user might have intended to prove something else
 
-Safety heuristic kicks in when trying
+Safety heuristics kick in when trying
 to prove `all(..)` or `sym(..)(..)`.
 This is unusual and discouraged under normal theorem proving. For example, if the user is designing axioms
 of this form, it is best to be extra careful,
@@ -565,7 +565,7 @@ biased by language, either toward "one-ness" (concrete)
 or "many-ness" (abstract).
 
 Intuitively, an abstract object can be copied,
-so it has a kind of "many-nesss" built into it.
+so it has a kind of "many-ness" built into it.
 A concrete object can not be copied,
 because this would destroy its uniqueness.
 
