@@ -136,7 +136,7 @@ fn pow_transitivity : b^a & c^b -> c^a {
     return r;
 }
 
-fn comp : c^b & b^a  ->  c^a {
+fn hooo_comp : c^b & b^a  ->  c^a {
     use pow_transitivity;
     use and_symmetry;
 
