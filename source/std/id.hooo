@@ -1,0 +1,46 @@
+use cong;
+use nat;
+use type;
+use z;
+
+sym id;
+
+fn id_def : (n : nat') & (t : type'(n)) & (a : t) -> id'(t, a) == a {
+    axiom id_def : (n : nat') & (t : type'(n)) & (a : t) -> id'(t, a) == a;
+    x : (n : nat') & (t : type'(n)) & (a : t);
+    let r = id_def(x) : id'(t, a) == a;
+    return r;
+}
+
+fn id_cong : true -> cong'(id') {
+    axiom id_cong : true -> cong'(id');
+    x : true;
+    let r = id_cong(x) : cong'(id');
+    return r;
+}
+
+fn id_def_type0 : (t : type'(z')) & (a : t) -> id'(t, a) == a {
+    use id_def;
+    use nat_zero_ty;
+    use triv;
+
+    x : (t : type'(z'));
+    y : (a : t);
+
+    let x2 = triv(nat_zero_ty) : (z' : nat');
+    let r = id_def(x2, x, y) : id'(t, a) == a;
+    return r;
+}
+
+fn id_def_nat : (a : nat') -> id'(nat', a) == a {
+    use id_def_type0;
+    use nat_ty;
+    use triv;
+
+    x : (a : nat');
+
+    let x2 = triv(nat_ty) : (nat' : type'(z'));
+    let r = id_def_type0(x2, x) : id'(nat', a) == a;
+    return r;
+}
+
