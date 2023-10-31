@@ -1,0 +1,44 @@
+use cong;
+
+sym inv;
+
+fn inv_ty : (f : a -> b) -> (inv'(f) : b -> a) {
+    axiom inv_ty : (f : a -> b) -> (inv'(f) : b -> a);
+    x : (f : a -> b);
+    let r = inv_ty(x) : (inv'(f) : b -> a);
+    return r;
+}
+
+fn inv_cong : true -> cong'(inv') {
+    axiom inv_cong : true -> cong'(inv');
+    x : true;
+    let r = inv_cong(x) : cong'(inv');
+    return r;
+}
+
+fn inv_involve_eq : true -> inv'(inv'(f)) == f {
+    axiom inv_involve : true -> inv'(inv'(f)) == f;
+    x : true;
+    let r = inv_involve(x) : inv'(inv'(f)) == f;
+    return r;
+}
+
+fn inv_val_qu : ~inv'(f) & (f(a) == b) -> inv'(f, b) == a {
+    axiom inv_val_qu : ~inv'(f) & (f(a) == b) -> inv'(f, b) == a;
+    x : ~inv'(f) & (f(a) == b);
+    let r = inv_val_qu(x) : inv'(f, b) == a;
+    return r;
+}
+
+fn inv_eq : f == g -> inv'(f) == inv'(g) {
+    use cong_app_eq;
+    use inv_cong;
+    use triv;
+
+    x : f == g;
+
+    let x2 = triv(inv_cong) : cong'(inv');
+    let r = cong_app_eq(x2, x) : inv'(f) == inv'(g);
+    return r;
+}
+
