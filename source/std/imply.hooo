@@ -82,3 +82,13 @@ fn imply_eq_left : (a == b)  ->   (a => c) == (b => c) {
     return r;
 }
 
+fn imply_lift : a -> (b => a) {
+    x : a;
+    lam f : b => a {
+        y : b;
+        let r = x() : a;
+        return r;
+    }
+    return f;
+}
+
