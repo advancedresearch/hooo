@@ -242,3 +242,27 @@ fn pow_to_pow_tauto : a^b -> a^(b^true) {
     return r;
 }
 
+fn tauto_eq_to_left : (a == b)^true & b -> a {
+    use triv;
+    use eq_to_left;
+
+    x : (a == b)^true;
+    y : b;
+
+    let x2 = triv(x) : a == b;
+    let r = eq_to_left(x2, y) : a;
+    return r;
+}
+
+fn tauto_eq_to_right : (a == b)^true & a -> b {
+    use triv;
+    use eq_to_right;
+
+    x : (a == b)^true;
+    y : a;
+
+    let x2 = triv(x) : a == b;
+    let r = eq_to_right(x2, y) : b;
+    return r;
+}
+
