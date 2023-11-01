@@ -578,9 +578,8 @@ However, this requires HOOO EP.
 
 Self quality `a ~~ a` is equivalent to `~a`,
 which is called a "qubit".
-In classical logic, one generates a random truth table of `~a` using `a` as the seed to the random generator.
-This makes `~a` behave as if it is in super-position of all propositions,
-hence the name "qubit".
+The name "qubit" comes from the model in classical logic, where one generates a random truth table of `~a` using `a` as the seed to the random generator.
+This makes `~a` behave as if it is in super-position of all propositions, hence similar to qubit in a classical approximation of a quantum circuit.
 One can also think about it as introducing a new proposition.
 
 Path semantical quality and qubit are tautological congruent.
