@@ -784,6 +784,26 @@ impl Type {
     pub fn bind(&self, contra: bool, val: &Type, bind: &mut Vec<(Type, Type)>) -> bool {
         use Type::*;
 
+        fn bind_ty<F: FnOnce(&mut Vec<(Type, Type)>)>(
+            bind: &mut Vec<(Type, Type)>,
+            a: &Type,
+            b: &Type,
+            f: F,
+        ) -> bool {
+            let mut found = false;
+            for (ty, val) in bind.iter() {
+                if ty == a {
+                    if val != b && val != &b.clone().lift() {
+                        return false;
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if !found {f(bind)};
+            true
+        }
+
         match if contra {(val, self)} else {(self, val)} {
             (True, True) => true,
             (False, False) => true,
@@ -813,23 +833,13 @@ impl Type {
                 }
                 false
             }
-            (_, AllTy(a)) if contra => {
-                for (name, v) in bind.iter() {
-                    if let AllTy(name) = name {
-                        if name == a && val != v {return false}
-                    }
-                }
-                bind.push((self.clone(), val.clone()));
-                true
+            (_, AllTy(_)) if contra => {
+                bind_ty(bind, self, val, |bind|
+                    bind.push((self.clone(), val.clone())))
             }
-            (AllTy(a), _) if !contra => {
-                for (name, v) in bind.iter() {
-                    if let AllTy(name) = name {
-                        if name == a && val != v {return false}
-                    }
-                }
-                bind.push((self.clone(), val.clone()));
-                true
+            (AllTy(_), _) if !contra => {
+                bind_ty(bind, self, val, |bind|
+                    bind.push((self.clone(), val.clone())))
             }
             (_, AllTy(_)) if !contra => true,
             (AllTy(_), _) if contra => true,
@@ -1298,6 +1308,7 @@ impl LibInfo {
 pub fn var(a: &str, t: Type) -> (Arc<String>, Term) {(Arc::new(a.into()), Term::Var(t))}
 
 pub fn ty(a: &str) -> Type {Type::Ty(Arc::new(a.into()))}
+pub fn all_ty(a: &str) -> Type {Type::AllTy(Arc::new(a.into()))}
 pub fn pow(a: Type, b: Type) -> Type {Type::Pow(Box::new((a, b)))}
 pub fn and(a: Type, b: Type) -> Type {Type::And(Box::new((a, b)))}
 pub fn or(a: Type, b: Type) -> Type {Type::Or(Box::new((a, b)))}
@@ -1606,6 +1617,15 @@ mod tests {
         let mut bind = vec![];
         assert!(x.clone().lift().bind(false, &x, &mut bind));
         assert!(x.has_bound(&x));
+        
+        let a: Type = "(a == b)^true".try_into().unwrap();
+        let b: Type = "(x' == y')^true".try_into().unwrap();
+        assert!(a.lift().bind(true, &b, &mut vec![]));
+    
+        let a: Type = and(tauto(eq(all_ty("a"), all_ty("b"))), all_ty("b"));
+        let b: Type = and(tauto(eq(ty("x"), ty("y"))).lift(), ty("y"))
+            .try_into().unwrap();
+        assert!(a.bind(true, &b, &mut vec![]));
     }
 
     #[test]
