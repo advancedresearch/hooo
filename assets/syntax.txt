@@ -9,8 +9,9 @@ _seps: "',(){}=-<>^&|!-□◇~"
 17 var = [.._seps!:"name" ?"'":"sym"]
 16 imply_left = or:"or"
 15 , = [.w? "," .w?]
-14 app_left = {sym_block:"un" var:"var"}
-13 app = [!"all(" !"excm(" !"sd(" app_left:"left" "(" .w? .s!(, type_or_fun:"arg") .w? ")"]
+14 app_left = {pair:"pair" sym_block:"un" var:"var"}
+13 app = [!"all(" !"excm(" !"sd(" app_left:"left"
+    .r?(["(" .w? .s!(, type_or_fun:"arg") .w? ")"])]
 12 all = ["all(":"all" .w? type_or_fun:"arg" .w? ")"]
 11 type_or_fun = fun:"bin"
 10 type_or_pow = {
@@ -32,7 +33,6 @@ _seps: "',(){}=-<>^&|!-□◇~"
     typeleft
 }
 2 typeleft = {
-    pair:"pair"
     excm:"un"
     all:"un"
     sd:"bin"
