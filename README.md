@@ -295,13 +295,13 @@ language.
 For example, instead of:
 
 ```text
-z' : nat
+z' : nat'
 ```
 
 Hooo requires an extra term to express type judgement:
 
 ```text
-x : (z' : nat)
+x : (z' : nat')
 ```
 
 The intuition is that Hooo bootstraps from
