@@ -1,0 +1,89 @@
+use comp;
+use inv;
+
+sym sym_norm1;
+sym sym_norm2;
+sym norm1;
+sym norm2;
+
+fn path_sym_norm1_def :
+    true -> sym_norm1'(f, g) == comp'(comp'(g, f), inv'(g))
+{
+    axiom path_sym_norm1_def :
+        true -> sym_norm1'(f, g) == comp'(comp'(g, f), inv'(g));
+    x : true;
+    let r = path_sym_norm1_def(x) :
+        sym_norm1'(f, g) == comp'(comp'(g, f), inv'(g));
+    return r;
+}
+
+fn path_sym_norm2_def :
+    true -> sym_norm2'(f, g) == comp'(comp'(g, f), (inv'(g), inv'(g)))
+{
+    axiom path_sym_norm2_def :
+        true -> sym_norm2'(f, g) == comp'(comp'(g, f), (inv'(g), inv'(g)));
+    x : true;
+    let r = path_sym_norm2_def(x) :
+        sym_norm2'(f, g) == comp'(comp'(g, f), (inv'(g), inv'(g)));
+    return r;
+}
+
+fn path_norm1_def :
+    true -> norm1'(f, g1, g2) == comp'(comp'(g2, f), inv'(g1))
+{
+    axiom path_norm1_def :
+        true -> norm1'(f, g1, g2) == comp'(comp'(g2, f), inv'(g1));
+    x : true;
+    let r = path_norm1_def(x) :
+        norm1'(f, g1, g2) == comp'(comp'(g2, f), inv'(g1));
+    return r;
+}
+
+fn path_norm2_def : true ->
+    norm2'(f, g1, g2, g3) == comp'(comp'(g3, f), (inv'(g1), inv'(g2)))
+{
+    axiom path_norm2_def : true ->
+        norm2'(f, g1, g2, g3) == comp'(comp'(g3, f), (inv'(g1), inv'(g2)));
+    x : true;
+    let r = path_norm2_def(x) :
+        norm2'(f, g1, g2, g3) == comp'(comp'(g3, f), (inv'(g1), inv'(g2)));
+    return r;
+}
+
+fn path_eq_sym_norm1_norm1 : true -> sym_norm1'(f, g) == norm1'(f, g, g) {
+    use eq_transitivity_sym;
+    use path_norm1_def;
+    use path_sym_norm1_def;
+    use triv;
+
+    x : true;
+
+    let x2 = triv(path_sym_norm1_def) :
+        sym_norm1'(f, g) == comp'(comp'(g, f), inv'(g));
+    let x3 = triv(path_norm1_def) :
+        norm1'(f, g, g) == comp'(comp'(g, f), inv'(g));
+    let r = eq_transitivity_sym(x2, x3) :
+        sym_norm1'(f, g) == norm1'(f, g, g);
+    return r;
+}
+
+fn path_sym_norm1_to_norm1 : sym_norm1'(f, g) -> norm1'(f, g, g) {
+    use path_eq_sym_norm1_norm1;
+    use tauto_eq_to_right;
+
+    x : sym_norm1'(f, g);
+
+    let r = tauto_eq_to_right(path_eq_sym_norm1_norm1, x) : norm1'(f, g, g);
+    return r;
+}
+
+fn path_norm1_to_sym_norm1 : norm1'(f, g, g) -> sym_norm1'(f, g) {
+    use path_eq_sym_norm1_norm1;
+    use tauto_eq_to_left;
+
+    x : norm1'(f, g, g);
+
+    let r = tauto_eq_to_left(path_eq_sym_norm1_norm1, x) : sym_norm1'(f, g);
+    return r;
+}
+
