@@ -1352,6 +1352,9 @@ mod tests {
 
         let a: Type = "a^c == b^c".try_into().unwrap();
         assert_eq!(a, eq(pow(ty("a"), ty("c")), pow(ty("b"), ty("c"))));
+    
+        let a: Type = "(f, g)(a)".try_into().unwrap();
+        assert_eq!(a, app(pair(ty("f"), ty("g")), ty("a")));
     }
 
     #[test]
