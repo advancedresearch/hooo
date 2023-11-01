@@ -191,6 +191,7 @@ sd(a, b)   Symbolic distinction (see section [Symbolic distinction])
 ~a         Path semantical qubit (see section [Path Semantics])
 a ~~ b     Path semantical quality (see section [Path Semantics])
 (a, b)     Ordered pair (see section [Avatar Logic])
+(a : b)    Type judgement (see section [Type judgement])
 all(a)     Lifts `a` to matching all types
 □a         Necessary `a` (modal logic)
 ◇a         Possibly `a` (modal logic)
@@ -268,6 +269,51 @@ However, Hooo does not prevent people from working on making proofs shorter.
 Since Hooo supports meta-theorem proving,
 it is encouraging users to reuse generic theorems.
 This is the proper way of producing formal proofs.
+
+### Type judgement
+
+Most modern theorem prover assistants are based
+on dependent types.
+A common design in dependent typed languages,
+is to build a higher level language on top of
+a lower level one.
+This ensures the correctness of the more complex
+higher level language as long the transformation
+to the lower level language is sound.
+
+Technically, Hooo is not dependent typed.
+Hooo is actually simply typed,
+because in HOOO EP every type is a proposition.
+However, since HOOO EP introduces exponential
+propositions, the power of Hooo is comparable to
+dependent type systems.
+
+One can think about this as Hooo without a standard library resembles a
+lower level language used to build a higher level
+language.
+
+For example, instead of:
+
+```text
+z' : nat
+```
+
+Hooo requires an extra term to express type judgement:
+
+```text
+x : (z' : nat)
+```
+
+The intuition is that Hooo bootstraps from
+lower to higher language through its types.
+Terms at the lowest level are very simple and restricted.
+Once you have developed a library for your needs,
+Hooo approaches a higher level language.
+
+The advantage of this design is that Hooo can
+bootstrap over and over into higher levels.
+New rules can be generated from existing rules,
+while keeping a simple set of basic terms.
 
 ### Safety heuristics
 
