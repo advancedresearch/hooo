@@ -90,12 +90,23 @@ HOOO EP might sound like Provability Logic, but it is not the same thing.
 Provability Logic is incompatible with HOOO EP, since Löb's axiom is absurd.
 For proof, see `lob_absurd` in "source/std/modal.hooo".
 
+You can model Provability Logic in HOOO EP,
+by using explicit symbols for modality operators.
+
 # HOOO EP
 
 "HOOO EP" stands for "Higher Order Operator Overloading Exponential Propositions".
 
 HOOO EP was first developed in the [Prop](https://github.com/advancedresearch/prop) library,
 which exploited function pointers in Rust's type system.
+
+The basic idea of HOOO EP is that
+function pointers have the types of proofs.
+By calculating with these types, one obtains new proofs. Now, in order to do this,
+you need some special function pointers with types that proves
+which types of function pointers one can prove.
+These special function pointers are the axioms,
+With other words: Type Theory Magic.
 
 There are 3 axioms in HOOO EP:
 
