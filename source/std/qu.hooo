@@ -72,3 +72,26 @@ fn nqu_to_sesh : !~a  ->  !(a ~~ a) {
     let r = y(x) : !(a ~~ a);
     return r;
 }
+
+fn sd_to_qu : sd(a, a)  ->  ~a {
+    use sd_to_q;
+    use q_to_qu;
+
+    x : sd(a, a);
+
+    let x2 = sd_to_q(x) : a ~~ a;
+    let r = q_to_qu(x2) : ~a;
+    return r;
+}
+
+fn nqu_to_nsd : !~a  ->  !sd(a, a) {
+    use modus_tollens;
+    use sd_to_qu;
+
+    x : !~a;
+
+    let x2 = modus_tollens(sd_to_qu) : !~a => !sd(a, a);
+    let r = x2(x) : !sd(a, a);
+    return r;
+}
+
