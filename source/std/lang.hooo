@@ -53,10 +53,3 @@ fn all_pow_absurd : all(a -> b) -> c {
     return z;
 }
 
-fn all_lift : a^b -> all(a^b) {
-    axiom all_lift : a^b -> all(a^b);
-    x : a^b;
-    let r = all_lift(x) : all(a^b);
-    unsafe return r;
-}
-

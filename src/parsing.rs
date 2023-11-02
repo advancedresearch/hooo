@@ -91,8 +91,8 @@ fn run_ctx(
                             Ok((range, ret)) => {
                                 convert.update(range);
                                 if let Some((unsafe_flag, ret)) = ret {
-                                    if let Type::Pow(ab) = &ty {
-                                        if ctx.has_term_ty(&ret, &ab.0) {
+                                    if let Some(ab) = ty.fun_norm() {
+                                        if ctx.has_term_ty(&ret, &ab.1) {
                                             ctx.add_proof(ty.clone());
                                         }
                                     }
@@ -104,7 +104,7 @@ fn run_ctx(
                     })?;
                     loader.trace.truncate(n);
                 } else {
-                    if let Type::Pow(_) = &ty {
+                    if let Type::Pow(_) | Type::Fun(_) = &ty {
                         if loader.functions.contains_key(&name) {
                             return Err((range, format!("Already has function `{}`", name)));
                         }
@@ -279,7 +279,7 @@ fn run_ctx(
             if loader.run {
                 let ty = loader.load_fun(&ns, &fun).map_err(|err| (range, err))?;
                 match ty {
-                    Type::Pow(_) => {
+                    Type::Pow(_) | Type::Fun(_) => {
                         let is_use = true;
                         ctx.new_term((fun, Term::FunDecl(ty)), is_use, search)
                             .map_err(|err| (range, err))?;
@@ -622,6 +622,9 @@ fn parse_bin(
         } else if let Ok((range, _)) = convert.meta_bool("pow") {
             convert.update(range);
             op = Some(Op::Pow);
+        } else if let Ok((range, _)) = convert.meta_bool("fun") {
+            convert.update(range);
+            op = Some(Op::Fun);
         } else if let Ok((range, _)) = convert.meta_bool("imply") {
             convert.update(range);
             op = Some(Op::Imply);
@@ -647,8 +650,8 @@ fn parse_bin(
         }
     }
 
-    if left.is_none() {
-        let ty = right.ok_or(())?;
+    if right.is_none() {
+        let ty = left.ok_or(())?;
         return Ok((convert.subtract(start), ty));
     }
 
@@ -659,6 +662,7 @@ fn parse_bin(
         Op::Eq => eq(left, right),
         Op::PowEq => pow_eq(left, right),
         Op::Pow => pow(left, right),
+        Op::Fun => fun(left, right),
         Op::Imply => imply(left, right),
         Op::Sd => sd(left, right),
         Op::Jud => jud(left, right),
