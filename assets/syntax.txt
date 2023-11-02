@@ -18,7 +18,7 @@ _seps: "',.(){}=-<>^&|!-□◇~"
     pow:"bin"
     typeleft_or_un
 }
-9 fun = [type:"right" ?[.w? "->":"pow" .w? type_or_fun:"left"]]
+9 fun = [type:"left" ?[.w? "->":"fun" .w? type_or_fun:"right"]]
 8 excm = ["excm(":"excm" .w? type:"arg" .w? ")"]
 7 un = [{"!":"not" "□":"nec" "◇":"pos" "~":"qu"} typeleft_or_un:"arg"]
 6 bin = [type_or_pow:"left" .w? {
