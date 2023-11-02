@@ -145,3 +145,27 @@ fn sesh_right : !(b ~~ b)  ->  !(a ~~ b) {
     let r = y(x) : !(a ~~ b);
     return r;
 }
+
+fn sd_to_q : sd(a, a)  ->  a ~~ a {
+    use eq_refl;
+    use q_lift;
+    use triv;
+
+    x : sd(a, a);
+
+    let x2 = triv(eq_refl) : a == a;
+    let r = q_lift(x, x2) : a ~~ a;
+    return r;
+}
+
+fn sesh_to_nsd : !(a ~~ a)  ->  !sd(a, a) {
+    use modus_tollens;
+    use sd_to_q;
+
+    x : !(a ~~ a);
+
+    let x2 = modus_tollens(sd_to_q) : !(a ~~ a) => !sd(a, a);
+    let r = x2(x) : !sd(a, a);
+    return r;
+}
+

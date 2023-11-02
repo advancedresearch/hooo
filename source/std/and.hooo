@@ -49,4 +49,3 @@ fn snd : a & b -> b {
     return y;
 }
 
-
