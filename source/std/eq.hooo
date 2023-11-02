@@ -1,3 +1,12 @@
+fn eq_refl : true -> a == a {
+    use refl;
+
+    x : true;
+
+    let r = refl(refl, refl) : a == a;
+    return r;
+}
+
 fn eq_symmetry : a == b -> b == a {
     use fst;
     use snd;

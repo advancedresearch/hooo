@@ -134,11 +134,13 @@ fn sd_in_left_arg : sd(a, b) & (a == c)^true -> sd(c, b) {
 }
 
 fn sd_in_right_arg : sd(a, b) & (b == c)^true -> sd(a, c) {
+    use sd_symmetry;
+    use sd_in_left_arg;
+    
     x : sd(a, b);
     y : (b == c)^true;
-    use sd_symmetry;
+    
     let x2 = sd_symmetry(x) : sd(b, a);
-    use sd_in_left_arg;
     let x3 = sd_in_left_arg(x2, y) : sd(c, a);
     let r = sd_symmetry(x3) : sd(a, c);
     return r;
