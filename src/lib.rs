@@ -811,12 +811,11 @@ impl Type {
             true
         }
 
-        match if contra {(val, self)} else {(self, val)} {
+        match (self, val) {
             (True, True) => true,
             (False, False) => true,
             (Ty(a), Ty(b)) => a == b,
             (Sym(a), Sym(b)) => {
-                let (a, b) = if contra {(b, a)} else {(a, b)};
                 for (ty, v) in bind.iter() {
                     if let Type::Sym(name) = ty {
                         if name == a && val == v {return true}
@@ -832,7 +831,7 @@ impl Type {
                 }
                 false
             }
-            (b, Sym(a)) if contra => {
+            (Sym(a), b) if contra => {
                 for (ty, val) in bind.iter() {
                     if let Type::Sym(name) = ty {
                         if name == a && b == val {return true}
@@ -840,16 +839,6 @@ impl Type {
                 }
                 false
             }
-            (_, AllTy(_)) if contra => {
-                bind_ty(bind, self, val, |bind|
-                    bind.push((self.clone(), val.clone())))
-            }
-            (AllTy(_), _) if !contra => {
-                bind_ty(bind, self, val, |bind|
-                    bind.push((self.clone(), val.clone())))
-            }
-            (_, AllTy(_)) if !contra => true,
-            (AllTy(_), _) if contra => true,
             (Nec(a), Nec(b)) |
             (Pos(a), Pos(b)) |
             (Qu(a), Qu(b)) => {
@@ -864,28 +853,17 @@ impl Type {
             (Comp(ab), Comp(cd)) |
             (Q(ab), Q(cd)) |
             (Pair(ab), Pair(cd)) => {
-                let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
                 if !ab.0.bind(contra, &cd.0, bind) {return false};
                 if !ab.1.bind(contra, &cd.1, bind) {return false};
                 true
             }
-            (App(ab), x) if !contra => {
-                if let Type::SymBlock(s_ab) = &ab.0 {
-                    let n = bind.len();
-                    bind.push((Type::Sym(s_ab.0.clone()), ab.1.clone()));
-                    let res = s_ab.1.bind(contra, &x, bind);
-                    if res {
-                        let ty = s_ab.1.replace(bind);
-                        bind.truncate(n);
-                        bind.push((self.clone(), ty));
-                        return true;
-                    } else {
-                        bind.truncate(n);
-                    }
-                }
-                false
+            (AllTy(_), _) => {
+                if !bind_ty(bind, self, val, |bind|
+                    bind.push((self.clone(), val.clone()))) {return false};
+                true
             }
-            (x, App(ab)) if contra => {
+            (_, AllTy(_)) => true,
+            (App(ab), x) => {
                 if let Type::SymBlock(s_ab) = &ab.0 {
                     let n = bind.len();
                     bind.push((Type::Sym(s_ab.0.clone()), ab.1.clone()));
@@ -902,28 +880,27 @@ impl Type {
                 false
             }
             (Pow(ab), Pow(cd)) => {
-                let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
                 if !ab.0.bind(contra, &cd.0, bind) {return false};
                 if !ab.1.bind(!contra, &cd.1, bind) {return false};
                 true
             }
             (Imply(ab), Imply(cd)) => {
-                let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
                 if !ab.0.bind(!contra, &cd.0, bind) {return false};
                 if !ab.1.bind(contra, &cd.1, bind) {return false};
                 true
             }
-            (Pow(ab), Imply(cd)) => {
-                if contra {
-                    if !cd.0.bind(!contra, &ab.1, bind) {return false};
-                    if !cd.1.bind(contra, &ab.0, bind) {return false};
-                } else {
-                    if !ab.1.bind(!contra, &cd.0, bind) {return false};
-                    if !ab.0.bind(contra, &cd.1, bind) {return false};
-                }
+            (Pow(ab), Imply(cd)) if !contra => {
+                if !ab.1.bind(!contra, &cd.0, bind) {return false};
+                if !ab.0.bind(contra, &cd.1, bind) {return false};
+                true
+            }
+            (Imply(cd), Pow(ab)) if contra => {
+                if !cd.0.bind(!contra, &ab.1, bind) {return false};
+                if !cd.1.bind(contra, &ab.0, bind) {return false};
                 true
             }
             (All(a), All(b)) => {
+                let (a, b) = if contra {(b, a)} else {(a, b)};
                 let mut bind: Vec<(Type, Type)> = bind.iter()
                     .filter(|(a, b)| {
                         if contra {
@@ -940,9 +917,11 @@ impl Type {
                     true
                 } else {false}
             }
-            (All(a), b) if !contra => a.bind(contra, b, bind),
+            (All(a), b) if !contra => {
+                if !a.bind(contra, b, bind) {return false};
+                true
+            }
             (SymBlock(ab), SymBlock(cd)) => {
-                let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
                 let n = bind.len();
                 bind.push((Sym(ab.0.clone()), Sym(cd.0.clone())));
                 let res = ab.1.bind(contra, &cd.1, bind);
@@ -953,29 +932,13 @@ impl Type {
                 } else {bind.truncate(n)};
                 res
             }
-            (_, App(ab)) if !contra => {
+            (_, App(ab)) => {
                 if let Type::SymBlock(s_ab) = &ab.0 {
                     let _ = self.bind(contra, &s_ab.1, bind);
                     let mut bind2 = vec![];
-                    let contra = false;
                     if val.bind(contra, &self.replace(bind), &mut bind2) {
                         let ty = val.replace(&bind2);
                         if ty.has_(contra, &self) {
-                            bind.push((self.clone(), val.clone()));
-                            return true;
-                        }
-                    }
-                }
-                false
-            }
-            (App(ab), _) if contra => {
-                if let Type::SymBlock(s_ab) = &ab.0 {
-                    let _ = self.bind(contra, &s_ab.1, bind);
-                    let mut bind2 = vec![];
-                    let contra = true;
-                    if val.bind(contra, &self.replace(bind), &mut bind2) {
-                        let ty = val.replace(&bind2);
-                        if ty.has_(contra, self) {
                             bind.push((self.clone(), val.clone()));
                             return true;
                         }
