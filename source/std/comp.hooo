@@ -1,25 +1,23 @@
 use cong;
 
-sym comp;
-
-fn comp_ty : (f : a -> b) & (g : b -> c) -> (comp'(f, g) : a -> c) {
-    axiom comp_ty : (f : a -> b) & (g : b -> c) -> (comp'(f, g) : a -> c);
+fn comp_ty : (f : a -> b) & (g : b -> c) -> ((f . g) : a -> c) {
+    axiom comp_ty : (f : a -> b) & (g : b -> c) -> ((f . g) : a -> c);
     x : (f : a -> b) & (g : b -> c);
-    let r = comp_ty(x) : (comp'(f, g) : a -> c);
+    let r = comp_ty(x) : ((f . g) : a -> c);
     return r;
 }
 
-fn comp_def : true -> comp'(f, g)(a) == f(g(a)) {
-    axiom comp_def : true -> comp'(f, g)(a) == f(g(a));
+fn comp_def : true -> (f . g)(a) == f(g(a)) {
+    axiom comp_def : true -> (f . g)(a) == f(g(a));
     x : true;
-    let r = comp_def(x) : comp'(f, g)(a) == f(g(a));
+    let r = comp_def(x) : (f . g)(a) == f(g(a));
     return r;
 }
 
-fn comp_cong : cong'(f) & cong'(g) -> cong'(comp'(f, g)) {
-    axiom comp_cong : cong'(f) & cong'(g) -> cong'(comp'(f, g));
+fn comp_cong : cong'(f) & cong'(g) -> cong'(f . g) {
+    axiom comp_cong : cong'(f) & cong'(g) -> cong'(f . g);
     x : cong'(f) & cong'(g);
-    let r = comp_cong(x) : cong'(comp'(f, g));
+    let r = comp_cong(x) : cong'(f . g);
     return r;
 }
 

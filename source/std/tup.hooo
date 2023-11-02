@@ -10,7 +10,6 @@ Parallel tuples can be applied to tuples in parallel.
 
 */
 
-use comp;
 use cong;
 use inv;
 
@@ -116,7 +115,7 @@ fn tup_eq_both : (a == b) & (c == d) -> (a, c) == (b, d) {
     return r;
 }
 
-fn tup_comp_fst : cong'(f) -> comp'(f, tup_fst')((a, b)) == f(a) {
+fn tup_comp_fst : cong'(f) -> (f . tup_fst')((a, b)) == f(a) {
     use comp_cong;
     use comp_def;
     use cong_app_eq;
@@ -126,15 +125,15 @@ fn tup_comp_fst : cong'(f) -> comp'(f, tup_fst')((a, b)) == f(a) {
 
     x : cong'(f);
 
-    let x2 = triv(comp_def) : comp'(f, tup_fst')((a, b)) ==
+    let x2 = triv(comp_def) : (f . tup_fst')((a, b)) ==
         f(tup_fst'((a, b)));
     let x3 = triv(tup_fst_def) : tup_fst'((a, b)) == a;
     let x4 = cong_app_eq(x, x3) : f(tup_fst'((a, b))) == f(a);
-    let r = eq_transitivity(x2, x4) : comp'(f, tup_fst')((a, b)) == f(a);
+    let r = eq_transitivity(x2, x4) : (f . tup_fst')((a, b)) == f(a);
     return r;
 }
 
-fn tup_comp_snd : cong'(f) -> comp'(f, tup_snd')((a, b)) == f(b) {
+fn tup_comp_snd : cong'(f) -> (f . tup_snd')((a, b)) == f(b) {
     use comp_cong;
     use comp_def;
     use cong_app_eq;
@@ -144,15 +143,15 @@ fn tup_comp_snd : cong'(f) -> comp'(f, tup_snd')((a, b)) == f(b) {
 
     x : cong'(f);
 
-    let x2 = triv(comp_def) : comp'(f, tup_snd')((a, b)) ==
+    let x2 = triv(comp_def) : (f . tup_snd')((a, b)) ==
         f(tup_snd'((a, b)));
     let x3 = triv(tup_snd_def) : tup_snd'((a, b)) == b;
     let x4 = cong_app_eq(x, x3) : f(tup_snd'((a, b))) == f(b);
-    let r = eq_transitivity(x2, x4) : comp'(f, tup_snd')((a, b)) == f(b);
+    let r = eq_transitivity(x2, x4) : (f . tup_snd')((a, b)) == f(b);
     return r;
 }
 
-fn tup_comp_fst_cong : cong'(f) -> cong'(comp'(f, tup_fst')) {
+fn tup_comp_fst_cong : cong'(f) -> cong'(f . tup_fst') {
     use comp_cong;
     use tup_fst_cong;
     use triv;
@@ -160,11 +159,11 @@ fn tup_comp_fst_cong : cong'(f) -> cong'(comp'(f, tup_fst')) {
     x : cong'(f);
 
     let x2 = triv(tup_fst_cong) : cong'(tup_fst');
-    let r = comp_cong(x, x2) : cong'(comp'(f, tup_fst'));
+    let r = comp_cong(x, x2) : cong'(f . tup_fst');
     return r;
 }
 
-fn tup_comp_snd_cong : cong'(f) -> cong'(comp'(f, tup_snd')) {
+fn tup_comp_snd_cong : cong'(f) -> cong'(f . tup_snd') {
     use comp_cong;
     use tup_snd_cong;
     use triv;
@@ -172,12 +171,12 @@ fn tup_comp_snd_cong : cong'(f) -> cong'(comp'(f, tup_snd')) {
     x : cong'(f);
 
     let x2 = triv(tup_snd_cong) : cong'(tup_snd');
-    let r = comp_cong(x, x2) : cong'(comp'(f, tup_snd'));
+    let r = comp_cong(x, x2) : cong'(f . tup_snd');
     return r;
 }
 
 fn tup_comp_both_cong :
-    cong'(f) & cong'(g) -> cong'(((comp'(f, tup_fst')), comp'(g, tup_snd')))
+    cong'(f) & cong'(g) -> cong'((f . tup_fst', g . tup_snd'))
 {
     use tup_comp_fst_cong;
     use tup_comp_snd_cong;
@@ -186,21 +185,21 @@ fn tup_comp_both_cong :
     x : cong'(f);
     y : cong'(g);
 
-    let x2 = tup_comp_fst_cong(x) : cong'(comp'(f, tup_fst'));
-    let x3 = tup_comp_snd_cong(y) : cong'(comp'(g, tup_snd'));
+    let x2 = tup_comp_fst_cong(x) : cong'(f . tup_fst');
+    let x3 = tup_comp_snd_cong(y) : cong'(g . tup_snd');
     let r = tup_cong(x2, x3) :
-        cong'(((comp'(f, tup_fst')), comp'(g, tup_snd')));
+        cong'((f . tup_fst', g . tup_snd'));
     return r;
 }
 
 fn par_def :
-    true -> par'(f, g) == (comp'(f, tup_fst'), comp'(g, tup_snd'))
+    true -> par'(f, g) == (f . tup_fst', g . tup_snd')
 {
     axiom par_def : true ->
-        par'(f, g) == (comp'(f, tup_fst'), comp'(g, tup_snd'));
+        par'(f, g) == (f . tup_fst', g . tup_snd');
     x : true;
     let r = par_def(x) :
-        par'(f, g) == (comp'(f, tup_fst'), comp'(g, tup_snd'));
+        par'(f, g) == (f . tup_fst', g . tup_snd');
     return r;    
 }
 
@@ -227,24 +226,24 @@ fn par_app : cong'(f) & cong'(g) -> par'(f, g)((a, b)) == (f(a), g(b)) {
     y : cong'(g);
 
     let x2 = triv(tup_app) :
-        (comp'(f, tup_fst'), comp'(g, tup_snd'))((a, b)) ==
-        (comp'(f, tup_fst')((a, b)), comp'(g, tup_snd')((a, b)));
+        (f . tup_fst', g . tup_snd')((a, b)) ==
+        ((f . tup_fst')((a, b)), (g . tup_snd')((a, b)));
     let x3 = triv(par_def) :
-        par'(f, g) == (comp'(f, tup_fst'), comp'(g, tup_snd'));
+        par'(f, g) == (f . tup_fst', g . tup_snd');
 
     let y2 = par_cong(x, y) : cong'(par'(f, g));
     let y3 = tup_comp_both_cong(x, y) :
-        cong'((comp'(f, tup_fst'), comp'(g, tup_snd')));
+        cong'((f . tup_fst', g . tup_snd'));
     let x4 = cong_fun_eq(y2, y3, x3) : par'(f, g)((a, b)) ==
-        (comp'(f, tup_fst'), comp'(g, tup_snd'))((a, b));
+        (f . tup_fst', g . tup_snd')((a, b));
     
     let x5 = eq_transitivity(x4, x2) :
         par'(f, g)((a, b)) ==
-        (comp'(f, tup_fst')((a, b)), comp'(g, tup_snd')((a, b)));
-    let x6 = tup_comp_fst(x) : comp'(f, tup_fst')((a, b)) == f(a);
-    let x7 = tup_comp_snd(y) : comp'(g, tup_snd')((a, b)) == g(b);
+        ((f . tup_fst')((a, b)), (g . tup_snd')((a, b)));
+    let x6 = tup_comp_fst(x) : (f . tup_fst')((a, b)) == f(a);
+    let x7 = tup_comp_snd(y) : (g . tup_snd')((a, b)) == g(b);
     let x8 = tup_eq_both(x6, x7) :
-        (comp'(f, tup_fst')((a, b)), comp'(g, tup_snd')((a, b))) ==
+        ((f . tup_fst')((a, b)), (g . tup_snd')((a, b))) ==
         (f(a), g(b));
 
     let r = eq_transitivity(x5, x8) : par'(f, g)((a, b)) == (f(a), g(b));
