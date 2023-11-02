@@ -1,4 +1,4 @@
-_seps: "',(){}=-<>^&|!-□◇~"
+_seps: "',.(){}=-<>^&|!-□◇~"
 
 23 sym_block = ["sym(" .w? .._seps!:"sym" , type_or_fun:"arg" .w? ")"]
 22 pair = ["(" .w? .s!.(, type_or_fun:"arg") .w? ")"]
@@ -21,10 +21,11 @@ _seps: "',(){}=-<>^&|!-□◇~"
 9 fun = [type:"right" ?[.w? "->":"pow" .w? type_or_fun:"left"]]
 8 excm = ["excm(":"excm" .w? type:"arg" .w? ")"]
 7 un = [{"!":"not" "□":"nec" "◇":"pos" "~":"qu"} typeleft_or_un:"arg"]
-6 eq = [type_or_pow:"left" .w? {
+6 bin = [type_or_pow:"left" .w? {
     "==":"eq"
     "=^=":"pow_eq"
     "~~":"q"
+    ".":"comp"
 } .w? type_or_pow:"right"]
 5 pow = [typeleft:"left" .w? "^":"pow" .w? typeleft:"right"]
 4 imply = [imply_left:"left" .w? "=>":"imply" .w? type:"right"]
@@ -44,7 +45,7 @@ _seps: "',(){}=-<>^&|!-□◇~"
 }
 1 type = {
     imply:"bin"
-    eq:"bin"
+    bin:"bin"
     jud:"bin"
     or:"or"
 }

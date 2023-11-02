@@ -79,7 +79,7 @@ impl Context {
             }
             True | False | Ty(_) | AllTy(_) => true,
             Pow(ab) | And(ab) | Or(ab) | Imply(ab) |
-            App(ab) | Sd(ab) | Jud(ab) | Q(ab) | Pair(ab) =>
+            App(ab) | Sd(ab) | Jud(ab) | Comp(ab) | Q(ab) | Pair(ab) =>
                 self.is_type_declared(&ab.0, sym_blocks) &&
                 self.is_type_declared(&ab.1, sym_blocks),
             All(a) | Nec(a) | Pos(a) | Qu(a) => self.is_type_declared(a, sym_blocks),
@@ -477,6 +477,8 @@ pub enum Type {
     Sd(Box<(Type, Type)>),
     /// Type judgement.
     Jud(Box<(Type, Type)>),
+    /// Function composition.
+    Comp(Box<(Type, Type)>),
     /// Necessary (modal logic).
     Nec(Box<Type>),
     /// Possibly (modal logoc).
@@ -505,6 +507,7 @@ pub enum Op {
     App,
     Sd,
     Jud,
+    Comp,
     Nec,
     Pos,
     Qu,
@@ -556,6 +559,7 @@ impl Type {
             App(_) => Some(Op::App),
             Sd(_) => Some(Op::Sd),
             Jud(_) => Some(Op::Jud),
+            Comp(_) => Some(Op::Comp),
             Nec(_) => Some(Op::Nec),
             Pos(_) => Some(Op::Pos),
             Qu(_) => Some(Op::Qu),
@@ -699,6 +703,7 @@ impl fmt::Display for Type {
             App(ab) => write!(w, "{}({})", ab.0.to_str(false, op), ab.1)?,
             Sd(ab) => write!(w, "sd({}, {})", ab.0, ab.1)?,
             Jud(ab) => write!(w, "{} : {}", ab.0.to_str(false, op), ab.1.to_str(true, op))?,
+            Comp(ab) => write!(w, "{} . {}", ab.0, ab.1)?,
             Nec(a) => write!(w, "□{}", a.to_str(false, op))?,
             Pos(a) => write!(w, "◇{}", a.to_str(false, op))?,
             Qu(a) => write!(w, "~{}", a.to_str(false, op))?,
@@ -734,6 +739,7 @@ impl Type {
             }
             Sd(_) => true,
             Jud(_) => true,
+            Comp(_) => true,
             Nec(_) => true,
             Pos(_) => true,
             Qu(_) => true,
@@ -771,6 +777,7 @@ impl Type {
             App(ab) => app(ab.0.lift(), ab.1.lift()),
             Sd(ab) => sd(ab.0.lift(), ab.1.lift()),
             Jud(ab) => jud(ab.0.lift(), ab.1.lift()),
+            Comp(ab) => comp(ab.0.lift(), ab.1.lift()),
             Nec(a) => nec(a.lift()),
             Pos(a) => pos(a.lift()),
             Qu(a) => qu(a.lift()),
@@ -854,6 +861,7 @@ impl Type {
             (App(ab), App(cd)) |
             (Sd(ab), Sd(cd)) |
             (Jud(ab), Jud(cd)) |
+            (Comp(ab), Comp(cd)) |
             (Q(ab), Q(cd)) |
             (Pair(ab), Pair(cd)) => {
                 let (ab, cd) = if contra {(cd, ab)} else {(ab, cd)};
@@ -999,6 +1007,7 @@ impl Type {
             All(a) => All(Box::new(a.replace(bind))),
             Sd(ab) => sd(ab.0.replace(bind), ab.1.replace(bind)),
             Jud(ab) => jud(ab.0.replace(bind), ab.1.replace(bind)),
+            Comp(ab) => comp(ab.0.replace(bind), ab.1.replace(bind)),
             Nec(a) => nec(a.replace(bind)),
             Pos(a) => pos(a.replace(bind)),
             Qu(a) => qu(a.replace(bind)),
@@ -1035,6 +1044,7 @@ impl Type {
             App(ab) => Some(app(ab.0.de_all()?, ab.1.de_all()?)),
             Sd(ab) => Some(sd(ab.0.de_all()?, ab.1.de_all()?)),
             Jud(ab) => Some(jud(ab.0.de_all()?, ab.1.de_all()?)),
+            Comp(ab) => Some(comp(ab.0.de_all()?, ab.1.de_all()?)),
             Q(ab) => Some(q(ab.0.de_all()?, ab.1.de_all()?)),
             Pow(ab) => Some(pow(ab.0.de_all()?, ab.1.de_all()?)),
             Nec(a) => Some(nec(a.de_all()?)),
@@ -1101,18 +1111,24 @@ impl Type {
             (Imply(ab), Imply(cd)) if cd.0.has_(!contra, &ab.0) && ab.1.has_(contra, &cd.1) => true,
             // TODO: Add unit tests for this case.
             (x, Or(ab)) if x.has_(contra, &ab.0) || x.has_(contra, &ab.1) => true,
+            
             (All(a), All(b)) |
             (Nec(a), Nec(b)) |
             (Pos(a), Pos(b)) |
             (Qu(a), Qu(b)) if a.has_(contra, b) => true,
+            
             (All(a), b) if !contra => a.has_(contra, b),
             (a, All(b)) if contra => a.has_(contra, b),
             (Sym(a), Sym(b)) if a == b => true,
-            (App(ab), App(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
-            (Sd(ab), Sd(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
-            (Jud(ab), Jud(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
-            (Q(ab), Q(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
-            (Pair(ab), Pair(cd)) if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
+            
+            (App(ab), App(cd)) |
+            (Sd(ab), Sd(cd)) |
+            (Jud(ab), Jud(cd)) |
+            (Comp(ab), Comp(cd)) |
+            (Q(ab), Q(cd)) |
+            (Pair(ab), Pair(cd))
+            if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
+            
             (SymBlock(ab), SymBlock(cd)) => ab.1.has_(contra, &cd.1),
             _ => false,
         }
@@ -1324,6 +1340,7 @@ pub fn all(a: Type) -> Type {Type::All(Box::new(a.lift()))}
 pub fn sym(a: &str) -> Type {Type::Sym(Arc::new(a.into()))}
 pub fn sd(a: Type, b: Type) -> Type {Type::Sd(Box::new((a, b)))}
 pub fn jud(a: Type, b: Type) -> Type {Type::Jud(Box::new((a, b)))}
+pub fn comp(a: Type, b: Type) -> Type {Type::Comp(Box::new((a, b)))}
 pub fn nec(a: Type) -> Type {Type::Nec(Box::new(a))}
 pub fn pos(a: Type) -> Type {Type::Pos(Box::new(a))}
 pub fn qu(a: Type) -> Type {Type::Qu(Box::new(a))}
@@ -1467,6 +1484,12 @@ mod tests {
         let a: Type = "(a, b)".try_into().unwrap();
         assert_eq!(a, pair(ty("a"), ty("b")));
         assert_eq!(format!("{}", a), "(a, b)".to_string());
+    }
+
+    #[test]
+    fn test_parse_comp() {
+        let a: Type = "f . g".try_into().unwrap();
+        assert_eq!(a, comp(ty("f"), ty("g")));
     }
 
     #[test]

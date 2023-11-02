@@ -631,6 +631,9 @@ fn parse_bin(
         } else if let Ok((range, _)) = convert.meta_bool("jud") {
             convert.update(range);
             op = Some(Op::Jud);
+        } else if let Ok((range, _)) = convert.meta_bool("comp") {
+            convert.update(range);
+            op = Some(Op::Comp);
         } else if let Ok((range, _)) = convert.meta_bool("q") {
             convert.update(range);
             op = Some(Op::Q);
@@ -659,6 +662,7 @@ fn parse_bin(
         Op::Imply => imply(left, right),
         Op::Sd => sd(left, right),
         Op::Jud => jud(left, right),
+        Op::Comp => comp(left, right),
         Op::Q => q(left, right),
         Op::Pair => pair(left, right),
         _ => return Err(()),
