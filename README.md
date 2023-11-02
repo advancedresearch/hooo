@@ -203,6 +203,7 @@ sd(a, b)   Symbolic distinction (see section [Symbolic distinction])
 a ~~ b     Path semantical quality (see section [Path Semantics])
 (a, b)     Ordered pair (see section [Avatar Logic])
 (a : b)    Type judgement (see section [Type judgement])
+(f . g)    Function composition
 all(a)     Lifts `a` to matching all types
 □a         Necessary `a` (modal logic)
 ◇a         Possibly `a` (modal logic)
