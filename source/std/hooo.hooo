@@ -34,6 +34,20 @@ fn hooo_or : (a | b)^c  ->  (a^c | b^c) {
     return x3;
 }
 
+fn hooo_dual_or : c^(a | b)  ->  c^a & c^b {
+    use left;
+    use pow_transitivity;
+    use refl;
+    use right;
+
+    x : c^(a | b);
+    
+    let x2 = pow_transitivity(left, x) : c^a;
+    let x3 = pow_transitivity(right, x) : c^b;
+    let r = refl(x2, x3) : c^a & c^b;
+    return r;
+}
+
 fn hooo_rev_and : a^c & b^c -> (a & b)^c {
     use and_map;
     use pow_to_imply_lift;
@@ -49,6 +63,27 @@ fn hooo_rev_and : a^c & b^c -> (a & b)^c {
     let x5 = hooo_imply(x4) : b^c => (a & b)^c;
     let x6 = modus_ponens(y, x5) : (a & b)^c;
     return x6;
+}
+
+fn hooo_dual_rev_and : c^a | c^b  ->  c^(a & b) {
+    x : c^a | c^b;
+
+    lam f : c^a => c^(a & b) {
+        y : c^a;
+        use fst;
+        use pow_transitivity;
+        let r = pow_transitivity(fst, y) : c^(a & b);
+        return r;
+    }
+    lam g : c^b => c^(a & b) {
+        y : c^b;
+        use snd;
+        use pow_transitivity;
+        let r = pow_transitivity(snd, y) : c^(a & b);
+        return r;
+    }
+    let r = match x (f, g) : c^(a & b);
+    return r;
 }
 
 fn hooo_rev_or : (a^c | b^c) -> (a | b)^c {
@@ -75,6 +110,31 @@ fn hooo_rev_or : (a^c | b^c) -> (a | b)^c {
     use unify;
     let x4 = unify(x, f, g) : (a | b)^c;
     return x4;
+}
+
+fn hooo_dual_rev_or : c^a & c^b  ->  c^(a | b) {
+    use hooo_or;
+    use refl;
+
+    x : c^a;
+    y : c^b;
+
+    let x2 = refl() : (a | b)^(a | b);
+    let x3 = hooo_or(x2) : a^(a | b) | b^(a | b);
+    lam f : a^(a | b) => c^(a | b) {
+        z : a^(a | b);
+        use pow_transitivity;
+        let r = pow_transitivity(z, x) : c^(a | b);
+        return r;
+    }
+    lam g : b^(a | b) => c^(a | b) {
+        z : b^(a | b);
+        use pow_transitivity;
+        let r = pow_transitivity(z, y) : c^(a | b);
+        return r;
+    }
+    let r = match x3 (f, g) : c^(a | b);
+    return r;
 }
 
 fn pow_lift : a^b -> (a^b)^c {
