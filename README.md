@@ -105,8 +105,8 @@ function pointers have the types of proofs.
 By calculating with these types, one obtains new proofs. Now, in order to do this,
 you need some special function pointers with types that proves
 which types of function pointers one can prove.
-These special function pointers are the axioms,
-With other words: Type Theory Magic.
+These special function pointers are the axioms.
+With other words: Type Theory Magic!
 
 There are 3 axioms in HOOO EP:
 
