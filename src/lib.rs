@@ -1095,9 +1095,7 @@ impl Type {
                                   ab.1.has_(contra, &cd.1) => true,
             (Or(ab), Or(cd)) if ab.0.has_(contra, &cd.0) &&
                                 ab.1.has_(contra, &cd.1) => true,
-            // TODO: Add unit tests for this case.
-            (x, Or(ab)) if x.has_(contra, &ab.0) || x.has_(contra, &ab.1) => true,
-            
+ 
             (All(a), All(b)) |
             (Nec(a), Nec(b)) |
             (Pos(a), Pos(b)) |
