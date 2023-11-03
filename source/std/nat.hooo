@@ -1,4 +1,5 @@
 
+use cong;
 use ex;
 use type;
 
@@ -30,10 +31,22 @@ fn nat_succ_ty : (a : nat') -> (s'(a) : nat') {
     return r;
 }
 
+fn nat_succ_cong : true -> cong'(s') {
+    axiom nat_succ_cong : true -> cong'(s');
+    x : true;
+    let r = nat_succ_cong(x) : cong'(s');
+    return r;
+}
+
 fn nat_succ_eq : a == b -> s'(a) == s'(b) {
-    axiom nat_succ_eq : a == b -> s'(a) == s'(b);
+    use cong_app_eq;
+    use nat_succ_cong;
+    use triv;
+
     x : a == b;
-    let r = nat_succ_eq(x) : s'(a) == s'(b);
+    
+    let x2 = triv(nat_succ_cong) : cong'(s');
+    let r = cong_app_eq(x2, x) : s'(a) == s'(b);
     return r;
 }
 
