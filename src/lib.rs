@@ -792,7 +792,7 @@ impl Type {
             let mut found = false;
             for (ty, val) in bind.iter() {
                 if ty == a {
-                    if val != b && val != &b.clone().lift() {
+                    if val != b && val.clone().lift() != b.clone().lift() {
                         return false;
                     }
                     found = true;
