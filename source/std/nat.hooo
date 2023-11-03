@@ -44,7 +44,7 @@ fn nat_succ_eq : a == b -> s'(a) == s'(b) {
     use triv;
 
     x : a == b;
-    
+
     let x2 = triv(nat_succ_cong) : cong'(s');
     let r = cong_app_eq(x2, x) : s'(a) == s'(b);
     return r;
@@ -64,10 +64,66 @@ fn nat_eq_succ_lower : (s'(a) == s'(b)) -> (a == b) {
     return r;
 }
 
+fn nat_prev_cong : true -> cong'(prev') {
+    axiom nat_prev_cong : true -> cong'(prev');
+    x : true;
+    let r = nat_prev_cong(x) : cong'(prev');
+    return r;
+}
+
+fn nat_prev_eq : a == b -> prev'(a) == prev'(b) {
+    x : a == b;
+    use nat_prev_cong;
+    use cong_app_eq;
+    use triv;
+    let x2 = triv(nat_prev_cong) : cong'(prev');
+    let r = cong_app_eq(x2, x) : prev'(a) == prev'(b);
+    return r;
+}
+
+fn nat_eq_prev_lower : (prev'(a) == prev'(b)) -> (a == b) {
+    axiom nat_eq_prev_lower : (prev'(a) == prev'(b)) -> (a == b);
+    x : prev'(a) == prev'(b);
+    let r = nat_eq_prev_lower(x) : a == b;
+    return r;
+}
+
 fn nat_para_eq_prev : (a == prev'(a)) -> false {
     axiom nat_para_eq_prev : (a == prev'(a)) -> false;
     x : a == prev'(a);
     let r = nat_para_eq_prev(x) : false;
+    return r;
+}
+
+fn nat_para_eq_zero_succ_prev : (z' == s'(prev'(z'))) -> false {
+    use nat_para_eq_zero_pos;
+
+    x : z' == s'(prev'(z'));
+
+    let r = nat_para_eq_zero_pos(x) : false;
+    return r;
+}
+
+fn nat_para_eq_zero_prev_succ : (z' == prev'(s'(z'))) -> false {
+    use eq_transitivity_sym;
+    use nat_zero_ty;
+    use nat_para_eq_zero_succ_prev;
+    use nat_prev_symmetry;
+    use triv;
+
+    x : z' == prev'(s'(z'));
+
+    let zero_ty = triv(nat_zero_ty) : (z' : nat');
+    let x2 = nat_prev_symmetry(zero_ty) : s'(prev'(z')) == prev'(s'(z'));
+    let x3 = eq_transitivity_sym(x, x2) : z' == s'(prev'(z'));
+    let r = nat_para_eq_zero_succ_prev(x3) : false;
+    return r;
+}
+
+fn nat_prev_symmetry : (a : nat') -> s'(prev'(a)) == prev'(s'(a)) {
+    axiom nat_prev_symmetry : (a : nat') -> s'(prev'(a)) == prev'(s'(a));
+    x : (a : nat');
+    let r = nat_prev_symmetry(x) : s'(prev'(a)) == prev'(s'(a));
     return r;
 }
 
@@ -80,10 +136,10 @@ fn nat_def : (a : nat') -> (a == z') | (prev'(a) : nat') & (a == s'(prev'(a))) {
 }
 
 /// Existential induction.
-fn nat_ind : ex'(z' : nat', a) & ex'(s'(n) : nat', a)^(n : nat') -> a {
-    axiom nat_ind : ex'(z' : nat', a) & ex'(s'(n) : nat', a)^(n : nat') -> a;
+fn nat_ex_ind : ex'(z' : nat', a) & ex'(s'(n) : nat', a)^(n : nat') -> a {
+    axiom nat_ex_ind : ex'(z' : nat', a) & ex'(s'(n) : nat', a)^(n : nat') -> a;
     x : ex'(z' : nat', a) & ex'(s'(n) : nat', a)^(n : nat');
-    let r = nat_ind(x) : a;
+    let r = nat_ex_ind(x) : a;
     return r;
 }
 
@@ -218,5 +274,227 @@ fn nat_para_eq_succ : (a : nat') & (a == s'(a)) -> false {
     }
 
     let r = match x2 (f, g) : false;
+    return r;
+}
+
+fn nat_eq_prev_to_eq :
+    (prev'(a) == prev'(b)) &
+    (a == s'(prev'(a))) &
+    (b == s'(prev'(b))) -> a == b
+{
+    use eq_transitivity;
+    use eq_transitivity_sym;
+    use nat_succ_eq;
+
+    x : prev'(a) == prev'(b);
+    y : a == s'(prev'(a));
+    z : b == s'(prev'(b));
+
+    let x2 = nat_succ_eq(x) : s'(prev'(a)) == s'(prev'(b));
+    let x3 = eq_transitivity(y, x2) : a == s'(prev'(b));
+    let r = eq_transitivity_sym(x3, z) : a == b;
+    return r;
+}
+
+fn nat_prev_ty : (a : nat') & (a == s'(prev'(a))) -> (prev'(a) : nat') {
+    use nat_def;
+
+    x : (a : nat');
+    y : a == s'(prev'(a));
+
+    let x2 = nat_def(x) : (a == z') | (prev'(a) : nat') & (a == s'(prev'(a)));
+
+    lam f : (a == z') => (prev'(a) : nat') {
+        use eq_transitivity_rev_sym;
+        use nat_para_eq_zero_pos;
+
+        z : a == z';
+
+        let x2 = eq_transitivity_rev_sym(z, y) : z' == s'(prev'(a));
+        let x3 = nat_para_eq_zero_pos(x2) : false;
+        let r = match x3 : (prev'(a) : nat');
+        return r;
+    }
+    lam g : (prev'(a) : nat') & (a == s'(prev'(a))) => (prev'(a) : nat') {
+        use fst;
+
+        x : (prev'(a) : nat') & (a == s'(prev'(a)));
+
+        let r = fst(x) : (prev'(a) : nat');
+        return r;
+    }
+
+    let r = match x2 (f, g) : (prev'(a) : nat');
+    return r;
+}
+
+fn nat_cover :
+    b^(a == z') & b^((prev'(a) : nat') & (a == s'(prev'(a)))) -> b^(a : nat')
+{
+    use hooo_dual_rev_or;
+    use nat_def;
+    use pow_transitivity;
+
+    x : b^(a == z');
+    y : b^((prev'(a) : nat') & (a == s'(prev'(a))));
+
+    let x2 = hooo_dual_rev_or(x, y) :
+        b^((a == z') | (prev'(a) : nat') & (a == s'(prev'(a))));
+    let r = pow_transitivity(nat_def, x2) : b^(a : nat');
+    return r;
+}
+
+fn nat_prev_to_nzero : (prev'(a) : nat') -> !(a == z') {
+    x : (prev'(a) : nat');
+
+    lam f : !(a == z') {
+        use nat_def;
+
+        y : a == z';
+
+        let x2 = nat_def(x) : (prev'(a) == z') |
+            (prev'(prev'(a)) : nat') & (prev'(a) == s'(prev'(prev'(a))));
+        lam g : (prev'(a) == z') => false {
+            use eq_symmetry;
+            use eq_transitivity_rev_sym;
+            use nat_para_eq_prev;
+            use nat_prev_eq;
+
+            z : prev'(a) == z';
+            let z2 = nat_prev_eq(y) : prev'(a) == prev'(z');
+            let z3 = eq_transitivity_rev_sym(z2, z) : prev'(z') == z';
+            let z4 = eq_symmetry(z3) : z' == prev'(z');
+            let r = nat_para_eq_prev(z4) : false;
+            return r;
+        }
+        lam h : (prev'(prev'(a)) : nat') & (prev'(a) == s'(prev'(prev'(a)))) => false {
+            use eq_transitivity;
+            use eq_transitivity_rev_sym;
+            use nat_eq_prev_lower;
+            use nat_para_eq_zero_pos;
+            use nat_prev_symmetry;
+
+            z1 : (prev'(prev'(a)) : nat');
+            z2 : prev'(a) == s'(prev'(prev'(a)));
+
+            let z3 = nat_prev_symmetry(x) : s'(prev'(prev'(a))) == prev'(s'(prev'(a)));
+            let z4 = eq_transitivity(z2, z3) : prev'(a) == prev'(s'(prev'(a)));
+            let z5 = nat_eq_prev_lower(z4) : a == s'(prev'(a));
+            let z6 = eq_transitivity_rev_sym(y, z5) : z' == s'(prev'(a));
+            let r = nat_para_eq_zero_pos(z6) : false;
+            return r;
+        }
+
+        let r = match x2 (g, h) : false;
+        return r;
+    }
+    return f;
+}
+
+fn nat_prev_to_eq_succ_prev : (prev'(a) : nat') -> (a == s'(prev'(a))) {
+    use nat_def;
+    use nat_prev_to_nzero;
+    use nat_succ_ty;
+
+    x : (prev'(a) : nat');
+
+    let x2 = nat_prev_to_nzero(x) : !(a == z');
+    let x3 = nat_succ_ty(x) : (s'(prev'(a)) : nat');
+    let x4 = nat_def(x3) : (s'(prev'(a)) == z') | (prev'(s'(prev'(a))) : nat') &
+        (s'(prev'(a)) == s'(prev'(s'(prev'(a)))));
+
+    lam f : (s'(prev'(a)) == z') => (a == s'(prev'(a))) {
+        use eq_symmetry;
+        use nat_para_eq_zero_pos;
+
+        y : s'(prev'(a)) == z';
+
+        let y2 = eq_symmetry(y) : z' == s'(prev'(a));
+        let y3 = nat_para_eq_zero_pos(y2) : false;
+        let r = match y3 : a == s'(prev'(a));
+        return r;
+    }
+    lam g : (prev'(s'(prev'(a))) : nat') & (s'(prev'(a)) == s'(prev'(s'(prev'(a))))) =>
+        (a == s'(prev'(a)))
+    {
+        use nat_eq_succ_lower;
+        use nat_eq_prev_lower;
+
+        y : (prev'(s'(prev'(a))) : nat');
+        z : s'(prev'(a)) == s'(prev'(s'(prev'(a))));
+        let z3 = nat_eq_succ_lower(z) : prev'(a) == prev'(s'(prev'(a)));
+        let r = nat_eq_prev_lower(z3) : a == s'(prev'(a));
+        return r;
+    }
+
+    let r = match x4 (f, g) : a == s'(prev'(a));
+    return r;
+}
+
+/// Induction.
+fn nat_ind :
+    cong'(p)^true &
+    p(z')^true &
+    sym(p, all(p'(s'(a))^(a : nat')))(p)
+    -> p(b)^(b : nat')
+{
+    use fst;
+    use hooo_imply;
+    use hooo_rev_and;
+    use nat_cover;
+    use pow_elim_fst;
+    use pow_transitivity;
+    use tauto_imply_to_pow;
+
+    x : cong'(p)^true;
+    y : p(z')^true;
+    z : sym(p, all(p'(s'(a))^(a : nat')))(p);
+
+    let x2 = hooo_rev_and(x, y) : (cong'(p) & p(z'))^true;
+
+    fn f : cong'(p) & p(z') -> (b == z') => p(b) {
+        x : cong'(p);
+        y : p(z');
+
+        lam g : (b == z') => p(b) {
+            use cong_app_eq;
+            use eq_to_left;
+
+            z : b == z';
+
+            let z2 = cong_app_eq(x, z) : p(b) == p(z');
+            let r = eq_to_left(z2, y) : p(b);
+            return r;
+        }
+        return g;
+    }
+
+    let x3 = pow_transitivity(x2, f) : ((b == z') => p(b))^true;
+    let x4 = tauto_imply_to_pow(x3) : p(b)^(b == z');
+
+    let z3 = z() : p(s'(prev'(b)))^(prev'(b) : nat');
+
+    fn g : cong'(p) & (prev'(b) : nat') -> p(s'(prev'(b))) => p(b) {
+        use cong_app_eq;
+        use eq_symmetry;
+        use fst;
+        use nat_prev_to_eq_succ_prev;
+
+        x : cong'(p);
+        y : (prev'(b) : nat');
+
+        let x2 = nat_prev_to_eq_succ_prev(y) : b == s'(prev'(b));
+        let x3 = cong_app_eq(x, x2) : p(b) == p(s'(prev'(b)));
+        let x4 = eq_symmetry(x3) : p(s'(prev'(b))) == p(b);
+        let r = fst(x4) : p(s'(prev'(b))) => p(b);
+        return r;
+    }
+
+    let g1 = pow_elim_fst(g, x) : (p(s'(prev'(b))) => p(b))^(prev'(b) : nat');
+    let g2 = hooo_imply(g1) : p(s'(prev'(b)))^(prev'(b) : nat') => p(b)^(prev'(b) : nat');
+    let z4 = g2(z3) : p(b)^(prev'(b) : nat');
+    let z5 = fst() : (prev'(b) : nat')^((prev'(b) : nat') & (b == s'(prev'(b))));
+    let z6 = pow_transitivity(z5, z4) : p(b)^((prev'(b) : nat') & (b == s'(prev'(b))));
+    let r = nat_cover(x4, z6) : p(b)^(b : nat');
     return r;
 }

@@ -4,6 +4,7 @@ Addition of natural numbers.
 */
 
 use nat;
+use prev;
 use z;
 use s;
 use 1;
@@ -122,3 +123,54 @@ fn nat_add_check_all_ty : (a : nat') & (b : nat') -> (add'(a, b) : nat') {
     let r = ty_app2(x2, x, y) : (add'(a, b) : nat');
     return r;
 }
+
+fn nat_add_from_zero_left : (a : nat') & (add'(a, z') == z') -> a == z' {
+    use eq_transitivity_rev_sym;
+    use nat_add_zero;
+
+    x : (a : nat');
+    y : add'(a, z') == z';
+
+    let x2 = nat_add_zero(x) : add'(a, z') == a;
+    let r = eq_transitivity_rev_sym(x2, y) : a == z';
+    return r;
+}
+
+fn nat_add_from_zero_right : (a : nat') & (add'(z', a) == z') -> a == z' {
+    use nat_def;
+    use refl;
+
+    x : (a : nat');
+    y : add'(z', a) == z';
+
+    let x2 = nat_def(x) : (a == z') | (prev'(a) : nat') & (a == s'(prev'(a)));
+    let x3 = refl() : (a == z') => (a == z');
+
+    lam f : (prev'(a) : nat') & (a == s'(prev'(a))) => (a == z') {
+        use eq_transitivity;
+        use eq_transitivity_rev_sym;
+        use nat_add_eq_right;
+        use nat_add_succ;
+        use nat_para_eq_zero_pos;
+        use nat_zero_ty;
+        use triv;
+
+        z : (prev'(a) : nat');
+        z2 : a == s'(prev'(a));
+
+        let z3 = nat_add_eq_right(z2) : add'(z', a) == add'(z', s'(prev'(a)));
+        let zero_ty = triv(nat_zero_ty) : (z' : nat'); 
+        let z4 = nat_add_succ(zero_ty, z) :
+            add'(z', s'(prev'(a))) == s'(add'(z', prev'(a)));
+        let z5 = eq_transitivity(z3, z4) :
+            add'(z', a) == s'(add'(z', prev'(a)));
+        let z5 = eq_transitivity_rev_sym(y, z5) : z' == s'(add'(z', prev'(a)));
+        let z6 = nat_para_eq_zero_pos(z5) : false;
+        let r = match z6 : a == z';
+        return r;
+    }
+
+    let r = match x2 (x3, f) : a == z';
+    return r;
+}
+
