@@ -266,3 +266,73 @@ fn tauto_eq_to_right : (a == b)^true & a -> b {
     return r;
 }
 
+fn pow_elim_fst : p^(a & b) & a^true -> p^b {
+    use pow_in_right_arg;
+    use pow_transitivity;
+    
+    x : p^(a & b);
+    y : a^true;
+    
+    fn f : a -> (a & b) == b {
+        use refl;
+        
+        x : a;
+        
+        lam g1 : a & b => b {
+            use snd;
+            
+            y : a & b;
+            
+            let r = snd(y) : b;
+            return r;
+        }
+        lam g2 : b => a & b {
+            use refl;
+            
+            y : b;
+            
+            let r = refl(x, y) : a & b;
+            return r;
+        }
+        let r = refl(g1, g2) : (a & b) == b;
+        return r;
+    }
+    let x2 = pow_transitivity(y, f) : ((a & b) == b)^true;
+    let r = pow_in_right_arg(x, x2) : p^b;
+    return r;
+}
+
+fn pow_elim_snd : p^(a & b) & b^true -> p^a {
+    use pow_in_right_arg;
+    use pow_transitivity;
+    
+    x : p^(a & b);
+    y : b^true;
+    
+    fn f : b -> (a & b) == a {
+        use refl;
+        
+        x : b;
+        
+        lam g1 : a & b => a {
+            use fst;
+            
+            y : a & b;
+            let r = fst(y) : a;
+            return r;
+        }
+        lam g2 : a => a & b {
+            use refl;
+            
+            y : a;
+            let r = refl(y, x) : a & b;
+            return r;
+        }
+        let r = refl(g1, g2) : (a & b) == a;
+        return r;
+    }
+    let x2 = pow_transitivity(y, f) : ((a & b) == a)^true;
+    let r = pow_in_right_arg(x, x2) : p^a;
+    return r;
+}
+
