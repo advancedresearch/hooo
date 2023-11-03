@@ -528,7 +528,7 @@ fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
         App(_) | Sym(_) | Nec(_) | Qu(_) | Pair(_) => false,
         _ => {
             match (ty.op(), parent_op) {
-                (Some(Op::Pow), Some(Op::And) | Some(Op::Or) | Some(Op::Imply)) => false,
+                (Some(Op::Pow), Some(Op::And | Op::Or | Op::Imply | Op::Fun)) => false,
                 _ => true,
             }
         }
@@ -1563,6 +1563,9 @@ mod tests {
     
         let a: Type = "all(a -> b)".try_into().unwrap();
         assert_eq!(format!("{}", a), "all(a -> b)".to_string());
+    
+        let a: Type = "a -> b^c".try_into().unwrap();
+        assert_eq!(format!("{}", a), "a -> b^c".to_string());
     }
 
     #[test]
