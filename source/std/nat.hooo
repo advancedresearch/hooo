@@ -66,10 +66,10 @@ fn nat_def : (a : nat') -> (a == z') | (prev'(a) : nat') & (a == s'(prev'(a))) {
     return r;
 }
 
-/// Induction.
-fn nat_ind : ex'(z' : nat', a) & ex'(s'(n) : nat', a) -> a {
-    axiom nat_ind : ex'(z' : nat', a) & ex'(s'(n) : nat', a) -> a;
-    x : ex'(z' : nat', a) & ex'(s'(n) : nat', a);
+/// Existential induction.
+fn nat_ind : ex'(z' : nat', a) & ex'(s'(n) : nat', a)^(n : nat') -> a {
+    axiom nat_ind : ex'(z' : nat', a) & ex'(s'(n) : nat', a)^(n : nat') -> a;
+    x : ex'(z' : nat', a) & ex'(s'(n) : nat', a)^(n : nat');
     let r = nat_ind(x) : a;
     return r;
 }
