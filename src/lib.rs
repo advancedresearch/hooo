@@ -369,7 +369,7 @@ impl Term {
                             if ty_f.has_bound(&ty) {return Ok(())};
                         }
                         
-                        Err(format!("Expected `{}`, found `{}`", ty, ty_f))
+                        Err(format!("Expected:\n\n  {}\n\nFound:\n\n  {}\n", ty, ty_f))
                     } else {
                         let arg_ind = arg_inds.pop().unwrap();
                         let mut ty_arg = ctx.terms[arg_ind.unwrap()].get_type();
