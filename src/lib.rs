@@ -879,7 +879,7 @@ impl Type {
             }
             (All(a), All(b)) => {
                 let (a, b) = if contra {(b, a)} else {(a, b)};
-                let mut bind: Vec<(Type, Type)> = bind.iter()
+                let mut bind2: Vec<(Type, Type)> = bind.iter()
                     .filter(|(a, b)| {
                         if contra {
                             if let Sym(_) = b {true} else {false}
@@ -890,8 +890,9 @@ impl Type {
                     .map(|(a, b)| if contra {(b.clone(), a.clone())}
                                   else {(a.clone(), b.clone())})
                     .collect();
-                if a.bind(contra, b, &mut bind) {
-                    bind.push((self.clone(), All(Box::new(a.replace(&bind)))));
+                if a.bind(contra, b, &mut bind2) {
+                    let res = a.replace(&bind2);
+                    bind.push((self.clone(), All(Box::new(res))));
                     true
                 } else {false}
             }
@@ -910,20 +911,7 @@ impl Type {
                 } else {bind.truncate(n)};
                 res
             }
-            (_, App(ab)) => {
-                if let Type::SymBlock(s_ab) = &ab.0 {
-                    let _ = self.bind(contra, &s_ab.1, bind);
-                    let mut bind2 = vec![];
-                    if val.bind(contra, &self.replace(bind), &mut bind2) {
-                        let ty = val.replace(&bind2);
-                        if ty.has_(contra, &self) {
-                            bind.push((self.clone(), val.clone()));
-                            return true;
-                        }
-                    }
-                }
-                false
-            }
+            // (_, App(_)) => self.sym_block_bind(contra, val, bind),
             _ => false,
         }
     }
@@ -998,6 +986,47 @@ impl Type {
         }
     }
 
+    pub fn de_sym(&self, bind: &mut Vec<(Type, Type)>) -> Type {
+        use Type::*;
+
+        match self {
+            True | False | Ty(_) | AllTy(_) => self.clone(),
+            And(ab) => and(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Or(ab) => or(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Imply(ab) => imply(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Pair(ab) => pair(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Sd(ab) => sd(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Jud(ab) => jud(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Comp(ab) => comp(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Q(ab) => q(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Pow(ab) => pow(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Fun(ab) => fun(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Nec(a) => nec(a.de_sym(bind)),
+            Pos(a) => pos(a.de_sym(bind)),
+            Qu(a) => qu(a.de_sym(bind)),
+            All(a) => All(Box::new(a.de_sym(bind))),
+            SymBlock(ab) => sym_block(ab.0.clone(), ab.1.de_sym(bind)),
+            Sym(_) => {
+                for (n, m) in bind.iter() {
+                   if n == self {return m.clone()} 
+                }
+                self.clone()
+            }
+            App(ab) => {
+                let a = ab.0.de_sym(bind);
+                let b = ab.1.de_sym(bind);
+                if let SymBlock(s_ab) = a {
+                    let n = bind.len();
+                    bind.push((Sym(s_ab.0.clone()), b));
+                    let res = s_ab.1.de_sym(bind);
+                    bind.truncate(n);
+                    return res;
+                }
+                app(a, b)
+            }
+        }
+    }
+
     pub fn herbrandization(&self, f_in: &Type, f_out: &Type, exp_t: &Type) -> bool {
         if let Some(exp) = exp_t.de_all() {
             let s = &if let Some(x) = self.de_all() {x} else {return false};
@@ -1029,20 +1058,21 @@ impl Type {
         self.herbrandization(f_in, f_out, exp_t)
     }
 
-    pub fn has_bound(&self, other: &Type) -> bool {
+    pub fn has_bound_(&self, contra: bool, other: &Type) -> bool {
         let mut bind = vec![];
-        let contra = false;
-        if self.bind(contra, other, &mut bind) {
-            self.replace(&bind).has_(contra, other)
+        let s = self.de_sym(&mut bind);
+        let other = other.de_sym(&mut bind);
+        if s.bind(contra, &other, &mut bind) {
+            s.replace(&bind).has_(contra, &other)
         } else {false}
     }
 
+    pub fn has_bound(&self, other: &Type) -> bool {
+        self.has_bound_(false, other)
+    }
+    
     pub fn has_bound_contra(&self, other: &Type) -> bool {
-        let mut bind = vec![];
-        let contra = true;
-        if self.bind(contra, other, &mut bind) {
-            self.replace(&bind).has_(contra, other)
-        } else {false}
+        self.has_bound_(true, other)
     }
 
     pub fn fun_norm(&self) -> Option<(&Type, &Type)> {
@@ -1739,6 +1769,9 @@ mod tests {
         assert!(b.has_bound(&a));
         assert!(a.has_bound_contra(&b));
         assert!(b.has_bound_contra(&a));
+        // Bind creates a replacement.
+        assert!(!a.has_(false, &b));
+        assert!(!b.has_(false, &a));
 
         let a: Type = "sym(a, a')(b)".try_into().unwrap();
         let b: Type = "a'".try_into().unwrap();
@@ -1755,7 +1788,7 @@ mod tests {
         let a: Type = "sym(a, all(b))(a)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
         assert!(a.has_bound(&b));
-        assert!(b.has_bound(&a));
+        assert!(!b.has_bound(&a));
 
         let a: Type = "sym(a, b)(a)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
@@ -1784,7 +1817,7 @@ mod tests {
 
         let a: Type = "all((e => f) -> f)".try_into().unwrap();
         let b: Type = "sym(b, a => c)(b) -> c".try_into().unwrap();
-        assert!(!a.has_bound(&b));
+        assert!(a.has_bound(&b));
         assert!(!b.has_bound(&a));
         assert!(!a.has_bound_contra(&b));
         assert!(!b.has_bound_contra(&a));
@@ -1798,13 +1831,13 @@ mod tests {
 
         let a: Type = "all(f => (e => f))".try_into().unwrap();
         let b: Type = "c => sym(b, a => c)(b)".try_into().unwrap();
-        assert!(!a.has_bound(&b));
+        assert!(a.has_bound(&b));
 
         let b: Type = "c => sym(b, a => d)(b)".try_into().unwrap();
         assert!(!a.has_bound(&b));
 
         let b: Type = "sym(a, all((a' => f) => f))(b)".try_into().unwrap();
-        assert!(a.has_bound(&b));
+        assert!(!a.has_bound(&b));
         assert!(b.has_bound(&a));
 
         let a: Type = "sym(a, a')(b)".try_into().unwrap();
@@ -1817,5 +1850,48 @@ mod tests {
         let a: Type = "sym(a, all(a'))(c)".try_into().unwrap();
         let b: Type = "sym(b, all(b'))(c)".try_into().unwrap();
         assert!(a.has_bound(&b));
+        
+        let a: Type = "all(a^a)"
+            .try_into().unwrap();
+        let b: Type = "all(sym(a, a'^a')(a))"
+            .try_into().unwrap();
+        assert!(a.has_bound(&b));
+        
+        let a: Type = "all(a^a)"
+            .try_into().unwrap();
+        let b: Type = "sym(p, all(p'(a)^a))(sym(a, a'))"
+            .try_into().unwrap();
+        assert!(a.has_bound(&b));
+    
+        let a: Type = "all((add'(z', s'(a)) == s'(a))^(a : nat'))"
+            .try_into().unwrap();
+        let b: Type = "sym(p, all(p'(s'(a))^(a : nat')))(sym(a, add'(z', a') == a'))"
+            .try_into().unwrap();
+        assert!(a.has_bound(&b));
+    }
+
+    #[test]
+    fn test_de_sym() {
+        let a: Type = "a".try_into().unwrap();
+        let mut bind = vec![];
+        assert_eq!(a.de_sym(&mut bind), a);
+    
+        let a: Type = "all(a)".try_into().unwrap();
+        let mut bind = vec![];
+        assert_eq!(a.de_sym(&mut bind), a);
+    
+        let a: Type = "sym(a, a')".try_into().unwrap();
+        let mut bind = vec![];
+        assert_eq!(a.de_sym(&mut bind), a);
+
+        let a: Type = "sym(a, a')(b')".try_into().unwrap();
+        let b: Type = "b'".try_into().unwrap();
+        let mut bind = vec![];
+        assert_eq!(a.de_sym(&mut bind), b);
+
+        let a: Type = "sym(p, p'(a))(sym(a, a'))".try_into().unwrap();
+        let b: Type = "a".try_into().unwrap();
+        let mut bind = vec![];
+        assert_eq!(a.de_sym(&mut bind), b);
     }
 }
