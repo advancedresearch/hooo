@@ -430,25 +430,39 @@ fn nat_prev_to_eq_succ_prev : (prev'(a) : nat') -> (a == s'(prev'(a))) {
     let r = match x4 (f, g) : a == s'(prev'(a));
     return r;
 }
+    
+fn nat_prev_ind :
+    cong'(p) & (prev'(a) : nat') ->
+    sym(p, all(p'(prev'(b)) => p'(s'(prev'(b)))))(p) => p(a)
+{
+    axiom nat_prev_ind :
+        cong'(p) & (prev'(a) : nat') ->
+        sym(p, all(p'(prev'(b)) => p'(s'(prev'(b)))))(p) => p(a);
+    x : cong'(p) & (prev'(a) : nat');
+    let r = nat_prev_ind(x) :
+        sym(p, all(p'(prev'(b)) => p'(s'(prev'(b)))))(p) => p(a);
+    return r;
+}
 
 /// Induction.
 fn nat_ind :
     cong'(p)^true &
     p(z')^true &
-    sym(p, all(p'(s'(a))^(a : nat')))(p)
+    sym(p, all((p'(a) => p'(s'(a)))^(a : nat')))(p)
     -> p(b)^(b : nat')
 {
     use fst;
     use hooo_imply;
     use hooo_rev_and;
     use nat_cover;
+    use nat_prev_ind;
     use pow_elim_fst;
     use pow_transitivity;
     use tauto_imply_to_pow;
 
     x : cong'(p)^true;
     y : p(z')^true;
-    z : sym(p, all(p'(s'(a))^(a : nat')))(p);
+    z : sym(p, all((p'(a) => p'(s'(a)))^(a : nat')))(p);
 
     let x2 = hooo_rev_and(x, y) : (cong'(p) & p(z'))^true;
 
@@ -472,26 +486,14 @@ fn nat_ind :
     let x3 = pow_transitivity(x2, f) : ((b == z') => p(b))^true;
     let x4 = tauto_imply_to_pow(x3) : p(b)^(b == z');
 
-    let z3 = z() : p(s'(prev'(b)))^(prev'(b) : nat');
+    let z3 = z() : (p(prev'(b)) => p(s'(prev'(b))))^(prev'(b) : nat');
 
-    fn g : cong'(p) & (prev'(b) : nat') -> p(s'(prev'(b))) => p(b) {
-        use cong_app_eq;
-        use eq_symmetry;
-        use fst;
-        use nat_prev_to_eq_succ_prev;
-
-        x : cong'(p);
-        y : (prev'(b) : nat');
-
-        let x2 = nat_prev_to_eq_succ_prev(y) : b == s'(prev'(b));
-        let x3 = cong_app_eq(x, x2) : p(b) == p(s'(prev'(b)));
-        let x4 = eq_symmetry(x3) : p(s'(prev'(b))) == p(b);
-        let r = fst(x4) : p(s'(prev'(b))) => p(b);
-        return r;
-    }
-
-    let g1 = pow_elim_fst(g, x) : (p(s'(prev'(b))) => p(b))^(prev'(b) : nat');
-    let g2 = hooo_imply(g1) : p(s'(prev'(b)))^(prev'(b) : nat') => p(b)^(prev'(b) : nat');
+    let g = nat_prev_ind() : cong'(p) & (prev'(b) : nat') ->
+        sym(p, all((p'(prev'(b)) => p'(s'(prev'(b))))))(p) => p(b);
+    let g1 = pow_elim_fst(g, x) :
+        ((p(prev'(b)) => p(s'(prev'(b)))) => p(b))^(prev'(b) : nat');
+    let g2 = hooo_imply(g1) :
+        (p(prev'(b)) => p(s'(prev'(b))))^(prev'(b) : nat') => p(b)^(prev'(b) : nat');
     let z4 = g2(z3) : p(b)^(prev'(b) : nat');
     let z5 = fst() : (prev'(b) : nat')^((prev'(b) : nat') & (b == s'(prev'(b))));
     let z6 = pow_transitivity(z5, z4) : p(b)^((prev'(b) : nat') & (b == s'(prev'(b))));
