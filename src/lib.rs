@@ -95,7 +95,7 @@ impl Context {
 
     pub fn has_term_ty(&self, name: &str, ty: &Type) -> bool {
         for (term_name, term) in self.term_names.iter().zip(self.terms.iter()) {
-            if &**term_name == name {return term.get_type().has_bound(ty)}
+            if &**term_name == name {return term.get_type().has_bound(ty).is_ok()}
         }
         false
     }
@@ -245,10 +245,10 @@ impl Context {
     pub fn has_proof(&mut self, proof: &Type) -> bool {
         if self.proof_cache.contains(proof) {return true};
 
-        if self.proofs.iter().any(|n| n.has_bound(proof)) {
+        if self.proofs.iter().any(|n| n.has_bound(proof).is_ok()) {
             self.proof_cache.insert(proof.clone());
             true
-        } else if self.terms.iter().any(|n| n.get_type().has_bound(proof)) {
+        } else if self.terms.iter().any(|n| n.get_type().has_bound(proof).is_ok()) {
             self.proof_cache.insert(proof.clone());
             true
         } else if self.fast_proof(proof) {
@@ -260,7 +260,7 @@ impl Context {
     }
 
     pub fn proof_has(&self, proof: &Type) -> bool {
-        self.proofs.iter().any(|n| proof.has_bound(n))
+        self.proofs.iter().any(|n| proof.has_bound(n).is_ok())
     }
 
     /// Adds a proof by first checking redundance.
@@ -332,11 +332,16 @@ impl Term {
         }
     }
 
-    pub fn has_type(&self, ty: &Type, ctx: &mut Context, search: &mut Search) -> Result<(), String> {
+    pub fn has_type(
+        &self,
+        ty: &Type,
+        ctx: &mut Context,
+        search: &mut Search
+    ) -> Result<(), String> {
         use Term::*;
 
         match self {
-            App(f, args, t) if t.has_bound(ty) => {
+            App(f, args, t) if t.has_bound(ty).is_ok() => {
                 let mut fun_decl: Option<usize> = None;
                 let mut arg_inds: Vec<Option<usize>> = vec![None; args.len()];
                 for (i, term_name) in ctx.term_names.iter().enumerate().rev() {
@@ -363,10 +368,10 @@ impl Term {
                     let ty_f = ctx.terms[fun_decl].get_type();
                     let ty_f = if let Type::All(x) = ty_f {(*x).clone()} else {ty_f};
                     if args.len() == 0 {
-                        if ty_f.has_bound(t) {return Ok(())};
+                        if ty_f.has_bound(t).is_ok() {return Ok(())};
 
                         if let Some(ty) = ty.de_all() {
-                            if ty_f.has_bound(&ty) {return Ok(())};
+                            if ty_f.has_bound(&ty).is_ok() {return Ok(())};
                         }
                         
                         Err(format!("Expected:\n\n  {}\n\nFound:\n\n  {}\n", ty, ty_f))
@@ -377,13 +382,11 @@ impl Term {
                             ty_arg = and(ctx.terms[arg_ind.unwrap()].get_type(), ty_arg);
                         }
                         if let Some(ab) = ty_f.fun_norm() {
-                            return if ty_arg.app_to_has_bound(&ab.0, &ab.1, t) {
-                                Ok(())
-                            } else {
-                                Err(format!("Expected:\n\n  {}\n\n\
-                                    Could not apply:\n\n  {}\n\n To:\n\n  {}\n",
-                                    t, ty_f, ty_arg))
-                            };
+                            return ty_arg.app_to_has_bound(&ab.0, &ab.1, t).map_err(|err| {
+                                format!("Expected:\n\n  {}\n\n\
+                                    Could not apply:\n\n  {}\n\n To:\n\n  {}\n\n{}",
+                                    t, ty_f, ty_arg, err)
+                            });
                         } else {
                             return Err("Expected `->` or `=>`".into());
                         }
@@ -392,7 +395,7 @@ impl Term {
                     return Err(format!("Could not find `{}`", f));
                 }
             }
-            Match(args, t) if t.has_bound(ty) => {
+            Match(args, t) if t.has_bound(ty).is_ok() => {
                 let mut arg_inds: Vec<Option<usize>> = vec![None; args.len()];
                 for (j, arg) in args.iter().enumerate() {
                     for (i, term_name) in ctx.term_names.iter().enumerate().rev() {
@@ -417,22 +420,20 @@ impl Term {
                 let ty_f: Type = if args.len() == 1 {pow(crate::ty("a"), Type::False)}
                     else {MATCH_TYPE.clone()};
                 if let Type::Pow(ab) = ty_f.lift() {
-                    if ty_arg.app_to_has_bound(&ab.1, &ab.0, t) {
-                        return Ok(());
-                    };
+                    return ty_arg.app_to_has_bound(&ab.1, &ab.0, t);
                 }
-                return Err("Internal error in type checker".into());
+                return Err(format!("Match failed. Expected:\n\n  {}\n", t));
             }
             Axiom(t) => {
-                if t.has_bound(ty) {return Ok(())}
+                if t.has_bound(ty).is_ok() {return Ok(())}
                 else {return Err(format!(
                     "Type check error #300\nExpected `{}`, found `{}`",
                     ty, t
                 ))}
             }
-            FunDecl(t) if t.has_bound(ty) => Ok(()),
-            LamDecl(t) if t.has_bound(ty) => Ok(()),
-            Var(t) if t.has_bound(ty) => Ok(()),
+            FunDecl(t) if t.has_bound(ty).is_ok() => Ok(()),
+            LamDecl(t) if t.has_bound(ty).is_ok() => Ok(()),
+            Var(t) if t.has_bound(ty).is_ok() => Ok(()),
             Check(t) if ctx.prove(t.clone(), search) &&
                 ctx.prove(ty.clone(), search) => Ok(()),
             _ => return Err("Type check error #100".into()),
@@ -743,7 +744,7 @@ impl Type {
     pub fn is_covered(&self, other: &Type) -> bool {
         use Type::*;
 
-        if self.has_bound(other) {return true};
+        if self.has_bound(other).is_ok() {return true};
 
         match other {
             And(ab) => self.is_covered(&ab.0) || self.is_covered(&ab.1),
@@ -780,7 +781,12 @@ impl Type {
     }
 
     #[must_use]
-    pub fn bind(&self, contra: bool, val: &Type, bind: &mut Vec<(Type, Type)>) -> bool {
+    pub fn bind(
+        &self,
+        contra: bool,
+        val: &Type,
+        bind: &mut Vec<(Type, Type)>
+    ) -> Result<(), String> {
         use Type::*;
 
         fn bind_ty<F: FnOnce(&mut Vec<(Type, Type)>)>(
@@ -788,54 +794,47 @@ impl Type {
             a: &Type,
             b: &Type,
             f: F,
-        ) -> bool {
+        ) -> Result<(), String> {
             let mut found = false;
             for (ty, val) in bind.iter() {
                 if ty == a {
                     if val != b && val.clone().lift() != b.clone().lift() {
-                        return false;
+                        return Err(format!("Could not unify:\n\n  {}\n\nWith:\n\n  {}\n", a, b));
                     }
                     found = true;
                     break;
                 }
             }
             if !found {f(bind)};
-            true
+            Ok(())
         }
 
         if let (Some(ab), Some(cd)) = (self.fun_norm(), val.fun_norm()) {
-            if !ab.0.bind(!contra, &cd.0, bind) {return false};
-            if !ab.1.bind(contra, &cd.1, bind) {return false};
-            return true;
+            let _ = ab.0.bind(!contra, &cd.0, bind)?;
+            return ab.1.bind(contra, &cd.1, bind);
         }
 
         match (self, val) {
-            (True, True) => true,
-            (False, False) => true,
-            (Ty(a), Ty(b)) => a == b,
+            (True, True) => Ok(()),
+            (False, False) => Ok(()),
+            (Ty(a), Ty(b)) => if a == b {Ok(())}
+                else {Err(format!("Could not unify type:\n\n  {}\n\nWith:\n\n  {}\n", a, b))},
             (Sym(a), Sym(b)) => {
                 for (ty, v) in bind.iter() {
                     if let Type::Sym(name) = ty {
-                        if name == a && val == v {return true}
+                        if name == a && val == v {return Ok(())}
                     }
                 }
-                a == b
+                if a == b {Ok(())}
+                else {Err(format!("Could not unify symbol:\n\n  {}\n\nWith:\n\n  {}\n", a, b))}
             }
-            (Sym(a), b) if !contra => {
+            (Sym(a), b) => {
                 for (ty, val) in bind.iter() {
                     if let Type::Sym(name) = ty {
-                        if name == a && b == val {return true}
+                        if name == a && b == val {return Ok(())}
                     }
                 }
-                false
-            }
-            (Sym(a), b) if contra => {
-                for (ty, val) in bind.iter() {
-                    if let Type::Sym(name) = ty {
-                        if name == a && b == val {return true}
-                    }
-                }
-                false
+                Err(format!("Could not find symbol:\n\n  {}\n\nWith binding:\n\n  {}\n", a, b))
             }
             (Nec(a), Nec(b)) |
             (Pos(a), Pos(b)) |
@@ -851,31 +850,27 @@ impl Type {
             (Comp(ab), Comp(cd)) |
             (Q(ab), Q(cd)) |
             (Pair(ab), Pair(cd)) => {
-                if !ab.0.bind(contra, &cd.0, bind) {return false};
-                if !ab.1.bind(contra, &cd.1, bind) {return false};
-                true
+                let _ = ab.0.bind(contra, &cd.0, bind)?;
+                ab.1.bind(contra, &cd.1, bind)
             }
-            (AllTy(_), _) => {
-                if !bind_ty(bind, self, val, |bind|
-                    bind.push((self.clone(), val.clone()))) {return false};
-                true
-            }
-            (_, AllTy(_)) => true,
+            (AllTy(_), _) => bind_ty(bind, self, val, |bind|
+                bind.push((self.clone(), val.clone()))),
+            (_, AllTy(_)) => Ok(()),
             (App(ab), x) => {
                 if let Type::SymBlock(s_ab) = &ab.0 {
                     let n = bind.len();
                     bind.push((Type::Sym(s_ab.0.clone()), ab.1.clone()));
                     let res = s_ab.1.bind(contra, &x, bind);
-                    if res {
+                    if res.is_ok() {
                         let ty = s_ab.1.replace(bind);
                         bind.truncate(n);
                         bind.push((self.clone(), ty));
-                        return true;
+                        return Ok(());
                     } else {
                         bind.truncate(n);
                     }
                 }
-                false
+                Err(format!("Expected sym block:\n\n  {}\n", ab.0))
             }
             (All(a), All(b)) => {
                 let (a, b) = if contra {(b, a)} else {(a, b)};
@@ -890,21 +885,17 @@ impl Type {
                     .map(|(a, b)| if contra {(b.clone(), a.clone())}
                                   else {(a.clone(), b.clone())})
                     .collect();
-                if a.bind(contra, b, &mut bind2) {
-                    let res = a.replace(&bind2);
-                    bind.push((self.clone(), All(Box::new(res))));
-                    true
-                } else {false}
+                let _ = a.bind(contra, b, &mut bind2)?;
+                let res = a.replace(&bind2);
+                bind.push((self.clone(), All(Box::new(res))));
+                Ok(())
             }
-            (All(a), b) if !contra => {
-                if !a.bind(contra, b, bind) {return false};
-                true
-            }
+            (All(a), b) if !contra => a.bind(contra, b, bind),
             (SymBlock(ab), SymBlock(cd)) => {
                 let n = bind.len();
                 bind.push((Sym(ab.0.clone()), Sym(cd.0.clone())));
                 let res = ab.1.bind(contra, &cd.1, bind);
-                if res {
+                if res.is_ok() {
                     let ty = self.replace(bind);
                     bind.truncate(n);
                     bind.push((self.clone(), ty));
@@ -912,7 +903,7 @@ impl Type {
                 res
             }
             // (_, App(_)) => self.sym_block_bind(contra, val, bind),
-            _ => false,
+            _ => Err(format!("Could not bind:\n\n  {}\n\nTo:\n\n  {}\n", self, val)),
         }
     }
 
@@ -1027,51 +1018,69 @@ impl Type {
         }
     }
 
-    pub fn herbrandization(&self, f_in: &Type, f_out: &Type, exp_t: &Type) -> bool {
+    pub fn herbrandization(&self, f_in: &Type, f_out: &Type, exp_t: &Type) -> Result<(), String> {
         if let Some(exp) = exp_t.de_all() {
-            let s = &if let Some(x) = self.de_all() {x} else {return false};
+            let s = &if let Some(x) = self.de_all() {x} else {
+                return Err(format!("Herbrandization failed, could not de-all:\n\n  {}\n", self));
+            };
+
             let mut bind = vec![];
             let contra = true;
-            if f_in.bind(contra, s, &mut bind) {
-                let f_out2 = f_out.replace(&bind);
-                let mut bind = vec![];
-                if f_out2.bind(!contra, &exp, &mut bind) {
-                    return f_out2.replace(&bind).has_(false, &exp);
-                }
-            }
+            let _ = f_in.bind(contra, s, &mut bind)?;
+            let f_out2 = f_out.replace(&bind);
+            let mut bind = vec![];
+            let _ = f_out2.bind(!contra, &exp, &mut bind)?;
+            let f_out3 = f_out2.replace(&bind);
+            return if f_out3.has_(false, &exp) {Ok(())} else {
+                Err(format!("Sub type check failed:\n\n  {}\n\nDoes not have:\n\n  {}\n",
+                    f_out3, exp))
+            };
+        } else {
+            Err("Type checking failed. Keep trying. :)".into())
         }
-        false
     }
 
     /// Whether application type checks.
-    pub fn app_to_has_bound(&self, f_in: &Type, f_out: &Type, exp_t: &Type) -> bool {
+    pub fn app_to_has_bound(
+        &self,
+        f_in: &Type,
+        f_out: &Type,
+        exp_t: &Type
+    ) -> Result<(), String> {
         let mut bind = vec![];
         let contra = true;
-        if f_in.bind(contra, self, &mut bind) {
+        let mut res = f_in.bind(contra, self, &mut bind);
+        if res.is_ok() {
             let f_out2 = f_out.replace(&bind);
             let mut bind = vec![];
-            if f_out2.bind(!contra, exp_t, &mut bind) {
-                if f_out2.replace(&bind).has_(false, exp_t) {return true};
+            res = f_out2.bind(!contra, exp_t, &mut bind);
+            if res.is_ok() {
+                if f_out2.replace(&bind).has_(false, exp_t) {return Ok(())};
             }
         }
 
-        self.herbrandization(f_in, f_out, exp_t)
+        let res2 = self.herbrandization(f_in, f_out, exp_t);
+        match (res, res2) {
+            (_, Ok(())) => Ok(()),
+            (Err(err), _) => Err(err),
+            (_, Err(err)) => Err(err),
+        }
     }
 
-    pub fn has_bound_(&self, contra: bool, other: &Type) -> bool {
+    pub fn has_bound_(&self, contra: bool, other: &Type) -> Result<(), String> {
         let mut bind = vec![];
         let s = self.de_sym(&mut bind);
         let other = other.de_sym(&mut bind);
-        if s.bind(contra, &other, &mut bind) {
-            s.replace(&bind).has_(contra, &other)
-        } else {false}
+        let _ = s.bind(contra, &other, &mut bind)?;
+        if s.replace(&bind).has_(contra, &other) {Ok(())}
+        else {Err(format!("Sub type check failed:\n\n  {}\n\nDoes not have:\n\n  {}\n", s, other))}
     }
 
-    pub fn has_bound(&self, other: &Type) -> bool {
+    pub fn has_bound(&self, other: &Type) -> Result<(), String> {
         self.has_bound_(false, other)
     }
     
-    pub fn has_bound_contra(&self, other: &Type) -> bool {
+    pub fn has_bound_contra(&self, other: &Type) -> Result<(), String> {
         self.has_bound_(true, other)
     }
 
@@ -1525,14 +1534,14 @@ mod tests {
         assert_eq!(a, Type::All(Box::new(Type::AllTy(Arc::new("a".into())))));
 
         let b: Type = "all(b)".try_into().unwrap();
-        assert!(a.has_bound(&b));
+        assert!(a.has_bound(&b).is_ok());
 
         let a: Type = "all(a -> a)".try_into().unwrap();
-        assert!(a.has_bound(&a));
+        assert!(a.has_bound(&a).is_ok());
 
         let b: Type = "all(a -> b)".try_into().unwrap();
-        assert!(b.has_bound(&a));
-        assert!(!a.has_bound(&b));
+        assert!(b.has_bound(&a).is_ok());
+        assert!(a.has_bound(&b).is_err());
     }
 
     #[test]
@@ -1611,23 +1620,23 @@ mod tests {
     fn test_has() {
         let fun_ab: Type = "a -> b".try_into().unwrap();
         let ab: Type = "a => b".try_into().unwrap();
-        assert!(fun_ab.has_bound(&ab));
-        assert!(!ab.has_bound(&fun_ab));
+        assert!(fun_ab.has_bound(&ab).is_ok());
+        assert!(ab.has_bound(&fun_ab).is_err());
 
         let x: Type = "(a => b) -> c".try_into().unwrap();
         let y: Type = "(a -> b) -> c".try_into().unwrap();
-        assert!(x.has_bound(&y));
-        assert!(!y.has_bound(&x));
+        assert!(x.has_bound(&y).is_ok());
+        assert!(y.has_bound(&x).is_err());
 
         let x: Type = "(a -> a) & (a -> a)".try_into().unwrap();
         let y: Type = "a == a".try_into().unwrap();
-        assert!(x.has_bound(&y));
-        assert!(!y.has_bound(&x));
+        assert!(x.has_bound(&y).is_ok());
+        assert!(y.has_bound(&x).is_err());
 
         let x: Type = "a -> false".try_into().unwrap();
         let y: Type = "!a".try_into().unwrap();
-        assert!(x.has_bound(&y));
-        assert!(!y.has_bound(&x));
+        assert!(x.has_bound(&y).is_ok());
+        assert!(y.has_bound(&x).is_err());
 
         let x: Type = all_ty("a");
         let y: Type = ty("b");
@@ -1641,89 +1650,89 @@ mod tests {
 
         let x: Type = "all(a)".try_into().unwrap();
         let y: Type = "b".try_into().unwrap();
-        assert!(x.has_bound(&y));
+        assert!(x.has_bound(&y).is_ok());
 
         let x: Type = "all(a -> a)".try_into().unwrap();
         let y: Type = "all(a -> b)".try_into().unwrap();
-        assert!(!x.has_bound(&y));
-        assert!(y.has_bound(&x));
-        assert!(x.has_bound_contra(&y));
-        assert!(!y.has_bound_contra(&x));
+        assert!(x.has_bound(&y).is_err());
+        assert!(y.has_bound(&x).is_ok());
+        assert!(x.has_bound_contra(&y).is_ok());
+        assert!(y.has_bound_contra(&x).is_err());
     
         let x: Type = "(a -> a) & (a -> a)".try_into().unwrap();
         let y: Type = "a == a".try_into().unwrap();
-        assert!(x.lift().has_bound(&y));
+        assert!(x.lift().has_bound(&y).is_ok());
     }
 
     #[test]
     fn test_bind() {
         let mut bind = vec![];
         let a: Type = "a".try_into().unwrap();
-        assert!(a.bind(false, &a, &mut bind));
+        assert!(a.bind(false, &a, &mut bind).is_ok());
 
         let mut bind = vec![];
-        assert!(a.bind(true, &a, &mut bind));
+        assert!(a.bind(true, &a, &mut bind).is_ok());
 
         let mut bind = vec![];
-        assert!(a.clone().lift().bind(false, &a, &mut bind));
+        assert!(a.clone().lift().bind(false, &a, &mut bind).is_ok());
         let mut bind = vec![];
-        assert!(a.clone().lift().bind(true, &a, &mut bind));
+        assert!(a.clone().lift().bind(true, &a, &mut bind).is_ok());
         let mut bind = vec![];
-        assert!(a.bind(false, &a.clone().lift(), &mut bind));
+        assert!(a.bind(false, &a.clone().lift(), &mut bind).is_ok());
 
         let x: Type = "a^b".try_into().unwrap();
         let mut bind = vec![];
-        assert!(x.clone().lift().bind(false, &x, &mut bind));
+        assert!(x.clone().lift().bind(false, &x, &mut bind).is_ok());
         let mut bind = vec![];
-        assert!(x.clone().lift().bind(true, &x, &mut bind));
+        assert!(x.clone().lift().bind(true, &x, &mut bind).is_ok());
         let mut bind = vec![];
-        assert!(x.bind(false, &x.clone().lift(), &mut bind));
+        assert!(x.bind(false, &x.clone().lift(), &mut bind).is_ok());
         let mut bind = vec![];
-        assert!(x.bind(true, &x.clone().lift(), &mut bind));
+        assert!(x.bind(true, &x.clone().lift(), &mut bind).is_ok());
 
         let x: Type = "qu'(a)".try_into().unwrap();
         let y: Type = "qu'(true)".try_into().unwrap();
         let mut bind = vec![];
-        assert!(x.lift().bind(false, &y, &mut bind));
+        assert!(x.lift().bind(false, &y, &mut bind).is_ok());
 
         let x: Type = "(~b)^(~a & (a == b)^true)".try_into().unwrap();
         let mut bind = vec![];
-        assert!(x.bind(false, &x, &mut bind));
+        assert!(x.bind(false, &x, &mut bind).is_ok());
         let mut bind = vec![];
-        assert!(x.clone().lift().bind(false, &x, &mut bind));
-        assert!(x.has_bound(&x));
+        assert!(x.clone().lift().bind(false, &x, &mut bind).is_ok());
+        assert!(x.has_bound(&x).is_ok());
         
         let a: Type = "(a == b)^true".try_into().unwrap();
         let b: Type = "(x' == y')^true".try_into().unwrap();
-        assert!(a.lift().bind(true, &b, &mut vec![]));
+        assert!(a.lift().bind(true, &b, &mut vec![]).is_ok());
     
         let a: Type = and(tauto(eq(all_ty("a"), all_ty("b"))), all_ty("b"));
         let b: Type = and(tauto(eq(ty("x"), ty("y"))).lift(), ty("y"))
             .try_into().unwrap();
-        assert!(a.bind(true, &b, &mut vec![]));
+        assert!(a.bind(true, &b, &mut vec![]).is_ok());
     }
 
     #[test]
     fn test_app_to_has_bound() {
         let a: Type = "a".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
-        assert!(a.app_to_has_bound(&a, &b, &b));
-        assert!(a.app_to_has_bound(&a, &b.clone().lift(), &b));
-        assert!(a.app_to_has_bound(&a.clone().lift(), &b, &b));
+        assert!(a.app_to_has_bound(&a, &b, &b).is_ok());
+        assert!(a.app_to_has_bound(&a, &b.clone().lift(), &b).is_ok());
+        assert!(a.app_to_has_bound(&a.clone().lift(), &b, &b).is_ok());
 
         let all_a: Type = "all(a)".try_into().unwrap();
-        assert!(!a.app_to_has_bound(&all_a, &b, &b));
-        assert!(all_a.app_to_has_bound(&all_a, &b, &b));
+        assert!(a.app_to_has_bound(&all_a, &b, &b).is_err());
+        assert!(all_a.app_to_has_bound(&all_a, &b, &b).is_ok());
 
         let all_ab: Type = "all(a -> b)".try_into().unwrap();
         let all_aa: Type = "all(a -> a)".try_into().unwrap();
-        assert!(all_ab.has_bound(&all_aa));
-        assert!(all_ab.app_to_has_bound(&all_aa, &b, &b));
-        assert!(!all_aa.app_to_has_bound(&all_ab, &b, &b));
+        assert!(all_ab.has_bound(&all_aa).is_ok());
+        assert!(all_ab.app_to_has_bound(&all_aa, &b, &b).is_ok());
+        assert!(all_aa.app_to_has_bound(&all_ab, &b, &b).is_err());
 
         let ab: Type = "a => b".try_into().unwrap();
         let fun_ab: Type = "a -> b".try_into().unwrap();
-        assert!(fun_ab.app_to_has_bound(&ab, &b, &b));
+        assert!(fun_ab.app_to_has_bound(&ab, &b, &b).is_ok());
     
         let input: Type = "(a -> a) & (a -> a)".try_into().unwrap();
         let input = input.lift();
@@ -1732,7 +1741,7 @@ mod tests {
         let f_out: Type = "a".try_into().unwrap();
         let f_out = f_out.lift();
         let ty: Type = "a == a".try_into().unwrap();
-        assert!(input.app_to_has_bound(&f_in, &f_out, &ty));
+        assert!(input.app_to_has_bound(&f_in, &f_out, &ty).is_ok());
     }
 
     #[test]
@@ -1742,7 +1751,7 @@ mod tests {
 
         let a: Type = "qu'(a)".try_into().unwrap();
         assert_eq!(a, app(sym("qu"), ty("a")));
-        assert!(a.has_bound(&a));
+        assert!(a.has_bound(&a).is_ok());
 
         let a: Type = "qu'(a)".try_into().unwrap();
         assert_eq!(a, app(sym("qu"), ty("a")));
@@ -1758,116 +1767,116 @@ mod tests {
 
         let a: Type = "sym(a, a')".try_into().unwrap();
         let b: Type = "sym(b, b')".try_into().unwrap();
-        assert!(a.has_bound(&b));
-        assert!(b.has_bound(&a));
-        assert!(a.has_bound_contra(&b));
-        assert!(b.has_bound_contra(&a));
+        assert!(a.has_bound(&b).is_ok());
+        assert!(b.has_bound(&a).is_ok());
+        assert!(a.has_bound_contra(&b).is_ok());
+        assert!(b.has_bound_contra(&a).is_ok());
 
         let a: Type = "sym(a, a')(b)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
-        assert!(a.has_bound(&b));
-        assert!(b.has_bound(&a));
-        assert!(a.has_bound_contra(&b));
-        assert!(b.has_bound_contra(&a));
+        assert!(a.has_bound(&b).is_ok());
+        assert!(b.has_bound(&a).is_ok());
+        assert!(a.has_bound_contra(&b).is_ok());
+        assert!(b.has_bound_contra(&a).is_ok());
         // Bind creates a replacement.
         assert!(!a.has_(false, &b));
         assert!(!b.has_(false, &a));
 
         let a: Type = "sym(a, a')(b)".try_into().unwrap();
         let b: Type = "a'".try_into().unwrap();
-        assert!(!a.has_bound(&b));
-        assert!(!b.has_bound(&a));
+        assert!(a.has_bound(&b).is_err());
+        assert!(b.has_bound(&a).is_err());
 
         let a: Type = "sym(a, a')(b) -> c".try_into().unwrap();
         let b: Type = "b -> c".try_into().unwrap();
-        assert!(a.has_bound(&b));
-        assert!(b.has_bound(&a));
-        assert!(a.has_bound_contra(&b));
-        assert!(b.has_bound_contra(&a));
+        assert!(a.has_bound(&b).is_ok());
+        assert!(b.has_bound(&a).is_ok());
+        assert!(a.has_bound_contra(&b).is_ok());
+        assert!(b.has_bound_contra(&a).is_ok());
 
         let a: Type = "sym(a, all(b))(a)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
-        assert!(a.has_bound(&b));
-        assert!(!b.has_bound(&a));
+        assert!(a.has_bound(&b).is_ok());
+        assert!(b.has_bound(&a).is_err());
 
         let a: Type = "sym(a, b)(a)".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
-        assert!(a.has_bound(&b));
-        assert!(b.has_bound(&a));
-        assert!(a.has_bound_contra(&b));
-        assert!(b.has_bound_contra(&a));
+        assert!(a.has_bound(&b).is_ok());
+        assert!(b.has_bound(&a).is_ok());
+        assert!(a.has_bound_contra(&b).is_ok());
+        assert!(b.has_bound_contra(&a).is_ok());
 
         let a: Type = "sym(a, b => c)(a)".try_into().unwrap();
         let b: Type = "b => c".try_into().unwrap();
-        assert!(a.has_bound(&b));
-        assert!(b.has_bound(&a));
-        assert!(a.has_bound_contra(&b));
-        assert!(b.has_bound_contra(&a));
+        assert!(a.has_bound(&b).is_ok());
+        assert!(b.has_bound(&a).is_ok());
+        assert!(a.has_bound_contra(&b).is_ok());
+        assert!(b.has_bound_contra(&a).is_ok());
 
         let a: Type = "all((a => c) -> c)".try_into().unwrap();
         let b: Type = "a => c -> c".try_into().unwrap();
-        assert!(a.has_bound(&b));
+        assert!(a.has_bound(&b).is_ok());
 
         let a: Type = "(a => c) -> c".try_into().unwrap();
         let b: Type = "sym(b, a => c)(b) -> c".try_into().unwrap();
-        assert!(a.has_bound(&b));
-        assert!(b.has_bound(&a));
-        assert!(a.has_bound_contra(&b));
-        assert!(b.has_bound_contra(&a));
+        assert!(a.has_bound(&b).is_ok());
+        assert!(b.has_bound(&a).is_ok());
+        assert!(a.has_bound_contra(&b).is_ok());
+        assert!(b.has_bound_contra(&a).is_ok());
 
         let a: Type = "all((e => f) -> f)".try_into().unwrap();
         let b: Type = "sym(b, a => c)(b) -> c".try_into().unwrap();
-        assert!(a.has_bound(&b));
-        assert!(!b.has_bound(&a));
-        assert!(!a.has_bound_contra(&b));
-        assert!(!b.has_bound_contra(&a));
+        assert!(a.has_bound(&b).is_ok());
+        assert!(b.has_bound(&a).is_err());
+        assert!(a.has_bound_contra(&b).is_err());
+        assert!(b.has_bound_contra(&a).is_err());
 
         let b: Type = "sym(b, a => d)(b) -> c".try_into().unwrap();
-        assert!(!a.has_bound(&b));
+        assert!(a.has_bound(&b).is_err());
 
         let a: Type = "all((e => f) => f)".try_into().unwrap();
         let b: Type = "sym(b, a => d)(b) => c".try_into().unwrap();
-        assert!(!a.has_bound(&b));
+        assert!(a.has_bound(&b).is_err());
 
         let a: Type = "all(f => (e => f))".try_into().unwrap();
         let b: Type = "c => sym(b, a => c)(b)".try_into().unwrap();
-        assert!(a.has_bound(&b));
+        assert!(a.has_bound(&b).is_ok());
 
         let b: Type = "c => sym(b, a => d)(b)".try_into().unwrap();
-        assert!(!a.has_bound(&b));
+        assert!(a.has_bound(&b).is_err());
 
         let b: Type = "sym(a, all((a' => f) => f))(b)".try_into().unwrap();
-        assert!(!a.has_bound(&b));
-        assert!(b.has_bound(&a));
+        assert!(a.has_bound(&b).is_err());
+        assert!(b.has_bound(&a).is_ok());
 
         let a: Type = "sym(a, a')(b)".try_into().unwrap();
         let b: Type = "sym(a, c)(b)".try_into().unwrap();
-        assert!(!a.has_bound(&b));
-        assert!(!b.has_bound(&a));
-        assert!(!a.has_bound_contra(&b));
-        assert!(!b.has_bound_contra(&a));
+        assert!(a.has_bound(&b).is_err());
+        assert!(b.has_bound(&a).is_err());
+        assert!(a.has_bound_contra(&b).is_err());
+        assert!(b.has_bound_contra(&a).is_err());
 
         let a: Type = "sym(a, all(a'))(c)".try_into().unwrap();
         let b: Type = "sym(b, all(b'))(c)".try_into().unwrap();
-        assert!(a.has_bound(&b));
+        assert!(a.has_bound(&b).is_ok());
         
         let a: Type = "all(a^a)"
             .try_into().unwrap();
         let b: Type = "all(sym(a, a'^a')(a))"
             .try_into().unwrap();
-        assert!(a.has_bound(&b));
+        assert!(a.has_bound(&b).is_ok());
         
         let a: Type = "all(a^a)"
             .try_into().unwrap();
         let b: Type = "sym(p, all(p'(a)^a))(sym(a, a'))"
             .try_into().unwrap();
-        assert!(a.has_bound(&b));
+        assert!(a.has_bound(&b).is_ok());
     
         let a: Type = "all((add'(z', s'(a)) == s'(a))^(a : nat'))"
             .try_into().unwrap();
         let b: Type = "sym(p, all(p'(s'(a))^(a : nat')))(sym(a, add'(z', a') == a'))"
             .try_into().unwrap();
-        assert!(a.has_bound(&b));
+        assert!(a.has_bound(&b).is_ok());
     }
 
     #[test]
