@@ -216,7 +216,7 @@ fn bool_tr1_in_arg : (tr1'(a) == b) & (a == c) -> tr1'(c) == b {
 
     x : tr1'(a) == b;
     y : a == c;
-    let tr1_cong = triv(bool_tr1_cong) : cong'(tr1');    
+    let tr1_cong = triv(bool_tr1_cong) : cong'(tr1');
     let r = cong_app_in_arg(tr1_cong, x, y) : tr1'(c) == b;
     return r;
 }
@@ -230,22 +230,22 @@ fn bool_eq_idb_self : (a : bool') -> idb'(a) == a {
         use bool_idb_fa;
         use eq_transitivity_sym;
         use triv;
-        
+
         y : a == fa';
-        
+
         let y2 = triv(bool_idb_fa) : idb'(fa') == fa';
         let y3 = bool_idb_in_arg_sym(y2, y) : idb'(a) == fa';
         let r = eq_transitivity_sym(y3, y) : idb'(a) == a;
         return r;
     }
-    lam g : (a == tr') => idb'(a) == a { 
+    lam g : (a == tr') => idb'(a) == a {
         use bool_idb_in_arg_sym;
         use bool_idb_tr;
         use eq_transitivity_sym;
         use triv;
 
         y : a == tr';
-    
+
         let y2 = triv(bool_idb_tr) : idb'(tr') == tr';
         let y3 = bool_idb_in_arg_sym(y2, y) : idb'(a) == tr';
         let r = eq_transitivity_sym(y3, y) : idb'(a) == a;
@@ -331,7 +331,7 @@ fn bool_and_fa_fa : true -> and'(fa', fa') == fa' {
     use eq_transitivity;
     use triv;
     use ty_app;
-    
+
     x : true;
 
     let y2 = triv(bool_and_fa) : and'(fa') == fa1';
@@ -339,7 +339,7 @@ fn bool_and_fa_fa : true -> and'(fa', fa') == fa' {
     let fa_ty = triv(bool_fa_ty) : (fa' : bool');
     let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
     let and_fa_ty = ty_app(and_ty, fa_ty) : (and'(fa') : bool' => bool');
-    let y3 = bool_fun_eq(and_fa_ty, fa1_ty, y2) : and'(fa', fa') == fa1'(fa'); 
+    let y3 = bool_fun_eq(and_fa_ty, fa1_ty, y2) : and'(fa', fa') == fa1'(fa');
     let y4 = bool_fa1(fa_ty) : fa1'(fa') == fa';
     let r = eq_transitivity(y3, y4) : and'(fa', fa') == fa';
     return r;
@@ -362,7 +362,7 @@ fn bool_and_fa_tr : true -> and'(fa', tr') == fa' {
 
     let fa_ty = triv(bool_fa_ty) : (fa' : bool');
     let tr_ty = triv(bool_tr_ty) : (tr' : bool');
-    let fa1_ty = triv(bool_fa1_ty) : (fa1' : bool' => bool'); 
+    let fa1_ty = triv(bool_fa1_ty) : (fa1' : bool' => bool');
     let y2 = triv(bool_and_fa) : and'(fa') == fa1';
     let tr1_ty = triv(bool_tr1_ty) : (tr1' : bool' => bool');
     let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
@@ -414,7 +414,7 @@ fn bool_and_tr_tr : true -> and'(tr', tr') == tr' {
     let tr_ty = triv(bool_tr_ty) : (tr' : bool');
     let y6 = ty_app(and_ty, tr_ty) : (and'(tr') : bool' => bool');
     let y5 = triv(bool_idb_ty) : (idb' : bool' => bool');
-    let y4 = triv(bool_and_tr) : and'(tr') == idb'; 
+    let y4 = triv(bool_and_tr) : and'(tr') == idb';
     let y3 = bool_fun_eq(y6, y5, y4) : and'(tr', tr') == idb'(tr');
     let y2 = triv(bool_idb_tr) : idb'(tr') == tr';
     let r = eq_transitivity(y3, y2) : and'(tr', tr') == tr';
@@ -443,10 +443,11 @@ fn bool_and_same : (a : bool') -> and'(a, a) == a {
 
         y : a == fa';
 
+        let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
         let and_cong = triv(bool_and_cong) : cong'(and');
-        let and_a_cong = cong_app(and_cong) : cong'(and'(a));
+        let and_a_cong = cong_app(and_cong, and_ty) : cong'(and'(a));
         let y7 = cong_app_eq(and_a_cong, y) : and'(a, a) == and'(a, fa');
-        let and_fa_cong = cong_app(and_cong) : cong'(and'(fa'));
+        let and_fa_cong = cong_app(and_cong, and_ty) : cong'(and'(fa'));
         let y6 = cong_app_eq(and_cong, y) : and'(a) == and'(fa');
         let y5 = cong_fun_eq(and_a_cong, and_fa_cong, y6) : and'(a, fa') == and'(fa', fa');
         let y4 = eq_transitivity(y7, y5) : and'(a, a) == and'(fa', fa');
@@ -458,6 +459,7 @@ fn bool_and_same : (a : bool') -> and'(a, a) == a {
     }
     lam g : (a == tr') => (and'(a, a) == a) {
         use bool_and_tr;
+        use bool_and_ty;
         use bool_and_cong;
         use cong_app_eq;
         use bool_eq_idb_self;
@@ -471,10 +473,11 @@ fn bool_and_same : (a : bool') -> and'(a, a) == a {
 
         y : a == tr';
 
+        let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
         let and_cong = triv(bool_and_cong) : cong'(and');
         let y6 = triv(bool_and_tr) : and'(tr') == idb';
         let y5 = cong_app_eq(and_cong, y) : and'(a) == and'(tr');
-        let and_a_cong = cong_app(and_cong) : cong'(and'(a));
+        let and_a_cong = cong_app(and_cong, and_ty) : cong'(and'(a));
         let idb_cong = triv(bool_idb_cong) : cong'(idb');
         let y4 = eq_transitivity(y5, y6) : and'(a) == idb';
         let y3 = cong_fun_eq(and_a_cong, idb_cong, y4) : and'(a, a) == idb'(a);
@@ -490,6 +493,7 @@ fn bool_and_in_left_arg :
     (and'(a, b) == c) & (a == d) -> and'(d, b) == c
 {
     use bool_and_cong;
+    use bool_and_ty;
     use cong_app_eq;
     use cong_fun_eq;
     use eq_symmetry;
@@ -500,9 +504,10 @@ fn bool_and_in_left_arg :
     x : and'(a, b) == c;
     y : a == d;
 
+    let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
     let and_cong = triv(bool_and_cong) : cong'(and');
-    let and_d_cong = cong_app(and_cong) : cong'(and'(d));
-    let and_a_cong = cong_app(and_cong) : cong'(and'(a));
+    let and_d_cong = cong_app(and_cong, and_ty) : cong'(and'(d));
+    let and_a_cong = cong_app(and_cong, and_ty) : cong'(and'(a));
     let y2 = eq_symmetry(y) : d == a;
     let x3 = cong_app_eq(and_cong, y2) : and'(d) == and'(a);
     let x2 = cong_fun_eq(and_d_cong, and_a_cong, x3) : and'(d, b) == and'(a, b);
@@ -514,6 +519,7 @@ fn bool_and_in_right_arg :
     (and'(a, b) == c) & (b == d) -> and'(a, d) == c
 {
     use bool_and_cong;
+    use bool_and_ty;
     use cong_app;
     use cong_app_eq;
     use eq_symmetry;
@@ -523,9 +529,10 @@ fn bool_and_in_right_arg :
     x : and'(a, b) == c;
     y : b == d;
 
+    let and_ty = triv(bool_and_ty) : (and' : bool' => bool' => bool');
     let y2 = eq_symmetry(y) : d == b;
     let and_cong = triv(bool_and_cong) : cong'(and');
-    let x3 = cong_app(and_cong) : cong'(and'(a));
+    let x3 = cong_app(and_cong, and_ty) : cong'(and'(a));
     let x2 = cong_app_eq(x3, y2) : and'(a, d) == and'(a, b);
     let r = eq_transitivity(x2, x) : and'(a, d) == c;
     return r;
@@ -573,7 +580,7 @@ fn bool_and_symmetry : (a : bool') & (b : bool') -> and'(a, b) == and'(b, a) {
             use eq_symmetry;
             use eq_transitivity_sym;
             use triv;
- 
+
             x4 : b == fa';
 
             let y3 = eq_symmetry(x3) : tr' == a;
@@ -624,7 +631,7 @@ fn bool_and_symmetry : (a : bool') & (b : bool') -> and'(a, b) == and'(b, a) {
             use eq_symmetry;
             use eq_transitivity_sym;
             use triv;
- 
+
             x4 : b == tr';
 
             let y3 = eq_symmetry(x3) : tr' == a;
@@ -672,4 +679,3 @@ fn bool_or_cong : true -> cong'(or') {
     let r = bool_or_cong(x) : cong'(or');
     return r;
 }
-
