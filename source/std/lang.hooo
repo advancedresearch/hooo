@@ -1,3 +1,7 @@
+/// Type of propositions used by special operators, such as `sd`.
+/// This is needed to specify congruence.
+sym prop;
+
 fn refl : a -> a {
     x : a;
 

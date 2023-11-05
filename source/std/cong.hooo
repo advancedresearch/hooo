@@ -75,9 +75,9 @@ fn cong_app : cong'(f) & (f : t1 => t2 => t3) -> cong'(f(a)) {
     return x;
 }
 
-fn tauto_cong_app : tauto_cong'(f) -> tauto_cong'(f(a)) {
-    axiom tauto_cong_app : tauto_cong'(f) -> tauto_cong'(f(a));
-    x : tauto_cong'(f);
+fn tauto_cong_app : tauto_cong'(f) & (f : t1 => t2 => t3) -> tauto_cong'(f(a)) {
+    axiom tauto_cong_app : tauto_cong'(f) & (f : t1 => t2 => t3) -> tauto_cong'(f(a));
+    x : tauto_cong'(f) & (f : t1 => t2 => t3);
     let r = tauto_cong_app(x) : tauto_cong'(f(a));
     return r;
 }
@@ -267,7 +267,9 @@ fn cong_eq_left : cong'(f) & (f : t1 => t2 => t3) & (a == b) -> f(a, c) == f(b, 
 
 /// Notice that the first argument is tautological.
 /// This is needed because otherwise one can not prove `(f(a) == f(b))^true`.
-fn tauto_cong_eq_left : tauto_cong'(f)^true & (a == b)^true -> f(a, c) == f(b, c) {
+fn tauto_cong_eq_left :
+    tauto_cong'(f)^true & (f : t1 => t2 => t3) & (a == b)^true -> f(a, c) == f(b, c)
+{
     use hooo_rev_and;
     use pow_lift;
     use pow_transitivity;
@@ -277,6 +279,7 @@ fn tauto_cong_eq_left : tauto_cong'(f)^true & (a == b)^true -> f(a, c) == f(b, c
     use triv;
 
     x : tauto_cong'(f)^true;
+    f_ty : (f : t1 => t2 => t3);
     y : (a == b)^true;
 
     let z = triv(x) : tauto_cong'(f);
@@ -287,8 +290,8 @@ fn tauto_cong_eq_left : tauto_cong'(f)^true & (a == b)^true -> f(a, c) == f(b, c
         (f(a) == f(b))^(tauto_cong'(f) & (a == b)^true) ->
         (f(a) == f(b))^true;
     let x3 = y3(x2, tauto_cong_app_eq) : (f(a) == f(b))^true;
-    let x4 = tauto_cong_app(z) : tauto_cong'(f(a));
-    let x5 = tauto_cong_app(z) : tauto_cong'(f(b));
+    let x4 = tauto_cong_app(z, f_ty) : tauto_cong'(f(a));
+    let x5 = tauto_cong_app(z, f_ty) : tauto_cong'(f(b));
     let r = tauto_cong_fun_eq(x4, x5, x3) : f(a, c) == f(b, c);
     return r;
 }
@@ -306,14 +309,17 @@ fn cong_eq_right : cong'(f) & (f : t1 => t2 => t3) & (a == b) -> f(c, a) == f(c,
     return r;
 }
 
-fn tauto_cong_eq_right : tauto_cong'(f) & (a == b)^true -> f(c, a) == f(c, b) {
+fn tauto_cong_eq_right :
+    tauto_cong'(f) & (f : t1 => t2 => t3) & (a == b)^true -> f(c, a) == f(c, b)
+{
     use tauto_cong_app;
     use tauto_cong_app_eq;
 
     x : tauto_cong'(f);
+    f_ty : (f : t1 => t2 => t3);
     y : (a == b)^true;
 
-    let x2 = tauto_cong_app(x) : tauto_cong'(f(c));
+    let x2 = tauto_cong_app(x, f_ty) : tauto_cong'(f(c));
     let r = tauto_cong_app_eq(x2, y) : f(c, a) == f(c, b);
     return r;
 }
@@ -337,7 +343,11 @@ fn cong_eq_both :
 }
 
 fn tauto_cong_eq_both :
-    tauto_cong'(f)^true & (a == b)^true & (c == d)^true -> f(a, c) == f(b, d)
+    tauto_cong'(f)^true &
+    (f : t1 => t2 => t3) &
+    (a == b)^true &
+    (c == d)^true ->
+    f(a, c) == f(b, d)
 {
     use eq_transitivity;
     use tauto_cong_eq_left;
@@ -345,12 +355,13 @@ fn tauto_cong_eq_both :
     use triv;
 
     x : tauto_cong'(f)^true;
+    f_ty : (f : t1 => t2 => t3);
     y : (a == b)^true;
     z : (c == d)^true;
 
     let triv_x = triv(x) : tauto_cong'(f);
-    let x2 = tauto_cong_eq_left(x, y) : f(a, c) == f(b, c);
-    let x3 = tauto_cong_eq_right(triv_x, z) : f(b, c) == f(b, d);
+    let x2 = tauto_cong_eq_left(x, f_ty, y) : f(a, c) == f(b, c);
+    let x3 = tauto_cong_eq_right(triv_x, f_ty, z) : f(b, c) == f(b, d);
     let r = eq_transitivity(x2, x3) : f(a, c) == f(b, d);
     return r;
 }
@@ -370,15 +381,18 @@ fn cong_in_left_arg : cong'(f) & (f : t1 => t2 => t3) & f(a, b) & (a == c) -> f(
     return r;
 }
 
-fn tauto_cong_in_left_arg : tauto_cong'(f)^true & f(a, b) & (a == c)^true -> f(c, b) {
+fn tauto_cong_in_left_arg :
+    tauto_cong'(f)^true & (f : t1 => t2 => t3) & f(a, b) & (a == c)^true -> f(c, b)
+{
     use fst;
     use tauto_cong_eq_left;
 
     x : tauto_cong'(f)^true;
+    f_ty : (f : t1 => t2 => t3);
     y : f(a, b);
     z : (a == c)^true;
 
-    let x2 = tauto_cong_eq_left(x, z) : f(a, b) == f(c, b);
+    let x2 = tauto_cong_eq_left(x, f_ty, z) : f(a, b) == f(c, b);
     let x3 = fst(x2) : f(a, b) => f(c, b);
     let r = x3(y) : f(c, b);
     return r;
@@ -399,15 +413,18 @@ fn cong_in_right_arg : cong'(f) & (f : t1 => t2 => t3) & f(a, b) & (b == c) -> f
     return r;
 }
 
-fn tauto_cong_in_right_arg : tauto_cong'(f) & f(a, b) & (b == c)^true -> f(a, c) {
+fn tauto_cong_in_right_arg :
+    tauto_cong'(f) & (f : t1 => t2 => t3) & f(a, b) & (b == c)^true -> f(a, c)
+{
     use fst;
     use tauto_cong_eq_right;
 
     x : tauto_cong'(f);
+    f_ty : (f : t1 => t2 => t3);
     y : f(a, b);
     z : (b == c)^true;
 
-    let x2 = tauto_cong_eq_right(x, z) : f(a, b) == f(a, c);
+    let x2 = tauto_cong_eq_right(x, f_ty, z) : f(a, b) == f(a, c);
     let x3 = fst(x2) : f(a, b) => f(a, c);
     let r = x3(y) : f(a, c);
     return r;
@@ -431,19 +448,25 @@ fn cong_in_both_args :
 }
 
 fn tauto_cong_in_both_args :
-    tauto_cong'(f)^true & f(a, b) & (a == c)^true & (b == d)^true -> f(c, d)
+    tauto_cong'(f)^true &
+    (f : t1 => t2 => t3) &
+    f(a, b) & (a == c)^true &
+    (b == d)^true ->
+    f(c, d)
 {
     use tauto_cong_in_left_arg;
     use tauto_cong_in_right_arg;
     use triv;
 
     x : tauto_cong'(f)^true;
+    f_ty : (f : t1 => t2 => t3);
     y : f(a, b);
     z : (a == c)^true;
     w : (b == d)^true;
 
     let x2 = triv(x) : tauto_cong'(f);
-    let x3 = tauto_cong_in_left_arg(x, y, z) : f(c, b);
-    let r = tauto_cong_in_right_arg(x2, x3, w) : f(c, d);
+    let x3 = tauto_cong_in_left_arg(x, f_ty, y, z) : f(c, b);
+    let r = tauto_cong_in_right_arg(x2, f_ty, x3, w) : f(c, d);
     return r;
 }
+
