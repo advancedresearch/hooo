@@ -669,9 +669,6 @@ impl fmt::Display for Type {
         if let Some((a, b)) = self.as_pow_eq() {
             return write!(w, "{} =^= {}", a, b);
         }
-        if let Some((a, b)) = self.as_app_sym() {
-            return write!(w, "{}'({})", a, b);
-        }
         if let Some((f, args)) = self.as_multi_app() {
             write!(w, "{}(", f.to_str(false, None))?;
             let mut first = true;
