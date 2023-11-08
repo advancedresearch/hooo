@@ -1,3 +1,28 @@
+use cong;
+use prop;
+
+sym prop_and;
+
+fn and_ty : true -> (prop_and' : prop' => prop' => prop') {
+    axiom and_ty : true -> (prop_and' : prop' => prop' => prop');
+    x : true;
+    let r = and_ty(x) : (prop_and' : prop' => prop' => prop');
+    return r;
+}
+
+fn and_def : true -> prop_and'(a, b) == (a & b) {
+    axiom and_def : true -> prop_and'(a, b) == (a & b);
+    x : true;
+    let r = and_def(x) : prop_and'(a, b) == (a & b);
+    return r;
+}
+
+fn and_cong : true -> cong'(prop_and') {
+    axiom and_cong : true -> cong'(prop_and');
+    x : true;
+    let r = and_cong(x) : cong'(prop_and');
+    return r;
+}
 
 fn and_map : a -> b => (a & b) {
     x : a;
