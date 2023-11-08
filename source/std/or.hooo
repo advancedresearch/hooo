@@ -1,3 +1,29 @@
+use cong;
+use prop;
+
+sym prop_or;
+
+fn or_ty : true -> (prop_or' : prop' => prop' => prop') {
+    axiom or_ty : true -> (prop_or' : prop' => prop' => prop');
+    x : true;
+    let r = or_ty(x) : (prop_or' : prop' => prop' => prop');
+    return r;
+}
+
+fn or_def : true -> prop_or'(a, b) == (a | b) {
+    axiom or_def : true -> prop_or'(a, b) == (a | b);
+    x : true;
+    let r = or_def(x) : prop_or'(a, b) == (a | b);
+    return r;
+}
+
+fn or_cong : true -> cong'(prop_or') {
+    axiom or_cong : true -> cong'(prop_or');
+    x : true;
+    let r = or_cong(x) : cong'(prop_or');
+    return r;
+}
+
 fn or_symmetry : a | b -> b | a {
     use unify;
     use left;
