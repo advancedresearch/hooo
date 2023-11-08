@@ -1,3 +1,10 @@
+fn sym_fun_eq : true -> sym(a, f(a')) == f {
+    axiom sym_fun_eq : true -> sym(a, f(a')) == f;
+    x : true;
+    let r = sym_fun_eq(x) : sym(a, f(a')) == f;
+    return r;
+}
+
 fn sym_all_pow_absurd : all(a -> b) -> false {
     x : all(a -> b);
     let x2 = x() : a -> b;
