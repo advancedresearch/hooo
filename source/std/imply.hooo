@@ -1,3 +1,29 @@
+use cong;
+use prop;
+
+sym prop_imply;
+
+fn imply_ty : true -> (prop_imply' : prop' => prop' => prop') {
+    axiom imply_ty : true -> (prop_imply' : prop' => prop' => prop');
+    x : true;
+    let r = imply_ty(x) : (prop_imply' : prop' => prop' => prop');
+    return r;
+}
+
+fn imply_def : true -> prop_imply'(a, b) == (a => b) {
+    axiom imply_def : true -> prop_imply'(a, b) == (a => b);
+    x : true;
+    let r = imply_def(x) : prop_imply'(a, b) == (a => b);
+    return r;
+}
+
+fn imply_cong : true -> cong'(prop_imply') {
+    axiom imply_cong : true -> cong'(prop_imply');
+    x : true;
+    let r = imply_cong(x) : cong'(prop_imply');
+    return r;
+}
+
 fn imply_refl : true -> a => a {
     use refl;
 
