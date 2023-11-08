@@ -518,7 +518,8 @@ fn needs_parens(ty: &Type, parent_op: Option<Op>) -> bool {
     if ty.as_not().is_some() ||
        ty.as_nec().is_some() ||
        ty.as_pos().is_some() ||
-       ty.as_qu().is_some() {
+       ty.as_qu().is_some() ||
+       ty.as_sym_block().is_some() {
         if let Some(Op::Pow) = parent_op {return true};
 
         return false;
@@ -590,6 +591,10 @@ impl Type {
 
     pub fn as_qu(&self) -> Option<&Type> {
         if let Type::Qu(a) = self {Some(a)} else {None}
+    }
+
+    pub fn as_sym_block(&self) -> Option<(&Arc<String>, &Type)> {
+        if let Type::SymBlock(ab) = self {Some((&ab.0, &ab.1))} else {None}
     }
 
     pub fn as_eq(&self) -> Option<(&Type, &Type)> {
@@ -1605,6 +1610,12 @@ mod tests {
     
         let a: Type = "a -> b^c".try_into().unwrap();
         assert_eq!(format!("{}", a), "a -> b^c".to_string());
+    
+        let a: Type = "sym(a, a')".try_into().unwrap();
+        assert_eq!(format!("{}", a), "sym(a, a')".to_string());
+
+        let a: Type = "sym(a, a')(b)".try_into().unwrap();
+        assert_eq!(format!("{}", a), "sym(a, a')(b)".to_string());
     }
 
     #[test]
