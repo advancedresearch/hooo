@@ -27,6 +27,17 @@ fn para_to_tauto_not : false^a  ->  (a => false)^true {
     return r;
 }
 
+fn tauto_eq_tauto_not_para : true -> (!a)^true == false^a {
+    use tauto_not_to_para;
+    use para_to_tauto_not;
+    use refl;
+    
+    x : true;
+    
+    let r = refl(tauto_not_to_para, para_to_tauto_not) : (!a)^true == false^a;
+    return r;
+}
+
 fn tauto_imply_to_pow : (a => b)^true  ->  b^a {
     x : (a => b)^true;
     fn f : a -> (a => b)^true => b {
