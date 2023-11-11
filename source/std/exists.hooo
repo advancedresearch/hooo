@@ -33,3 +33,33 @@ fn exists_from_imply : !(a => !b) -> ex'(a, b) {
     return r;
 }
 
+fn exists_true_to_npara : ex'(true, a) -> !(false^a) {
+    use exists_to;
+    use imply_in_left_arg;
+    use tauto_eq_tauto_not_para;
+    use triv;
+    
+    x : ex'(true, a);
+    
+    let x2 = exists_to(x) : !((!a)^true);
+    let x3 = triv(tauto_eq_tauto_not_para) : (!a)^true == false^a;
+    let r = imply_in_left_arg(x2, x3) : !(false^a);
+    return r;
+}
+
+fn npara_to_exists_true : !(false^a) -> ex'(true, a) {
+    use eq_symmetry;
+    use exists_from;
+    use imply_in_left_arg;
+    use tauto_eq_tauto_not_para;
+    use triv;
+
+    x : !(false^a);
+
+    let x2 = triv(tauto_eq_tauto_not_para) : (!a)^true == false^a;
+    let x3 = eq_symmetry(x2) : false^a == (!a)^true;
+    let x4 = imply_in_left_arg(x, x3) : !((!a)^true);
+    let r = exists_from(x4) : ex'(true, a);
+    return r;
+}
+
