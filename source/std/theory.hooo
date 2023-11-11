@@ -70,6 +70,22 @@ fn theory_to_nor_tauto_para : theory'(a)  ->  !(a^true | false^a) {
     return r;
 }
 
+fn nor_tauto_para_to_theory : !(a^true | false^a)  -> theory'(a) {
+    use eq_symmetry;
+    use imply_in_left_arg;
+    use theory_from;
+    use tauto_uniform_eq;
+    use triv;
+    
+    x : !(a^true | false^a);
+    
+    let x2 = triv(tauto_uniform_eq) : uniform'(a) == (a^true | false^a);
+    let x3 = eq_symmetry(x2) : (a^true | false^a) == uniform'(a);
+    let x4 = imply_in_left_arg(x, x3) : !uniform'(a);
+    let r = theory_from(x4) : theory'(a);
+    return r;
+}
+
 fn theory_to_ntauto : theory'(a)  ->  !(a^true) {
     x : theory'(a);
     use theory_to_nor_tauto_para;
@@ -85,6 +101,19 @@ fn theory_to_npara : theory'(a)  ->  !(false^a) {
     let y = theory_to_nor_tauto_para(x) : !(a^true | false^a);
     use nright;
     let r = nright(y) : !(false^a);
+    return r;
+}
+
+fn and_ntauto_npara_to_theory : !(a^true) & !(false^a)  ->  theory'(a) {
+    x : !(a^true);
+    y : !(false^a);
+    lam f : !(a^true | false^a) {
+        z : a^true | false^a;
+        let r = match z (x, y) : false;
+        return r;
+    }
+    use nor_tauto_para_to_theory;
+    let r = nor_tauto_para_to_theory(f) : theory'(a);
     return r;
 }
 
