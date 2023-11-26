@@ -89,6 +89,30 @@ fn cong_fun_eq : cong'(f) & cong'(g) & (f == g) -> f(a) == g(a) {
     return r;
 }
 
+fn cong_fun_bin_eq :
+    cong'(f) &
+    cong'(g) &
+    (f : t1 => t2 => t3) &
+    (f == g) ->
+    f(a, b) == g(a, b)
+{
+    use cong_app;
+    use cong_fun_eq;
+    use ty_in_left_arg;
+    
+    x : cong'(f);
+    y : cong'(g);
+    z : (f : t1 => t2 => t3);
+    w : f == g;
+
+    let z2 = ty_in_left_arg(z, w) : (g : t1 => t2 => t3);
+    let x2 = cong_app(x, z) : cong'(f(a));
+    let y2 = cong_app(y, z2) : cong'(g(a));
+    let w2 = cong_fun_eq(x, y, w) : f(a) == g(a);
+    let r = cong_fun_eq(x2, y2, w2) : f(a, b) == g(a, b);
+    return r;
+}
+
 fn tauto_cong_fun_eq : tauto_cong'(f) & tauto_cong'(g) & (f == g)^true -> f(a) == g(a) {
     axiom tauto_cong_fun_eq : tauto_cong'(f) & tauto_cong'(g) & (f == g)^true -> f(a) == g(a);
     x : tauto_cong'(f) & tauto_cong'(g) & (f == g)^true;
