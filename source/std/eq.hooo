@@ -1,3 +1,29 @@
+use cong;
+use prop;
+
+sym prop_eq;
+
+fn eq_ty : true -> (prop_eq' : prop' => prop' => prop') {
+    axiom eq_ty : true -> (prop_eq' : prop' => prop' => prop');
+    x : true;
+    let r = eq_ty(x) : (prop_eq' : prop' => prop' => prop');
+    return r;
+}
+
+fn eq_def : true -> prop_eq'(a, b) == (a == b) {
+    axiom eq_def : true -> prop_eq'(a, b) == (a == b);
+    x : true;
+    let r = eq_def(x) : prop_eq'(a, b) == (a == b);
+    return r;
+}
+
+fn eq_cong : true -> cong'(prop_eq') {
+    axiom eq_cong : true -> cong'(prop_eq');
+    x : true;
+    let r = eq_cong(x) : cong'(prop_eq');
+    return r;
+}
+
 fn eq_refl : true -> a == a {
     use refl;
 
