@@ -21,3 +21,10 @@ fn comp_cong : cong'(f) & cong'(g) -> cong'(f . g) {
     return r;
 }
 
+fn comp_tup_app : true -> (h . (f, g))(a) == h(f(a), g(a)) {
+    axiom comp_tup_app : true -> (h . (f, g))(a) == h(f(a), g(a));
+    x : true;
+    let r = comp_tup_app(x) : (h . (f, g))(a) == h(f(a), g(a));
+    return r;
+}
+
