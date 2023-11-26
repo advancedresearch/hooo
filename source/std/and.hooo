@@ -10,10 +10,30 @@ fn and_ty : true -> (prop_and' : prop' => prop' => prop') {
     return r;
 }
 
-fn and_def : true -> prop_and'(a, b) == (a & b) {
-    axiom and_def : true -> prop_and'(a, b) == (a & b);
+fn and_sym_def : true -> prop_and' == sym(a, sym(b, a' & b')) {
+    axiom and_sym_def : true -> prop_and' == sym(a, sym(b, a' & b'));
     x : true;
-    let r = and_def(x) : prop_and'(a, b) == (a & b);
+    let r = and_sym_def(x) : prop_and' == sym(a, sym(b, a' & b'));
+    return r;
+}
+
+fn and_def : true -> prop_and'(a, b) == (a & b) {
+    use and_cong;
+    use and_sym_def;
+    use and_ty;
+    use cong_fun_bin_eq;
+    use cong_fun_eq;
+    use cong_in_arg;
+
+    x : true;
+
+    let y2 = and_cong(x) : cong'(prop_and');
+    let y3 = and_sym_def(x) : prop_and' == sym(a, sym(b, a' & b'));
+    let y4 = cong_in_arg(y2, y3) : cong'(sym(a, sym(b, a' & b')));
+    let y5 = and_ty(x) : (prop_and' : prop' => prop' => prop');
+    let y6 = cong_fun_bin_eq(y2, y4, y5, y3) :
+        prop_and'(a, b) == sym(a, sym(b, a' & b'))(a, b);
+    let r = y6() : prop_and'(a, b) == (a & b);
     return r;
 }
 
