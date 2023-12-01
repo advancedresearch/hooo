@@ -10,10 +10,30 @@ fn imply_ty : true -> (prop_imply' : prop' => prop' => prop') {
     return r;
 }
 
-fn imply_def : true -> prop_imply'(a, b) == (a => b) {
-    axiom imply_def : true -> prop_imply'(a, b) == (a => b);
+fn imply_sym_def : true -> prop_imply' == sym(a, sym(b, a' => b')) {
+    axiom imply_sym_def : true -> prop_imply' == sym(a, sym(b, a' => b'));
     x : true;
-    let r = imply_def(x) : prop_imply'(a, b) == (a => b);
+    let r = imply_sym_def(x) : prop_imply' == sym(a, sym(b, a' => b'));
+    return r;
+}
+
+fn imply_def : true -> prop_imply'(a, b) == (a => b) {
+    use imply_cong;
+    use imply_sym_def;
+    use imply_ty;
+    use cong_fun_bin_eq;
+    use cong_fun_eq;
+    use cong_in_arg;
+
+    x : true;
+
+    let y2 = imply_cong(x) : cong'(prop_imply');
+    let y3 = imply_sym_def(x) : prop_imply' == sym(a, sym(b, a' => b'));
+    let y4 = cong_in_arg(y2, y3) : cong'(sym(a, sym(b, a' => b')));
+    let y5 = imply_ty(x) : (prop_imply' : prop' => prop' => prop');
+    let y6 = cong_fun_bin_eq(y2, y4, y5, y3) :
+        prop_imply'(a, b) == sym(a, sym(b, a' => b'))(a, b);
+    let r = y6() : prop_imply'(a, b) == (a => b);
     return r;
 }
 
