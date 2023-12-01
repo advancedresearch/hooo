@@ -78,7 +78,25 @@ impl Context {
                 sym_blocks.iter().any(|n| n == s)
             }
             True | False | Ty(_) | AllTy(_) => true,
-            Pow(ab) | Fun(ab) | And(ab) | Or(ab) | Imply(ab) |
+            LocSym(a) => {
+                sym_blocks.push(a.clone());
+                true
+            }
+            Pow(ab) => {
+                let n = sym_blocks.len();
+                let res = self.is_type_declared(&ab.1, sym_blocks) &&
+                    self.is_type_declared(&ab.0, sym_blocks);
+                sym_blocks.truncate(n);
+                res
+            }
+            Fun(ab) => {
+                let n = sym_blocks.len();
+                let res = self.is_type_declared(&ab.0, sym_blocks) &&
+                    self.is_type_declared(&ab.1, sym_blocks);
+                sym_blocks.truncate(n);
+                res
+            }
+            And(ab) | Or(ab) | Imply(ab) |
             App(ab) | Sd(ab) | Jud(ab) | Comp(ab) | Q(ab) | Pair(ab) =>
                 self.is_type_declared(&ab.0, sym_blocks) &&
                 self.is_type_declared(&ab.1, sym_blocks),
@@ -466,6 +484,8 @@ pub enum Type {
     All(Box<Type>),
     /// Symbol.
     Sym(Arc<String>),
+    /// Locally declared symbol.
+    LocSym(Arc<String>),
     /// Application.
     App(Box<(Type, Type)>),
     /// Symbolic distinction.
@@ -554,6 +574,7 @@ impl Type {
             Imply(_) => Some(Op::Imply),
             All(_) => Some(Op::All),
             Sym(_) => None,
+            LocSym(_) => None,
             App(_) => Some(Op::App),
             Sd(_) => Some(Op::Sd),
             Jud(_) => Some(Op::Jud),
@@ -693,6 +714,7 @@ impl fmt::Display for Type {
             Imply(ab) => write!(w, "{} => {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             All(a) => write!(w, "all({})", a.to_str(true, op))?,
             Sym(a) => write!(w, "{}'", a)?,
+            LocSym(a) => write!(w, "sym {}", a)?,
             App(ab) => write!(w, "{}({})", ab.0.to_str(false, op), ab.1)?,
             Sd(ab) => write!(w, "sd({}, {})", ab.0, ab.1)?,
             Jud(ab) => write!(w, "{} : {}", ab.0.to_str(false, op), ab.1.to_str(true, op))?,
@@ -728,6 +750,7 @@ impl Type {
             Fun(ab) => ab.1.is_safe_to_prove(),
             AllTy(_) | All(_) => false,
             Sym(_) => true,
+            LocSym(_) => true,
             App(ab) => {
                 if let SymBlock(_) = &ab.0 {false} else {true}
             }
@@ -769,6 +792,7 @@ impl Type {
             Or(ab) => or(ab.0.lift(), ab.1.lift()),
             All(_) => self,
             Sym(_) => self,
+            LocSym(_) => self,
             App(ab) => app(ab.0.lift(), ab.1.lift()),
             Sd(ab) => sd(ab.0.lift(), ab.1.lift()),
             Jud(ab) => jud(ab.0.lift(), ab.1.lift()),
@@ -821,6 +845,18 @@ impl Type {
             (False, False) => Ok(()),
             (Ty(a), Ty(b)) => if a == b {Ok(())}
                 else {Err(format!("Could not unify type:\n\n  {}\n\nWith:\n\n  {}\n", a, b))},
+            (LocSym(a), LocSym(b)) => if a == b {Ok(())}
+                else {
+                    for (ty, _) in bind.iter() {
+                        if let Type::Sym(name) = ty {
+                            if name == a {
+                                return Err(format!("Local symbol already bound:\n\n  {}\n", a))
+                            }
+                        }
+                    }
+                    bind.push((Sym(a.clone()), Sym(b.clone())));
+                    Ok(())
+                },
             (Sym(a), Sym(b)) => {
                 for (ty, v) in bind.iter() {
                     if let Type::Sym(name) = ty {
@@ -921,6 +957,18 @@ impl Type {
             Ty(_) => self.clone(),
             Sym(_) => self.clone(),
             AllTy(_) => self.clone(),
+            LocSym(a) => {
+                for (arg, val) in bind {
+                    if let Sym(name) = arg {
+                        if name == a {
+                            if let Sym(other_name) = val {
+                                return LocSym(other_name.clone());
+                            }
+                        }
+                    }
+                }
+                self.clone()
+            }
             Pow(ab) => pow(ab.0.replace(bind), ab.1.replace(bind)),
             Fun(ab) => fun(ab.0.replace(bind), ab.1.replace(bind)),
             Imply(ab) => imply(ab.0.replace(bind), ab.1.replace(bind)),
@@ -958,7 +1006,7 @@ impl Type {
         use Type::*;
 
         match self {
-            True | False | Ty(_) | Sym(_) => Some(self.clone()),
+            True | False | Ty(_) | Sym(_) | LocSym(_) => Some(self.clone()),
             All(s) => Some((**s).clone()),
             And(ab) => Some(and(ab.0.de_all()?, ab.1.de_all()?)),
             Or(ab) => Some(or(ab.0.de_all()?, ab.1.de_all()?)),
@@ -983,7 +1031,7 @@ impl Type {
         use Type::*;
 
         match self {
-            True | False | Ty(_) | AllTy(_) => self.clone(),
+            True | False | Ty(_) | AllTy(_) | LocSym(_) => self.clone(),
             And(ab) => and(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Or(ab) => or(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Imply(ab) => imply(ab.0.de_sym(bind), ab.1.de_sym(bind)),
@@ -1145,6 +1193,7 @@ impl Type {
             (All(a), b) if !contra => a.has_(contra, b),
             (a, All(b)) if contra => a.has_(contra, b),
             (Sym(a), Sym(b)) if a == b => true,
+            (LocSym(a), LocSym(b)) if a == b => true,
             
             (App(ab), App(cd)) |
             (Sd(ab), Sd(cd)) |
@@ -1364,6 +1413,7 @@ pub fn para(a: Type) -> Type {pow(Type::False, a)}
 pub fn app(a: Type, b: Type) -> Type {Type::App(Box::new((a, b)))}
 pub fn all(a: Type) -> Type {Type::All(Box::new(a.lift()))}
 pub fn sym(a: &str) -> Type {Type::Sym(Arc::new(a.into()))}
+pub fn loc_sym(a: &str) -> Type {Type::LocSym(Arc::new(a.into()))}
 pub fn sd(a: Type, b: Type) -> Type {Type::Sd(Box::new((a, b)))}
 pub fn jud(a: Type, b: Type) -> Type {Type::Jud(Box::new((a, b)))}
 pub fn comp(a: Type, b: Type) -> Type {Type::Comp(Box::new((a, b)))}
@@ -1466,6 +1516,14 @@ mod tests {
         let a: Type = "sym(a, a')".try_into().unwrap();
         assert_eq!(a, sym_block(Arc::new("a".into()), sym("a")));
         assert_eq!(format!("{}", a), "sym(a, a')");
+    
+        let a: Type = "sym a".try_into().unwrap();
+        assert_eq!(a, loc_sym("a"));
+        assert_eq!(format!("{}", a), "sym a");
+
+        let a: Type = "b^(sym a)".try_into().unwrap();
+        assert_eq!(a, pow(ty("b"), loc_sym("a")));
+        assert_eq!(format!("{}", a), "b^(sym a)");
     }
 
     #[test]
