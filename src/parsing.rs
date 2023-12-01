@@ -413,6 +413,9 @@ fn parse_ty(
         } else if let Ok((range, val)) = convert.meta_string("sym") {
             convert.update(range);
             ty = Some(Type::Sym(val));
+        } else if let Ok((range, val)) = convert.meta_string("loc_sym") {
+            convert.update(range);
+            ty = Some(Type::LocSym(val));
         } else if let Ok((range, val)) = parse_ty_var("var", convert, ignored) {
             convert.update(range);
             ty = Some(val);
