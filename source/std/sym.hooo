@@ -5,6 +5,36 @@ fn sym_fun_eq : true -> sym(a, f(a')) == f {
     return r;
 }
 
+fn sym_transport : sym(a, b) & (b == c)^(sym a) -> sym(a, c) {
+    axiom sym_transport : sym(a, b) & (b == c)^(sym a) -> sym(a, c);
+    x : sym(a, b) & (b == c)^(sym a);
+    let r = sym_transport(x) : sym(a, c);
+    return r;
+}
+
+fn sym_eq : (a == b)^(sym c) -> sym(c, a) == sym(c, b) {
+    use eq_symmetry;
+    use pow_transitivity;
+    use refl;
+    use sym_transport;
+
+    x : (a == b)^(sym c);
+
+    let x2 = pow_transitivity(x, eq_symmetry) : (b == a)^(sym c);
+    lam f : sym(c, a) => sym(c, b) {
+        y : sym(c, a);
+        let r = sym_transport(y, x) : sym(c, b);
+        return r;
+    }
+    lam g : sym(c, b) => sym(c, a) {
+        y : sym(c, b);
+        let r = sym_transport(y, x2) : sym(c, a);
+        return r;
+    }
+    let r = refl(f, g) : sym(c, a) == sym(c, b);
+    return r;
+}
+
 fn sym_all_pow_absurd : all(a -> b) -> false {
     x : all(a -> b);
     let x2 = x() : a -> b;
