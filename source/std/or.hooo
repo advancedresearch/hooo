@@ -10,10 +10,30 @@ fn or_ty : true -> (prop_or' : prop' => prop' => prop') {
     return r;
 }
 
-fn or_def : true -> prop_or'(a, b) == (a | b) {
-    axiom or_def : true -> prop_or'(a, b) == (a | b);
+fn or_sym_def : true -> prop_or' == sym(a, sym(b, a' | b')) {
+    axiom or_sym_def : true -> prop_or' == sym(a, sym(b, a' | b'));
     x : true;
-    let r = or_def(x) : prop_or'(a, b) == (a | b);
+    let r = or_sym_def(x) : prop_or' == sym(a, sym(b, a' | b'));
+    return r;
+}
+
+fn or_def : true -> prop_or'(a, b) == (a | b) {
+    use or_cong;
+    use or_sym_def;
+    use or_ty;
+    use cong_fun_bin_eq;
+    use cong_fun_eq;
+    use cong_in_arg;
+
+    x : true;
+
+    let y2 = or_cong(x) : cong'(prop_or');
+    let y3 = or_sym_def(x) : prop_or' == sym(a, sym(b, a' | b'));
+    let y4 = cong_in_arg(y2, y3) : cong'(sym(a, sym(b, a' | b')));
+    let y5 = or_ty(x) : (prop_or' : prop' => prop' => prop');
+    let y6 = cong_fun_bin_eq(y2, y4, y5, y3) :
+        prop_or'(a, b) == sym(a, sym(b, a' | b'))(a, b);
+    let r = y6() : prop_or'(a, b) == (a | b);
     return r;
 }
 
