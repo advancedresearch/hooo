@@ -539,3 +539,28 @@ fn cong_bin_and : cong'(f) & cong'(g) -> cong'(sym(a, f(a') & g(a'))) {
     return r;
 }
 
+fn cong_bin_or : cong'(f) & cong'(g) -> cong'(sym(a, f(a') | g(a'))) {
+    use or_cong;
+    use cong_bin;
+    use cong_in_arg;
+    use prop_or;
+    use sym_eq;
+    use triv;
+
+    x : cong'(f);
+    y : cong'(g);
+
+    let z = triv(or_cong) : cong'(prop_or');
+    let z2 = cong_bin(x, y, z) : cong'(sym(a, prop_or'(f(a'), g(a'))));
+    fn x2 : sym a  ->  prop_or'(f(a'), g(a')) == (f(a') | g(a')) {
+        sym a;
+        use or_def;
+        use triv;
+        let r = triv(or_def) : prop_or'(f(a'), g(a')) == (f(a') | g(a'));
+        return r;
+    }
+    let y2 = sym_eq(x2) : sym(a, prop_or'(f(a'), g(a'))) == sym(a, f(a') | g(a'));
+    let r = cong_in_arg(z2, y2) : cong'(sym(a, f(a') | g(a')));
+    return r;
+}
+
