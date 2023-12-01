@@ -10,10 +10,30 @@ fn eq_ty : true -> (prop_eq' : prop' => prop' => prop') {
     return r;
 }
 
-fn eq_def : true -> prop_eq'(a, b) == (a == b) {
-    axiom eq_def : true -> prop_eq'(a, b) == (a == b);
+fn eq_sym_def : true -> prop_eq' == sym(a, sym(b, a' == b')) {
+    axiom eq_sym_def : true -> prop_eq' == sym(a, sym(b, a' == b'));
     x : true;
-    let r = eq_def(x) : prop_eq'(a, b) == (a == b);
+    let r = eq_sym_def(x) : prop_eq' == sym(a, sym(b, a' == b'));
+    return r;
+}
+
+fn eq_def : true -> prop_eq'(a, b) == (a == b) {
+    use eq_cong;
+    use eq_sym_def;
+    use eq_ty;
+    use cong_fun_bin_eq;
+    use cong_fun_eq;
+    use cong_in_arg;
+
+    x : true;
+
+    let y2 = eq_cong(x) : cong'(prop_eq');
+    let y3 = eq_sym_def(x) : prop_eq' == sym(a, sym(b, a' == b'));
+    let y4 = cong_in_arg(y2, y3) : cong'(sym(a, sym(b, a' == b')));
+    let y5 = eq_ty(x) : (prop_eq' : prop' => prop' => prop');
+    let y6 = cong_fun_bin_eq(y2, y4, y5, y3) :
+        prop_eq'(a, b) == sym(a, sym(b, a' == b'))(a, b);
+    let r = y6() : prop_eq'(a, b) == (a == b);
     return r;
 }
 
