@@ -181,10 +181,17 @@ fn nat_add_from_zero_right : (a : nat') & (add'(z', a) == z') -> a == z' {
 }
 
 fn nat_add_zero_left_cong : true -> cong'(sym(a, add'(z', a') == a')) {
+    use cong_app;
+    use cong_bin_eq_fst;
+    use nat_add_cong;
+    use nat_add_ty;
 
     x : true;
 
-    axiom r : cong'(sym(a, add'(z', a') == a'));
+    let y = nat_add_cong(x) : cong'(add');
+    let y2 = nat_add_ty(x) : (add' : nat' => nat' => nat');
+    let x2 = cong_app(y, y2) : cong'(add'(z'));
+    let r = cong_bin_eq_fst(x2) : cong'(sym(a, add'(z', a') == a'));
     return r;
 }
 
