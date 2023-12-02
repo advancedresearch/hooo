@@ -494,6 +494,19 @@ fn tauto_cong_in_both_args :
     return r;
 }
 
+fn cong_sym_id : true -> cong'(sym(a, a')) {
+    use cong_from;
+    use refl;
+    
+    x : true;
+
+    let x2 = refl() : all(a == b -> a == b);
+    let x3 = x2() : all(a == b -> sym(a, a')(a) == sym(a, a')(b));
+    let x4 = x3() : sym(f, all(a == b -> f'(a) == f'(b)))(sym(a, a'));
+    let r = cong_from(x4) : cong'(sym(a, a'));
+    return r;
+}
+
 fn cong_bin :
     cong'(f) & cong'(g) & cong'(h) -> cong'(sym(a, h(f(a'), g(a'))))
 {
@@ -511,6 +524,27 @@ fn cong_bin :
     let x3 = comp_cong(z, x2) : cong'((h . (f, g)));
     let x4 = triv(comp_tup_sym_def) : (h . (f, g)) == sym(a, h(f(a'), g(a')));
     let r = cong_in_arg(x3, x4) : cong'(sym(a, h(f(a'), g(a'))));
+    return r;
+}
+
+fn cong_bin_fst : cong'(f) & cong'(h) -> cong'(sym(a, h(f(a'), a'))) {
+    use comp_cong;
+    use comp_tup_sym_def;
+    use cong_in_arg;
+    use cong_sym_id;
+    use triv;
+    use tup_cong;
+
+    x : cong'(f);
+    z : cong'(h);
+
+    let x2 = triv(cong_sym_id) : cong'(sym(a, a'));
+    let x3 = tup_cong(x, x2) : cong'((f, sym(a, a')));
+    let x4 = comp_cong(z, x3) : cong'((h . (f, sym(a, a'))));
+    let x5 = triv(comp_tup_sym_def) :
+        (h . (f, sym(a, a'))) == sym(a, h(f(a'), sym(a, a')(a')));
+    let x6 = x5() : (h . (f, sym(a, a'))) == sym(a, h(f(a'), a'));
+    let r = cong_in_arg(x4, x6) : cong'(sym(a, h(f(a'), a')));
     return r;
 }
 
@@ -611,6 +645,30 @@ fn cong_bin_eq : cong'(f) & cong'(g) -> cong'(sym(a, f(a') == g(a'))) {
     }
     let y2 = sym_eq(x2) : sym(a, prop_eq'(f(a'), g(a'))) == sym(a, f(a') == g(a'));
     let r = cong_in_arg(z2, y2) : cong'(sym(a, f(a') == g(a')));
+    return r;
+}
+
+fn cong_bin_eq_fst : cong'(f) -> cong'(sym(a, f(a') == a')) {
+    use cong_bin_fst;
+    use cong_in_arg;
+    use eq_cong;
+    use prop_eq;
+    use sym_eq;
+    use triv;
+
+    x : cong'(f);
+
+    let z = triv(eq_cong) : cong'(prop_eq');
+    let z2 = cong_bin_fst(x, z) : cong'(sym(a, prop_eq'(f(a'), a')));
+    fn x2 : sym a  ->  prop_eq'(f(a'), a') == (f(a') == a') {
+        sym a;
+        use eq_def;
+        use triv;
+        let r = triv(eq_def) : prop_eq'(f(a'), a') == (f(a') == a');
+        return r;
+    }
+    let y2 = sym_eq(x2) : sym(a, prop_eq'(f(a'), a')) == sym(a, f(a') == a');
+    let r = cong_in_arg(z2, y2) : cong'(sym(a, f(a') == a'));
     return r;
 }
 
