@@ -1365,8 +1365,10 @@ impl Loader {
     }
 }
 
+/// Represents dependency information.
 #[derive(Clone)]
 pub enum Dep {
+    /// A local path to another project.
     Path(Arc<String>),
 }
 
@@ -1381,6 +1383,7 @@ pub struct LibInfo {
 }
 
 impl LibInfo {
+    /// Loads library information from path.
     pub fn from_path(path: &Path, meta_cache: &MetaCache) -> Result<LibInfo, String> {
         use std::fs::File;
         use std::io::Read;
