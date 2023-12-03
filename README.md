@@ -210,6 +210,7 @@ all(a)     Lifts `a` to matching all types
 foo'       Symbol `foo` (see section [Symbols])
 foo'(a)    Apply symbol `foo` to `a`
 sym(f, f') Symbolic block (see section [Symbolic blocks])
+sym a      Locally declared symbol `a` (see section [Symbolic blocks])
 
 x : a      Premise/argument
 let y      Theorem/variable
@@ -375,7 +376,8 @@ Since Hooo uses implicit quantification by lifting all
 variables in `all(..)` expressions, it needs a way to
 "freeze" variables to express some statements.
 
-For example, `all(a & b -> a)` lifts `a & b -> a` to all types `a` and `b`. This is OK for statements that are provable,
+For example, `all(a & b -> a)` lifts `a & b -> a` to all types `a` and `b`.
+This is OK for statements that are provable,
 but it is not safe when one has an assumption `a -> b`.
 An assumption `all(a -> b)` is absurd.
 
@@ -411,6 +413,29 @@ In the `sym_absurd` example, one needs `a` and a symbolic block
 `sym(a, all(a' -> b))` applied to `a` to prove `false`.
 The applied symbolic block alone is not strong enough.
 
+Hooo understands how to convert to and from sym-blocks automatically.
+For example, `a` is the same as `sym(b, b')(a)`.
+
+In some cases, you need to prove properties of sym-blocks.
+To make this easier, there is an axiom `sym_transport`:
+
+```text
+sym_transport : sym(a, b) & (b == c)^(sym a) -> sym(a, c)
+```
+
+This allows you to transport the body expression of a sym-block.
+The type `sym a` has no term, but you can just declare a symbol locally:
+
+```text
+fn sym_eq_refl : sym a  ->  a' == a' {
+    sym a;
+    use eq_refl;
+    use triv;
+    let r = triv(eq_refl) : a' == a';
+    return r;
+}
+```
+
 ### Congruence
 
 An operator `f` is normal congruent when:
@@ -434,8 +459,42 @@ are some operators which are tautological congruent.
 
 For example, path semantical quality and symbolic distinction are tautological congruent.
 
+In traditional mathematics,
+definitional equality was introduced for convenience,
+which might be interpreted as
+a subjective notion of equality that is stronger
+than tautological equality.
+
+The problems with using definitional equality:
+
+- no distinction between tautological and normal equality
+- no known examples where tautological equality is not sufficient
+- normal equality is preferred, when possible
+
 Since Hooo can not assume congruence for all operators, it must be axiomized per operator.
 To learn more, see "source/std/cong.hooo".
+
+The upside is that Hooo is more logical precise.
+The downside is that normal congruence must be proved for sym-blocks, for example:
+
+```text
+fn cong_sym_id : true -> cong'(sym(a, a')) {
+    use cong_from;
+    use refl;
+
+    x : true;
+
+    let x2 = refl() : all(a == b -> a == b);
+    let x3 = x2() : all(a == b -> sym(a, a')(a) == sym(a, a')(b));
+    let x4 = x3() : sym(f, all(a == b -> f'(a) == f'(b)))(sym(a, a'));
+    let r = cong_from(x4) : cong'(sym(a, a'));
+    return r;
+}
+```
+
+Notice how this proof uses Hooo's internal knowledge
+about sym-blocks. The above proof is considered to be a
+very deep insight, because it shows that normal congruence is a natural property of mathematics.
 
 ### Symbolic distinction
 
