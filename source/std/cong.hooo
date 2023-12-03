@@ -120,17 +120,44 @@ fn cong_sym_def : true -> cong' == sym(f, all(a == b -> f'(a) == f'(b))) {
     unsafe return r;
 }
 
+fn cong_def : true -> cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f) {
+    use cong_cong;
+    use cong_fun_eq;
+    use cong_sym;
+    use cong_sym_def;
+    use triv;
+
+    x : true;
+
+    let x2 = triv(cong_sym_def) : cong' == sym(f, all(a == b -> f'(a) == f'(b)));
+    let x3 = triv(cong_cong) : cong'(cong');
+    let x4 = triv(cong_sym) : cong'(sym(f, all(a == b -> f'(a) == f'(b))));
+    let r = cong_fun_eq(x3, x4, x2) :
+        cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f);
+    unsafe return r;
+}
+
 fn cong_to : cong'(f) -> sym(f, all(a == b -> f'(a) == f'(b)))(f) {
-    axiom cong_to : cong'(f) -> sym(f, all(a == b -> f'(a) == f'(b)))(f);
+    use cong_def;
+    use eq_to_right;
+    use triv;
+
     x : cong'(f);
-    let r = cong_to(x) : sym(f, all(a == b -> f'(a) == f'(b)))(f);
+
+    let x2 = triv(cong_def) : cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f);
+    let r = eq_to_right(x2, x) : sym(f, all(a == b -> f'(a) == f'(b)))(f);
     unsafe return r;
 }
 
 fn cong_from : sym(f, all(a == b -> f'(a) == f'(b)))(f) -> cong'(f) {
-    axiom cong_from : sym(f, all(a == b -> f'(a) == f'(b)))(f) -> cong'(f);
+    use cong_def;
+    use eq_to_left;
+    use triv;
+
     x : sym(f, all(a == b -> f'(a) == f'(b)))(f);
-    let r = cong_from(x) : cong'(f);
+
+    let x2 = triv(cong_def) : cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f);
+    let r = eq_to_left(x2, x) : cong'(f);
     return r;
 }
 
@@ -224,27 +251,9 @@ fn tauto_cong_app_in_arg :
 }
 
 fn cong_in_arg : cong'(f) & (f == g) -> cong'(g) {
-    use cong_app_eq;
-    use cong_from;
-    use cong_sym;
-    use cong_to;
-    use fst;
-    use triv;
-
-    x : cong'(f);
-    y : f == g;
-
-    let x2 = cong_to(x) : sym(f, all(a == b -> f'(a) == f'(b)))(f);
-    let x3 = triv(cong_sym) : cong'(sym(f, all(a == b -> f'(a) == f'(b))));
-    let x5 = cong_app_eq(x3, y) :
-        sym(f, all(a == b -> f'(a) == f'(b)))(f) ==
-        sym(f, all(a == b -> f'(a) == f'(b)))(g);
-    let x6 = fst(x5) :
-        sym(f, all(a == b -> f'(a) == f'(b)))(f) =>
-        sym(f, all(a == b -> f'(a) == f'(b)))(g);
-    let x7 = x6(x2) : sym(f, all(a == b -> f'(a) == f'(b)))(g);
-    let x8 = x7() : sym(g, all(a == b -> g'(a) == g'(b)))(g);
-    let r = cong_from(x8) : cong'(g);
+    axiom cong_in_arg : cong'(f) & (f == g) -> cong'(g);
+    x : cong'(f) & (f == g);
+    let r = cong_in_arg(x) : cong'(g);
     return r;
 }
 
@@ -530,14 +539,9 @@ fn cong_sym_id : true -> cong'(sym(a, a')) {
 }
 
 fn cong_cong : true -> cong'(cong') {
-    use cong_eq;
-    use cong_from;
-
+    axiom cong_cong : true -> cong'(cong');
     x : true;
-
-    let x2 = cong_eq() : all(a == b -> cong'(a) == cong'(b));
-    let x3 = x2() : sym(f, all(a == b -> f'(a) == f'(b)))(cong');
-    let r = cong_from(x3) : cong'(cong');
+    let r = cong_cong(x) : cong'(cong');
     return r;
 }
 

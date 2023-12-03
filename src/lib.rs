@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 use std::sync::Arc;
+use std::sync::mpsc::Sender;
 use rustc_hash::FxHashSet as HashSet;
 use rustc_hash::FxHashMap as HashMap;
 use std::fmt;
@@ -11,6 +12,7 @@ use meta_cache::MetaCache;
 
 pub mod parsing;
 pub mod meta_cache;
+pub mod cycle_detector;
 
 /// Used to keep track of how much it costs to prove something.
 pub struct Search {
@@ -1228,10 +1230,15 @@ pub struct Loader {
     pub trace: Vec<Arc<String>>,
     pub silent: bool,
     pub files: Vec<String>,
+    pub cycle_check: Option<Sender<(Arc<String>, Arc<String>)>>,
 }
 
 impl Loader {
-    pub fn new(dir: Arc<String>, meta_cache: &MetaCache) -> Result<Loader, String> {
+    pub fn new(
+        dir: Arc<String>,
+        meta_cache: &MetaCache,
+        cycle_check: Option<Sender<(Arc<String>, Arc<String>)>>
+    ) -> Result<Loader, String> {
         use rayon::prelude::*;
         use std::sync::Mutex;
 
@@ -1244,6 +1251,7 @@ impl Loader {
             trace: vec![],
             silent: false,
             files: vec![],
+            cycle_check,
         };
 
         let std = parsing::lib_str(include_str!("../source/std/Hooo.config"), meta_cache)?;
@@ -1335,6 +1343,9 @@ impl Loader {
             for tr in &self.trace {
                 if &**tr == &**f {
                     return Err(format!("Cyclic proof, `{}` uses `{}`", tr, f));
+                }
+                if let Some(rx) = self.cycle_check.as_ref() {
+                    let _ = rx.send((tr.clone(), f.clone()));
                 }
             }
         }
