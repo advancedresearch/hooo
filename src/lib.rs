@@ -1307,27 +1307,25 @@ impl Loader {
         Ok(loader)
     }
 
-    pub fn load_info(&mut self, meta_cache: &MetaCache) -> Result<Option<LibInfo>, String> {
+    pub fn load_info(
+        &mut self,
+        meta_cache: &MetaCache
+    ) -> Result<Option<LibInfo>, String> {
         let path = Path::new(&**self.dir).join("Hooo.config");
-        if path.exists() {
-            match LibInfo::from_path(&path, meta_cache) {
-                Ok(x) => {
-                    for dep in &x.dependencies {
-                        match dep {
-                            Dep::Path(p) => {
-                                let dep_path = Path::new(&**self.dir).join(&**p).join("Hooo.config");
-                                match LibInfo::from_path(&dep_path, meta_cache) {
-                                    Ok(x) => self.dependencies.push(x),
-                                    Err(err) => return Err(err),
-                                }
-                            }
-                        }
-                    }
-                    Ok(Some(x))
+        if !path.exists() {return Ok(None)};
+
+        let x = LibInfo::from_path(&path, meta_cache)?;
+        for dep in &x.dependencies {
+            match dep {
+                Dep::Path(p) => {
+                    let dep_path = Path::new(&**self.dir)
+                        .join(&**p).join("Hooo.config");
+                    let x = LibInfo::from_path(&dep_path, meta_cache)?;
+                    self.dependencies.push(x);
                 }
-                Err(err) => Err(err),
             }
-        } else {Ok(None)}
+        }
+        Ok(Some(x))
     }
 
     pub fn load_fun(&mut self, ns: &[Arc<String>], f: &Arc<String>) -> Result<Type, String> {
