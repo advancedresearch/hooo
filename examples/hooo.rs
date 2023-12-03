@@ -50,15 +50,37 @@ fn main() {
         let path = Path::new(&file);
         let mut meta_cache = MetaCache::restore(meta_store_file);
         if path.is_dir() {
-            let ref mut loader = match Loader::new(Arc::new(file.clone()), &mut meta_cache) {
+            let (tx, rx) = std::sync::mpsc::channel();
+            let mut loader = match Loader::new(
+                Arc::new(file.clone()),
+                &mut meta_cache,
+                Some(tx),
+            ) {
                 Ok(x) => x,
                 Err(err) => {
                     eprintln!("ERROR:\n{}", err);
                     return;
                 }
             };
-            match lib_check(loader, &mut meta_cache, overwrite) {
-                Ok(()) => {}
+            match lib_check(&mut loader, &mut meta_cache, overwrite) {
+                Ok(()) => {
+                    // Detect cycle, if any.
+                    drop(loader);
+                    let cycle_detector = hooo::cycle_detector::CycleDetector::new(rx);
+                    if let Some(cycles) = cycle_detector.cycles() {
+                        let mut names = vec![None; cycle_detector.ids.len()];
+                        for name in cycle_detector.ids.keys() {
+                            names[*cycle_detector.ids.get(name).unwrap()] = Some(name);
+                        }
+                        eprintln!("ERROR:");
+                        eprintln!("Cycles detected:\n");
+                        for &(a, b) in &cycles {
+                            eprintln!("  {} -> {}",
+                                names[a].unwrap(), names[b].unwrap());
+                        }
+                        eprintln!("");
+                    }
+                }
                 Err(err) => {
                     eprintln!("\nERROR:\n{}", err);
                     return;
@@ -66,7 +88,11 @@ fn main() {
             }
         } else {
             let dir: String = path.parent().unwrap().to_str().unwrap().into();
-            let ref mut loader = match Loader::new(Arc::new(dir), &mut meta_cache) {
+            let ref mut loader = match Loader::new(
+                Arc::new(dir),
+                &mut meta_cache,
+                None,
+            ) {
                 Ok(x) => x,
                 Err(err) => {
                     eprintln!("ERROR:\n{}", err);
@@ -101,7 +127,7 @@ fn lib_check(
     use std::fs::File;
     use std::io::Write as OtherWrite;
     use std::sync::Mutex;
-
+ 
     let path = Path::new(&**loader.dir).join("Hooo.config");
     let lib: Option<LibInfo> = loader.load_info(meta_cache)?;
   
@@ -110,7 +136,11 @@ fn lib_check(
     loader.silent = true;
     let error: Arc<Mutex<Result<(), String>>> = Arc::new(Ok(()).into());
     let _ = (0..files.len()).into_par_iter().map(|i| {
-        if let Err(err) = proof_check(files[i].clone(), &mut loader.clone(), &meta_cache) {
+        if let Err(err) = proof_check(
+            files[i].clone(),
+            &mut loader.clone(),
+            &meta_cache
+        ) {
             let mut error = error.lock().unwrap();
             *error = Err(format!("In `{}`:\n{}", files[i], err));
             None
