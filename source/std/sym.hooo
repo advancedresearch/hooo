@@ -51,6 +51,14 @@ fn sym_absurd : a & sym(a, all(a' -> b))(a) -> false {
     return r;
 }
 
+fn sym_eq_refl : sym a  ->  a' == a' {
+    sym a;
+    use eq_refl;
+    use triv;
+    let r = triv(eq_refl) : a' == a';
+    return r;
+}
+
 fn sym_from : sym(a, a')(a) -> a {
     x : sym(a, a')(a);
     let r = x() : a;
