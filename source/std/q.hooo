@@ -118,6 +118,16 @@ fn q_to_eq : a ~~ b  ->  (a == b) {
     return r;
 }
 
+fn tauto_q_to_tauto_eq : (a ~~ b)^true  ->  (a == b)^true {
+    use q_to_eq;
+    use pow_transitivity;
+
+    x : (a ~~ b)^true;
+
+    let r = pow_transitivity(x, q_to_eq) : (a == b)^true;
+    return r;
+}
+
 fn neq_to_sesh : !(a == b)  ->  !(a ~~ b) {
     x : !(a == b);
     use q_to_eq;

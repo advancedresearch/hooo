@@ -1,0 +1,161 @@
+use cong;
+use type;
+use z;
+use idt_i;
+use Id;
+
+sym I;
+sym i0;
+sym i1;
+sym iid;
+
+fn i_ty : true -> (I' : type'(z')) {
+    axiom i_ty : true -> (I' : type'(z'));
+    x : true;
+    let r = i_ty(x) : (I' : type'(z'));
+    return r;
+}
+
+fn i0_ty : true -> (i0' : I') {
+    axiom i0_ty : true -> (i0' : I');
+    x : true;
+    let r = i0_ty(x) : (i0' : I');
+    return r;
+}
+
+fn i1_ty : true -> (i1' : I') {
+    axiom i1_ty : true -> (i1' : I');
+    x : true;
+    let r = i1_ty(x) : (i1' : I');
+    return r;
+}
+
+fn i_id : true -> (iid' : Id'(I', i0', i1')) {
+    axiom i_id : true -> (iid' : Id'(I', i0', i1'));
+    x : true;
+    let r = i_id(x) : (iid' : Id'(I', i0', i1'));
+    return r;
+}
+
+fn i_left_ty : (a : type'(z')) & (f : I' => a) -> (f(i0') : a) {
+    use idt_from_interval;
+    use idt_left_mem;
+
+    x : (a : type'(z')) & (f : I' => a);
+
+    let y = idt_from_interval(x) : (idt_i'(f) : Id'(a, f(i0'), f(i1')));
+    let r = idt_left_mem(y) : (f(i0') : a);
+    return r;
+}
+
+fn i_right_ty : (a : type'(z')) & (f : I' => a) -> (f(i1') : a) {
+    use idt_from_interval;
+    use idt_right_mem;
+
+    x : (a : type'(z')) & (f : I' => a);
+
+    let y = idt_from_interval(x) : (idt_i'(f) : Id'(a, f(i0'), f(i1')));
+    let r = idt_right_mem(y) : (f(i1') : a);
+    return r;
+}
+
+fn iq_ty : (a : c) & (b : c) -> ((a ~~ b) : I' => c) {
+    axiom iq_ty : (a : c) & (b : c) -> ((a ~~ b) : I' => c);
+    x : (a : c) & (b : c);
+    let r = iq_ty(x) : ((a ~~ b) : I' => c);
+    return r;
+}
+
+fn iqu_ty : (a : c) -> (~a : I' => c) {
+    use eq_qu_q;
+    use eq_to_left;
+    use iq_ty;
+    use qu_to_q;
+    use triv;
+    use ty_eq_left;
+
+    x : (a : c);
+
+    let y = iq_ty(x, x) : ((a ~~ a) : I' => c);
+    let y2 = triv(eq_qu_q) : (~a == (a ~~ a));
+    let y3 = ty_eq_left(y2) : ((~a : I' => c) == ((a ~~ a) : I' => c));
+    let r = eq_to_left(y3, y) : (~a : I' => c);
+    return r;
+}
+
+fn iq_cong : true -> cong'(a ~~ b) {
+    axiom iq_cong : true -> cong'(a ~~ b);
+    x : true;
+    let r = iq_cong(x) : cong'(a ~~ b);
+    return r;
+}
+
+fn iqu_cong : true -> cong'(~a) {
+    use iq_cong;
+    use eq_qu_q;
+    use eq_symmetry;
+    use cong_in_arg;
+
+    x : true;
+
+    let y = iq_cong(x) : cong'(a ~~ a);
+    let y2 = eq_qu_q(x) : (~a == (a ~~ a));
+    let y3 = eq_symmetry(y2) : (a ~~ a) == ~a;
+    let r = cong_in_arg(y, y3) : cong'(~a);
+    return r;
+}
+
+fn iq_left : true -> (a ~~ b)(i0') == a {
+    axiom iq_left : true -> (a ~~ b)(i0') == a;
+    x : true;
+    let r = iq_left(x) : (a ~~ b)(i0') == a;
+    return r;
+}
+
+fn iq_right : true -> (a ~~ b)(i1') == b {
+    axiom iq_right : true -> (a ~~ b)(i1') == b;
+    x : true;
+    let r = iq_right(x) : (a ~~ b)(i1') == b;
+    return r;
+}
+
+fn iqu_left : true -> (~a)(i0') == a {
+    use cong_fun_eq;
+    use cong_in_arg;
+    use eq_q_qu;
+    use eq_transitivity_rev_sym;
+    use iq_cong;
+    use iq_left;
+    use iqu_cong;
+
+    x : true;
+
+    let y = iq_left(x) : (a ~~ a)(i0') == a;
+    let y3 = iq_cong(x) : cong'(a ~~ a);
+    let y4 = eq_q_qu(x) : ((a ~~ a) == ~a);
+    let y5 = iqu_cong(x) : cong'(~a);
+    let y6 = cong_fun_eq(y3, y5, y4) : (a ~~ a)(i0') == (~a)(i0');
+    let r = eq_transitivity_rev_sym(y6, y) : (~a)(i0') == a;
+    return r;
+}
+
+fn iqu_right : true -> (~a)(i1') == a {
+    use cong_fun_eq;
+    use cong_in_arg;
+    use eq_q_qu;
+    use eq_transitivity_rev_sym;
+    use iq_cong;
+    use iq_right;
+    use iqu_cong;
+
+    x : true;
+
+    let y = iq_right(x) : (a ~~ a)(i1') == a;
+    let y3 = iq_cong(x) : cong'(a ~~ a);
+    let y4 = eq_q_qu(x) : ((a ~~ a) == ~a);
+    let y5 = iqu_cong(x) : cong'(~a);
+    let y6 = cong_fun_eq(y3, y5, y4) : (a ~~ a)(i1') == (~a)(i1');
+    let r = eq_transitivity_rev_sym(y6, y) : (~a)(i1') == a;
+    return r;
+}
+

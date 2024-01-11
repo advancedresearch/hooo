@@ -1,0 +1,109 @@
+use z;
+use type;
+use I;
+use i0;
+use i1;
+
+sym Id;
+sym idt;
+sym idt_r;
+sym idt_s;
+sym idt_t;
+sym idt_i;
+
+fn idt_type_formation : (a : type'(z')) & (b1 : a) & (b2 : a)
+-> (Id'(a, b1, b2) : type'(z')) {
+    axiom idt_type_formation : (a : type'(z')) & (b1 : a) & (b2 : a)
+        -> (Id'(a, b1, b2) : type'(z'));
+    x : (a : type'(z')) & (b1 : a) & (b2 : a);
+    let r = idt_type_formation(x) : (Id'(a, b1, b2) : type'(z'));
+    return r;
+}
+
+fn idt_refl_from : (b : a) -> (idt_r'(b) : Id'(a, b, b)) {
+    axiom idt_refl_from : (b : a) -> (idt_r'(b) : Id'(a, b, b));
+    x : (b : a);
+    let r = idt_refl_from(x) : (idt_r'(b) : Id'(a, b, b));
+    return r;
+}
+
+fn idt_refl_to : (p : Id'(a, b, b)) -> (b : a) {
+    axiom idt_refl_to : (p : Id'(a, b, b)) -> (b : a);
+    x : (p : Id'(a, b, b));
+    let r = idt_refl_to(x) : (b : a);
+    return r;
+}
+
+fn idt_symmetry : (p : Id'(a, b1, b2)) -> (idt_s'(p) : Id'(a, b2, b1)) {
+    axiom idt_symmetry : (p : Id'(a, b1, b2)) -> (idt_s'(p) : Id'(a, b2, b1));
+    x : (p : Id'(a, b1, b2));
+    let r = idt_symmetry(x) : (idt_s'(p) : Id'(a, b2, b1));
+    return r;
+}
+
+fn idt_transitivity :
+    (p : Id'(a, b1, b2)) & (q : Id'(a, b2, b3)) -> (idt_t'(p, q) : Id'(a, b1, b3))
+{
+    axiom idt_transitivity : (p : Id'(a, b1, b2)) & (q : Id'(a, b2, b3))
+        -> (idt_t'(p, q) : Id'(a, b1, b3));
+    x : (p : Id'(a, b1, b2)) & (q : Id'(a, b2, b3));
+    let r = idt_transitivity(x) : (idt_t'(p, q) : Id'(a, b1, b3));
+    return r;
+}
+
+fn idt_left : (p : Id'(a, b1, b2)) -> (idt_t'(p, idt_s'(p)) : Id'(a, b1, b1)) {
+    use idt_refl_to;
+    use idt_symmetry;
+    use idt_transitivity;
+ 
+    x : (p : Id'(a, b1, b2));
+
+    let y = idt_symmetry(x) : (idt_s'(p) : Id'(a, b2, b1));
+    let r = idt_transitivity(x, y) : (idt_t'(p, idt_s'(p)) : Id'(a, b1, b1));
+    return r;
+}
+
+fn idt_right : (p : Id'(a, b1, b2)) -> (idt_t'(idt_s'(p), p) : Id'(a, b2, b2)) {
+    use idt_refl_to;
+    use idt_symmetry;
+    use idt_transitivity;
+
+    x : (p : Id'(a, b1, b2));
+
+    let y = idt_symmetry(x) : (idt_s'(p) : Id'(a, b2, b1));
+    let r = idt_transitivity(y, x) : (idt_t'(idt_s'(p), p) : Id'(a, b2, b2));
+    return r;
+}
+
+fn idt_left_mem : (p : Id'(a, b1, b2)) -> (b1 : a) {
+    use idt_left;
+    use idt_refl_to;
+ 
+    x : (p : Id'(a, b1, b2));
+
+    let y = idt_left(x) : (idt_t'(p, idt_s'(p)) : Id'(a, b1, b1));
+    let r = idt_refl_to(y) : (b1 : a);
+    return r;
+}
+
+fn idt_right_mem : (p : Id'(a, b1, b2)) -> (b2 : a) {
+    use idt_right;
+    use idt_refl_to;
+
+    x : (p : Id'(a, b1, b2));
+
+    let y = idt_right(x) : (idt_t'(idt_s'(p), p) : Id'(a, b2, b2));
+    let r = idt_refl_to(y) : (b2 : a);
+    return r;
+}
+
+fn idt_from_interval :
+    (a : type'(z')) & (f : I' => a) -> (idt_i'(f) : Id'(a, f(i0'), f(i1')))
+{
+    axiom idt_from_interval : (a : type'(z')) & (f : I' => a)
+        -> (idt_i'(f) : Id'(a, f(i0'), f(i1')));
+    x : (a : type'(z')) & (f : I' => a);
+    let r = idt_from_interval(x) : (idt_i'(f) : Id'(a, f(i0'), f(i1')));
+    return r;
+}
+

@@ -64,6 +64,28 @@ fn q_to_qu : a ~~ a  ->  ~a {
     return r;
 }
 
+fn eq_qu_q : true  ->  ~a == (a ~~ a) {
+    use q_to_qu;
+    use qu_to_q;
+    use refl;
+
+    x : true;
+
+    let r = refl(qu_to_q, q_to_qu) : (~a == (a ~~ a));
+    return r;
+}
+
+fn eq_q_qu : true  ->  (a ~~ a) == ~a {
+    use eq_symmetry;
+    use eq_qu_q;
+
+    x : true;
+
+    let y = eq_qu_q(x) : ~a == (a ~~ a);
+    let r = eq_symmetry(y) : (a ~~ a) == ~a;
+    return r;
+}
+
 fn nqu_to_sesh : !~a  ->  !(a ~~ a) {
     x: !~a;
     use q_to_qu;
