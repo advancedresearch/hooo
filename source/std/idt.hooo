@@ -107,3 +107,33 @@ fn idt_from_interval :
     return r;
 }
 
+fn idt_members_from_q :
+    (a : type'(z')) & ((a1 ~~ a2) : I' => a) -> (a1 : a) & (a2 : a)
+{
+    use eq_to_right;
+    use idt_from_interval;
+    use idt_left_mem;
+    use idt_right_mem;
+    use iq_left;
+    use iq_right;
+    use refl;
+    use triv;
+    use ty_eq_left;
+
+    x : (a : type'(z')) & ((a1 ~~ a2) : I' => a);
+
+    let y = idt_from_interval(x) :
+        (idt_i'(a1 ~~ a2) : Id'(a, (a1 ~~ a2)(i0'), (a1 ~~ a2)(i1')));
+    let y2 = idt_left_mem(y) : ((a1 ~~ a2)(i0') : a);
+    let y3 = idt_right_mem(y) : ((a1 ~~ a2)(i1') : a);
+    let y4 = triv(iq_left) : (a1 ~~ a2)(i0') == a1;
+    let y5 = triv(iq_right) : (a1 ~~ a2)(i1') == a2;
+    let y6 = ty_eq_left(y4) : ((a1 ~~ a2)(i0') : a) == (a1 : a);
+    let y7 = ty_eq_left(y5) : ((a1 ~~ a2)(i1') : a) == (a2 : a);
+    let y8 = eq_to_right(y6, y2) : (a1 : a);
+    let y9 = eq_to_right(y7, y3) : (a2 : a);
+    let r = refl(y8, y9) : (a1 : a) & (a2 : a);
+    return r;
+}
+
+

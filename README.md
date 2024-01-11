@@ -768,3 +768,53 @@ then you can use the following theorem:
 ```text
 ava_lower_univ : !~p & (b, a) & (a : p) -> p(b) == a
 ```
+
+### Homotopy Type Theory
+
+Homotopy Type Theory is a branch of mathematics
+that uses type theory for formalizing homotopy theory.
+Homotopy theory is a sub-field of topology which
+treats two topological spaces equivalent if the two
+spaces can be contracted into each other.
+It turns out that Homotopy Type Theory also is useful
+as a foundation for mathematics, since proofs are
+mathematical objects that correspond to paths in
+topological spaces equivalent up to homotopy.
+
+Hooo uses a version of Cubical Type Theory
+for Homotopy Type Theory.
+This version uses path semantical quality `a ~~ b` instead of lambda expressions for canonical paths, such that one can use `iq_left` or `iq_right` to calculate the end-points of a path:
+
+```text
+iq_left : true -> (a ~~ b)(i0') == a
+iq_right : true -> (a ~~ b)(i1') == b
+```
+
+Type formation of a path:
+
+```text
+iq_ty : (a : c) & (b : c) -> ((a ~~ b) : I' => c)
+```
+
+It follows that path semantical qubit `~a` gets the properties of a constant path:
+
+```text
+iqu_left : true -> (~a)(i0') == a
+iqu_right : true -> (~a)(i1') == a
+iqu_ty : (a : c) -> (~a : I' => c)
+```
+
+Terminology:
+
+```text
+a ~~ b    Canonical path between two points `a` and `b`
+~a        Constant path from point `a` to itself
+I'        Interval type
+i0'       Start of interval
+i1'       End of interval
+Id'       Identity type
+idt_r'    Reflexivity of identity type
+idt_s'    Symmetry of identity type
+idt_t'    Transitivity of identity type
+idt_i'    Identity type constructed from path
+```
