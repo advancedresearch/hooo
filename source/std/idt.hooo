@@ -20,6 +20,27 @@ fn idt_type_formation : (a : type'(z')) & (b1 : a) & (b2 : a)
     return r;
 }
 
+fn idt_eq_ty : (a1 == a2) -> (p : Id'(a1, b1, b2)) == (p : Id'(a2, b1, b2)) {
+    axiom idt_eq_ty : (a1 == a2) -> (p : Id'(a1, b1, b2)) == (p : Id'(a2, b1, b2));
+    x : (a1 == a2);
+    let r = idt_eq_ty(x) : (p : Id'(a1, b1, b2)) == (p : Id'(a2, b1, b2));
+    return r;
+}
+
+fn idt_eq_left : (b1 == b2) -> (p : Id'(a, b1, b3)) == (p : Id'(a, b2, b3)) {
+    axiom idt_eq_left : (b1 == b2) -> (p : Id'(a, b1, b3)) == (p : Id'(a, b2, b3));
+    x : (b1 == b2);
+    let r = idt_eq_left(x) : (p : Id'(a, b1, b3)) == (p : Id'(a, b2, b3));
+    return r;
+}
+
+fn idt_eq_right : (b1 == b2) -> (p : Id'(a, b3, b1)) == (p : Id'(a, b3, b2)) {
+    axiom idt_eq_right : (b1 == b2) -> (p : Id'(a, b3, b1)) == (p : Id'(a, b3, b2));
+    x : (b1 == b2);
+    let r = idt_eq_right(x) : (p : Id'(a, b3, b1)) == (p : Id'(a, b3, b2));
+    return r;
+}
+
 fn idt_refl_from : (b : a) -> (idt_r'(b) : Id'(a, b, b)) {
     axiom idt_refl_from : (b : a) -> (idt_r'(b) : Id'(a, b, b));
     x : (b : a);
@@ -136,4 +157,16 @@ fn idt_members_from_q :
     return r;
 }
 
+fn idt_to_iq : (p : Id'(a, a1, a2)) -> ((a1 ~~ a2) : I' => a) {
+    use idt_left_mem;
+    use idt_right_mem;
+    use iq_ty;
+
+    x : (p : Id'(a, a1, a2));
+
+    let y1 = idt_left_mem(x) : (a1 : a);
+    let y2 = idt_right_mem(x) : (a2 : a);
+    let r = iq_ty(y1, y2) : ((a1 ~~ a2) : I' => a);
+    return r;
+}
 

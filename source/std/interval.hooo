@@ -101,6 +101,49 @@ fn iq_eq : (c : type'(z')) -> ((a : c) & (b : c)) == ((a ~~ b) : I' => c) {
     return r;
 }
 
+fn iq_square_ty : (a1 : a) & (a2 : a) & (a3 : a) & (a4 : a)
+-> (((a1 ~~ a2) ~~ (a3 ~~ a4)) : I' => I' => a) {
+    use iq_ty;
+    
+    x1 : (a1 : a);
+    x2 : (a2 : a);
+    x3 : (a3 : a);
+    x4 : (a4 : a);
+
+    let y1 = iq_ty(x1, x2) : ((a1 ~~ a2) : I' => a);
+    let y2 = iq_ty(x3, x4) : ((a3 ~~ a4) : I' => a);
+    let r = iq_ty(y1, y2) : (((a1 ~~ a2) ~~ (a3 ~~ a4)) : I' => I' => a);
+    return r;
+}
+
+fn iq_cube_ty :
+    (a1 : a) & (a2 : a) & (a3 : a) & (a4 : a) &
+    (a5 : a) & (a6 : a) & (a7 : a) & (a8 : a) ->
+    ((((a1 ~~ a2) ~~ (a3 ~~ a4)) ~~ ((a5 ~~ a6) ~~ (a7 ~~ a8))) : I' => I' => I' => a)
+{
+    use iq_square_ty;
+    use iq_ty;
+    
+    x1 : (a1 : a);
+    x2 : (a2 : a);
+    x3 : (a3 : a);
+    x4 : (a4 : a);
+    x5 : (a5 : a);
+    x6 : (a6 : a);
+    x7 : (a7 : a);
+    x8 : (a8 : a);
+
+    let y1 = iq_square_ty(x1, x2, x3, x4) :
+        (((a1 ~~ a2) ~~ (a3 ~~ a4)) : I' => I' => a);
+    let y2 = iq_square_ty(x5, x6, x7, x8) :
+        (((a5 ~~ a6) ~~ (a7 ~~ a8)) : I' => I' => a);
+    let r = iq_ty(y1, y2) : ((
+            ((a1 ~~ a2) ~~ (a3 ~~ a4)) ~~
+            ((a5 ~~ a6) ~~ (a7 ~~ a8))
+        ) : I' => I' => I' => a);
+    return r;
+}
+
 fn iq_cong : true -> cong'(a ~~ b) {
     axiom iq_cong : true -> cong'(a ~~ b);
     x : true;

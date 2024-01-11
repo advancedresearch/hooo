@@ -804,6 +804,11 @@ iqu_right : true -> (~a)(i1') == a
 iqu_ty : (a : c) -> (~a : I' => c)
 ```
 
+This means that every type can be viewed
+as a canonical set from the perspective of
+path semantics, while still allowing types
+to behave as higher groupoids (topologies with holes) from other perspectives.
+
 Terminology:
 
 ```text
