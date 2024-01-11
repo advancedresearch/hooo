@@ -83,6 +83,24 @@ fn iqu_ty : (a : c) -> (~a : I' => c) {
     return r;
 }
 
+fn iq_eq : (c : type'(z')) -> ((a : c) & (b : c)) == ((a ~~ b) : I' => c) {
+    use iq_ty;
+    use idt_members_from_q;
+    use refl;
+
+    x : (c : type'(z'));
+
+    let g1 = iq_ty() : (a : c) & (b : c) => ((a ~~ b) : I' => c);
+    lam g2 : ((a ~~ b) : I' => c) => (a : c) & (b : c) {
+        use idt_members_from_q;
+        y : ((a ~~ b) : I' => c);
+        let r = idt_members_from_q(x, y) : (a : c) & (b : c);
+        return r;
+    }
+    let r = refl(g1, g2) : ((a : c) & (b : c)) == ((a ~~ b) : I' => c);
+    return r;
+}
+
 fn iq_cong : true -> cong'(a ~~ b) {
     axiom iq_cong : true -> cong'(a ~~ b);
     x : true;
