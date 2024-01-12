@@ -2,6 +2,7 @@ use cong;
 use type;
 use z;
 use idt_i;
+use idt_r;
 use Id;
 
 sym I;
@@ -83,7 +84,7 @@ fn iqu_ty : (a : c) -> (~a : I' => c) {
     return r;
 }
 
-fn iq_eq : (c : type'(z')) -> ((a : c) & (b : c)) == ((a ~~ b) : I' => c) {
+fn eq_mem_iq : (c : type'(z')) -> ((a : c) & (b : c)) == ((a ~~ b) : I' => c) {
     use iq_ty;
     use idt_members_from_q;
     use refl;
@@ -98,6 +99,43 @@ fn iq_eq : (c : type'(z')) -> ((a : c) & (b : c)) == ((a ~~ b) : I' => c) {
         return r;
     }
     let r = refl(g1, g2) : ((a : c) & (b : c)) == ((a ~~ b) : I' => c);
+    return r;
+}
+
+fn eq_refl_iqu : (a : type'(z')) -> (idt_r'(b) : Id'(a, b, b)) == (~b : I' => a) {
+    x : (a : type'(z'));
+
+    lam g1 : (idt_r'(b) : Id'(a, b, b)) => (~b : I' => a) {
+        use idt_left_mem;
+        use iqu_ty;
+
+        x : (idt_r'(b) : Id'(a, b, b));
+
+        let y = idt_left_mem(x) : (b : a);
+        let r = iqu_ty(y) : (~b : I' => a);
+        return r;
+    }
+    lam g2 : (~b : I' => a) => (idt_r'(b) : Id'(a, b, b)) {
+        use eq_to_right;
+        use idt_from_interval;
+        use idt_left_mem;
+        use idt_refl_from;
+        use iqu_left;
+        use triv;
+        use ty_eq_left;
+
+        y : (~b : I' => a);
+
+        let y2 = idt_from_interval(x, y) : (idt_i'(~b) : Id'(a, (~b)(i0'), (~b)(i1')));
+        let y3 = idt_left_mem(y2) : ((~b)(i0') : a);
+        let y4 = triv(iqu_left) : (~b)(i0') == b;
+        let y5 = ty_eq_left(y4) : ((~b)(i0') : a) == (b : a);
+        let y6 = eq_to_right(y5, y3) : (b : a);
+        let r = idt_refl_from(y6) : (idt_r'(b) : Id'(a, b, b));
+        return r;
+    }
+    use refl;
+    let r = refl(g1, g2) : (idt_r'(b) : Id'(a, b, b)) == (~b : I' => a);
     return r;
 }
 
