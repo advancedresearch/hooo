@@ -1,3 +1,14 @@
+fn para_to_not : false^a  ->  !a {
+    x : false^a;
+
+    lam g : !a {
+        y : a;
+        let r = x(y) : false;
+        return r;
+    }
+    return g;
+}
+
 fn tauto_not_to_para : (!a)^true  ->  false^a {
     x : (!a)^true;
     fn f : a -> (!a)^true => false {
@@ -344,6 +355,34 @@ fn pow_elim_snd : p^(a & b) & b^true -> p^a {
     }
     let x2 = pow_transitivity(y, f) : ((a & b) == a)^true;
     let r = pow_in_right_arg(x, x2) : p^a;
+    return r;
+}
+
+fn pow_elim : (a^b)^b -> a^b {
+    use pow_transitivity;
+    use pow_to_imply;
+    use hooo_imply;
+    use refl;
+
+    x : (a^b)^b;
+
+    let x2 = pow_to_imply() : (b => a)^(a^b);
+    let x3 = pow_transitivity(x, x2) : (b => a)^b;
+    let x4 = hooo_imply(x3) : b^b => a^b;
+    let x5 = refl() : b^b;
+    let r = x4(x5) : a^b;    
+    return r;
+}
+
+fn hooo_imply_elim : (b => a)^b -> (b => a) {
+    use hooo_imply;
+    use refl;
+
+    x : (b => a)^b;
+
+    let x2 = hooo_imply(x) : b^b => a^b;
+    let x3 = refl() : b^b;
+    let r = x2(x3) : a^b;
     return r;
 }
 
