@@ -22,3 +22,35 @@ fn liar_para : (false^a)^a & a^(false^a)  ->  false {
     return r;
 }
 
+fn para_liar : (false^a)^(a^true) & (a^true)^(false^a) & excm(a)^true -> false {
+    use tauto_excm_to_or_pow;
+    use triv;
+
+    x : (false^a)^(a^true);
+    y : (a^true)^(false^a);
+    z : excm(a)^true;
+    
+    let z2 = tauto_excm_to_or_pow(z) : a^true | (!a)^true;
+    lam f : a^true => false {
+        w : a^true;
+        
+        let w2 = triv(w) : a;
+        let w3 = x(w) : false^a;
+        let r = w3(w2) : false;
+        return r;
+    }
+    lam g : (!a)^true => false {
+        use tauto_not_to_para;
+        
+        w : (!a)^true;
+        
+        let w2 = tauto_not_to_para(w) : false^a;
+        let w3 = y(w2) : a^true;
+        let w4 = triv(w3) : a;
+        let r = w2(w4) : false;
+        return r;
+    }
+    let r = match z2(f, g) : false;
+    return r;
+}
+
