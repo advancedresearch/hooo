@@ -386,3 +386,72 @@ fn hooo_imply_elim : (b => a)^b -> (b => a) {
     return r;
 }
 
+fn tauto_excm_to_or : (a | !a)^true -> a^true | (!a)^true {
+    use hooo_or;
+
+    x : (a | !a)^true;
+
+    let r = hooo_or(x) : a^true | (!a)^true;
+    return r;
+}
+
+fn tauto_reduce : a^true -> a^b {
+    use pow_tr;
+    use pow_transitivity;
+
+    x : a^true;
+
+    let x2 = pow_tr() : true^b;
+    let r = pow_transitivity(x2, x) : a^b;
+    return r;
+}
+
+fn tauto_excm_to_or_pow : excm(a)^true -> a^b | (!a)^b {
+    x : excm(a)^true;
+
+    use tauto_excm_to_or;
+    let x2 = tauto_excm_to_or(x) : a^true | (!a)^true;
+    lam f : a^true => a^b | (!a)^b {
+        use left;
+        use tauto_reduce;
+
+        y : a^true;
+
+        let y2 = tauto_reduce(y) : a^b;
+        let r = left(y2) : a^b | (!a)^b;
+        return r;
+    }
+    lam g : (!a)^true => a^b | (!a)^b {
+        use right;
+        use tauto_reduce;
+
+        y : (!a)^true;
+
+        let y2 = tauto_reduce(y) : (!a)^b;
+        let r = right(y2) : a^b | (!a)^b;
+        return r;
+    }
+    let r = match x2 (f, g) : a^b | (!a)^b;
+    return r;
+}
+
+fn hooo_rev_not_excm : !(a^b) & excm(a)^true -> (!a)^b {
+    use refl;
+    use tauto_excm_to_or_pow;
+
+    x : !(a^b);
+    y : excm(a)^true;
+
+    let x2 = tauto_excm_to_or_pow(y) : a^b | (!a)^b;
+    lam f : a^b => (!a)^b {
+        z : a^b;
+
+        let z2 = x(z) : false;
+        let r = match z2 : (!a)^b;
+        return r;
+    }
+    let g = refl() : (!a)^b => (!a)^b;
+    let r = match x2 (f, g) : (!a)^b;
+    return r;
+}
+

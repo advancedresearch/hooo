@@ -8,6 +8,11 @@ fn refl : a -> a {
     return x;
 }
 
+fn pow_tr : a -> true {
+    let r = () : true;
+    return r;
+}
+
 fn curry : (a & b) => c  ->  (a => b => c) {
     x : (a & b) => c;
     lam f : a => b => c {

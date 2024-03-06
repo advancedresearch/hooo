@@ -20,3 +20,27 @@ fn excm_from : all(a | !a) -> Excm' {
     return r;
 }
 
+fn para_nexcm : !excm(a) -> false {
+    x : !excm(a);
+
+    lam f : !a {
+        y : a;
+
+        use left;
+        let y2 = left(y) : excm(a);
+        let r = x(y2) : false;
+        return r; 
+    }
+    use right;
+    let x2 = right() : !a => excm(a);
+    let x3 = x2(f) : excm(a);
+    let r = x(x3) : false;
+    return r;
+}
+
+fn nnexcm : true -> !!excm(a) {
+    use para_nexcm;
+    let r = para_nexcm() : !!excm(a);
+    return r;
+}
+
