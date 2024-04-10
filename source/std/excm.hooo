@@ -44,3 +44,43 @@ fn nnexcm : true -> !!excm(a) {
     return r;
 }
 
+fn excm_or_imply_left : excm(a)  ->  ((a => b) | (b => a)) {
+    x : excm(a);
+
+    lam f : a => ((a => b) | (b => a)) {
+        use imply_lift;
+        use right;
+        
+        z : a;
+
+        let z2 = imply_lift(z) : b => a;
+        let r = right(z2) : (a => b) | (b => a);
+        return r;
+    }
+    lam g : !a => ((a => b) | (b => a)) {
+        use absurd;
+        use imply_transitivity;
+        use left;
+
+        z : !a;
+
+        let z2 = absurd() : false => b;
+        let z3 = imply_transitivity(z, z2) : a => b;
+        let r = left(z3) : (a => b) | (b => a);
+        return r;
+    }
+    let r = match x (f, g) : (a => b) | (b => a);
+    return r;
+}
+
+fn excm_or_imply_right : excm(b)  ->  ((a => b) | (b => a)) {
+    use excm_or_imply_left;
+    use or_symmetry;
+
+    x : excm(b);
+
+    let x2 = excm_or_imply_left(x) : (b => a) | (a => b);
+    let r = or_symmetry(x2) : (a => b) | (b => a);
+    return r;
+}
+
