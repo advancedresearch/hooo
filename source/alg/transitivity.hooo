@@ -1,0 +1,203 @@
+sym transitive;
+
+fn transitive_from :
+    sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(p)  ->  transitive'(p)
+{
+    axiom transitive_from :
+        sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(p) -> transitive'(p);
+    x : sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(p);
+    let r = transitive_from(x) : transitive'(p);
+    return r;
+}
+
+fn transitive_to :
+    transitive'(p)  ->  sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(p)
+{
+    axiom transitive_to :
+        transitive'(p) -> sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(p);
+    x : transitive'(p);
+    let r = transitive_to(x) : sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(p);
+    unsafe return r;
+}
+
+use std::prop_imply;
+
+fn transitive_prop_imply : true -> transitive'(prop_imply') {
+    use transitive_from;
+
+    x : true;
+
+    fn f : true -> prop_imply'(a, b) & prop_imply'(b, c) => prop_imply'(a, c) {
+        use std::imply_def;
+        use std::imply_transitivity;
+        use std::snd;
+
+        x : true;
+
+        let x2 = imply_def(x) : prop_imply'(a, b) == (a => b);
+        let x3 = imply_def(x) : prop_imply'(b, c) == (b => c);
+        let x4 = imply_def(x) : prop_imply'(a, c) == (a => c);
+        let y = imply_transitivity() : (a => b) & (b => c) => (a => c);
+        lam y2 : prop_imply'(a, b) & prop_imply'(b, c) => (a => b) & (b => c) {
+            use std::eq_to_right;
+            use std::refl;
+
+            z1 : prop_imply'(a, b);
+            z2 : prop_imply'(b, c);
+            
+            let z3 = eq_to_right(x2, z1) : (a => b);
+            let z4 = eq_to_right(x3, z2) : (b => c);
+            let r = refl(z3, z4) : (a => b) & (b => c);
+            return r;
+        }
+        let y3 = imply_transitivity(y2, y) :
+            prop_imply'(a, b) & prop_imply'(b, c) => (a => c);
+        let y4 = snd(x4) : (a => c) => prop_imply'(a, c);
+        let r = imply_transitivity(y3, y4) :
+            prop_imply'(a, b) & prop_imply'(b, c) => prop_imply'(a, c);
+        return r;
+    }
+
+    let f2 = f() :
+        all(true -> prop_imply'(a, b) & prop_imply'(b, c) => prop_imply'(a, c));
+    let f3 = f2(x) : all(prop_imply'(a, b) & prop_imply'(b, c) => prop_imply'(a, c));
+    let f4 = f3() : sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(prop_imply');
+    let r = transitive_from(f4) : transitive'(prop_imply');
+    return r;
+}
+
+use std::prop_eq;
+
+fn transitivie_prop_eq : true -> transitive'(prop_eq') {
+    use transitive_from;
+
+    x : true;
+
+    fn f : true -> prop_eq'(a, b) & prop_eq'(b, c) => prop_eq'(a, c) {
+        use std::eq_def;
+        use std::eq_transitivity;
+        use std::imply_transitivity;
+        use std::snd;
+
+        x : true;
+
+        let x2 = eq_def(x) : prop_eq'(a, b) == (a == b);
+        let x3 = eq_def(x) : prop_eq'(b, c) == (b == c);
+        let x4 = eq_def(x) : prop_eq'(a, c) == (a == c);
+        let y = eq_transitivity() : (a == b) & (b == c) => (a == c);
+        lam y2 : prop_eq'(a, b) & prop_eq'(b, c) => (a == b) & (b == c) {
+            use std::eq_to_right;
+            use std::refl;            
+
+            z1 : prop_eq'(a, b);
+            z2 : prop_eq'(b, c);
+            let z3 = eq_to_right(x2, z1) : a == b;
+            let z4 = eq_to_right(x3, z2) : b == c;
+            let r = refl(z3, z4) : (a == b) & (b == c);
+            return r;
+        }
+        let y3 = imply_transitivity(y2, y) :
+            prop_eq'(a, b) & prop_eq'(b, c) => (a == c);
+        let y4 = snd(x4) : (a == c) => prop_eq'(a, c);
+        let r = imply_transitivity(y3, y4) :
+            prop_eq'(a, b) & prop_eq'(b, c) => prop_eq'(a, c);
+        return r;
+    }
+
+    let f2 = f() : all(true -> prop_eq'(a, b) & prop_eq'(b, c) => prop_eq'(a, c));
+    let f3 = f2(x) : all(prop_eq'(a, b) & prop_eq'(b, c) => prop_eq'(a, c));
+    let f4 = f3() : sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(prop_eq');
+    let r = transitive_from(f4) : transitive'(prop_eq');
+    return r;
+}
+
+use std::prop_and;
+
+fn transitive_prop_and : true -> transitive'(prop_and') {
+    use transitive_from;
+
+    x : true;
+
+    fn f : true -> prop_and'(a, b) & prop_and'(b, c) => prop_and'(a, c) {
+        use std::and_def;
+        use std::and_transitivity;
+        use std::imply_transitivity;
+        use std::snd;
+
+        x : true;
+
+        let x2 = and_def(x) : prop_and'(a, b) == (a & b);
+        let x3 = and_def(x) : prop_and'(b, c) == (b & c);
+        let x4 = and_def(x) : prop_and'(a, c) == (a & c);
+        let y = and_transitivity() : (a & b) & (b & c) => (a & c);
+        lam y2 : prop_and'(a, b) & prop_and'(b, c) => (a & b) & (b & c) {
+            use std::eq_to_right;
+            use std::refl;
+
+            z1 : prop_and'(a, b);
+            z2 : prop_and'(b, c);
+
+            let z3 = eq_to_right(x2, z1) : a & b;
+            let z4 = eq_to_right(x3, z2) : b & c;
+            let r = refl(z3, z4) : (a & b) & (b & c);
+            return r;
+        }
+        let y3 = imply_transitivity(y2, y) :
+            prop_and'(a, b) & prop_and'(b, c) => (a & c);
+        let y4 = snd(x4) : (a & c) => prop_and'(a, c);
+        let r = imply_transitivity(y3, y4) :
+            prop_and'(a, b) & prop_and'(b, c) => prop_and'(a, c);
+        return r;
+    }
+
+    let f2 = f() : all(true -> prop_and'(a, b) & prop_and'(b, c) => prop_and'(a, c));
+    let f3 = f(x) : all(prop_and'(a, b) & prop_and'(b, c) => prop_and'(a, c));
+    let f4 = f3() : sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(prop_and');
+    let r = transitive_from(f4) : transitive'(prop_and');
+    return r;
+}
+
+use std::q;
+
+fn transitivity_q : true -> transitive'(q') {
+    use transitive_from;
+
+    x : true;
+
+    fn f : true -> q'(a, b) & q'(b, c) => q'(a, c) {
+        use std::imply_transitivity;
+        use std::q_def;
+        use std::q_transitivity;
+        use std::snd;
+
+        x : true;
+
+        let x2 = q_def(x) : q'(a, b) == (a ~~ b);
+        let x3 = q_def(x) : q'(b, c) == (b ~~ c);
+        let x4 = q_def(x) : q'(a, c) == (a ~~ c);
+        let y = q_transitivity() : (a ~~ b) & (b ~~ c) => (a ~~ c);
+        lam y2 : q'(a, b) & q'(b, c) => (a ~~ b) & (b ~~ c) {
+            use std::eq_to_right;
+            use std::refl;
+
+            z1 : q'(a, b);
+            z2 : q'(b, c);
+
+            let z3 = eq_to_right(x2, z1) : a ~~ b;
+            let z4 = eq_to_right(x3, z2) : b ~~ c;
+            let r = refl(z3, z4) : (a ~~ b) & (b ~~ c);
+            return r;
+        }
+        let y3 = imply_transitivity(y2, y) : q'(a, b) & q'(b, c) => (a ~~ c);
+        let y4 = snd(x4) : (a ~~ c) => q'(a, c);
+        let r = imply_transitivity(y3, y4) : q'(a, b) & q'(b, c) => q'(a, c);
+        return r;
+    }
+
+    let f2 = f() : all(true -> q'(a, b) & q'(b, c) => q'(a, c));
+    let f3 = f2(x) : all(q'(a, b) & q'(b, c) => q'(a, c));
+    let f4 = f3() : sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(q');
+    let r = transitive_from(f4) : transitive'(q');
+    return r;
+}
+
