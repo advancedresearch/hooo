@@ -465,3 +465,28 @@ fn eq_from_and : a & b  ->  a == b {
     return r;
 }
 
+fn eq_left : a == b -> (a == c) == (b == c) {
+    use refl;
+
+    x : a == b;
+
+    lam f : (a == c) => (b == c) {
+        use eq_transitivity_rev_sym;
+    
+        y : a == c;
+
+        let r = eq_transitivity_rev_sym(x, y) : b == c;
+        return r;
+    }
+    lam g : (b == c) => (a == c) {
+        use eq_transitivity;
+
+        y : b == c;
+
+        let r = eq_transitivity(x, y) : a == c;
+        return r;
+    }
+    let r = refl(f, g) : (a == c) == (b == c);
+    return r;
+}
+
