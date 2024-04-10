@@ -127,7 +127,7 @@ fn snd : a & b -> b {
     return y;
 }
 
-fn and_left : a == b -> (a & c) == (b & c) {
+fn and_eq_left : a == b -> (a & c) == (b & c) {
     use eq_to_left;
     use eq_to_right;
     use refl;
@@ -154,7 +154,7 @@ fn and_left : a == b -> (a & c) == (b & c) {
     return r;
 }
 
-fn and_right : a == b -> (c & a) == (c & b) {
+fn and_eq_right : a == b -> (c & a) == (c & b) {
     use eq_to_left;
     use eq_to_right;
     use refl;

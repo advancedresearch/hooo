@@ -465,7 +465,7 @@ fn eq_from_and : a & b  ->  a == b {
     return r;
 }
 
-fn eq_left : a == b -> (a == c) == (b == c) {
+fn eq_eq_left : a == b -> (a == c) == (b == c) {
     use refl;
 
     x : a == b;
@@ -490,7 +490,7 @@ fn eq_left : a == b -> (a == c) == (b == c) {
     return r;
 }
 
-fn eq_right : a == b -> (c == a) == (c == b) {
+fn eq_eq_right : a == b -> (c == a) == (c == b) {
     use refl;
 
     x : a == b;
