@@ -100,8 +100,27 @@ fn or_associativity : true -> ((a | b) | c) == (a | (b | c)) {
     lam g : (a | (b | c)) => ((a | b) | c) {
         y : a | (b | c);
 
-        axiom f : a => ((a | b) | c);
-        axiom g : (b | c) => ((a | b) | c);
+        lam f : a => ((a | b) | c) {
+            z : a;
+
+            let z2 = left(z) : a | b;
+            let r = left(z2) : (a | b) | c;
+            return r;
+        }
+        lam g : (b | c) => ((a | b) | c) {
+            z : b | c;
+
+            lam f : b => ((a | b) | c) {
+                z2 : b;
+
+                let z3 = right(z2) : a | b;
+                let r = left(z3) : (a | b) | c;
+                return r;
+            }
+            let g = right() : c => ((a | b) | c);
+            let r = match z (f, g) : (a | b) | c;
+            return r;
+        }
         let r = match y (f, g) : (a | b) | c;
         return r;
     }
