@@ -148,3 +148,16 @@ fn eq_to_right : (a == b) & a -> b {
     return r;
 }
 
+fn eq_from_and : a & b  ->  a == b {
+    use imply_lift;
+    use refl;
+
+    x : a;
+    y : b;
+
+    let x2 = imply_lift(y) : a => b;
+    let x3 = imply_lift(x) : b => a;
+    let r = refl(x2, x3) : a == b;
+    return r;
+}
+
