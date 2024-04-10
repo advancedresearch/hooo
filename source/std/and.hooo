@@ -154,3 +154,30 @@ fn and_left : a == b -> (a & c) == (b & c) {
     return r;
 }
 
+fn and_right : a == b -> (c & a) == (c & b) {
+    use eq_to_left;
+    use eq_to_right;
+    use refl;
+
+    x : a == b;
+
+    lam f : (c & a) => (c & b) {
+        y1 : c;
+        y2 : a;
+
+        let y3 = eq_to_right(x, y2) : b;
+        let r = refl(y1, y3) : c & b;
+        return r;
+    }
+    lam g : (c & b) => (c & a) {
+        y1 : c;
+        y2 : b;
+
+        let y3 = eq_to_left(x, y2) : a;
+        let r = refl(y1, y3) : c & a;
+        return r;
+    }
+    let r = refl(f, g) : (c & a) == (c & b);
+    return r;
+}
+
