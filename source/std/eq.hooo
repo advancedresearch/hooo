@@ -126,6 +126,24 @@ fn eq_modus_tollens : (a == b)  ->  (!a == !b) {
     return r;
 }
 
+fn eq_rev_modus_tollens_excm : (!a == !b) & excm(a) & excm(b)  ->  (a == b) {
+    use fst;
+    use snd;
+    use refl;
+    use rev_modus_tollens_excm;
+
+    x : !a == !b;
+    y : excm(a);
+    z : excm(b);
+
+    let x2 = fst(x) : !a => !b;
+    let x3 = snd(x) : !b => !a;
+    let x4 = rev_modus_tollens_excm(x2, y, z) : b => a;
+    let x5 = rev_modus_tollens_excm(x3, z, y) : a => b;
+    let r = refl(x5, x4) : a == b;
+    return r;
+}
+
 fn eq_to_left : (a == b) & b -> a {
     use snd;
 
