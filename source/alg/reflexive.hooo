@@ -1,0 +1,70 @@
+sym reflexive;
+
+fn reflexive_from : sym(p, all(p'(a, a)))(p)  ->  reflexive'(p) {
+    axiom reflexive_from : sym(p, all(p'(a, a)))(p) -> reflexive'(p);
+    x : sym(p, all(p'(a, a)))(p);
+    let r = reflexive_from(x): reflexive'(p);
+    return r;
+}
+
+fn reflexive_to : reflexive'(p)  ->  sym(p, all(p'(a, a)))(p) {
+    axiom reflexive_to : reflexive'(p) -> sym(p, all(p'(a, a)))(p);
+    x : reflexive'(p);
+    let r = reflexive_to(x) : sym(p, all(p'(a, a)))(p);
+    unsafe return r;
+}
+
+use std::prop_imply;
+
+fn reflexive_prop_imply : true -> reflexive'(prop_imply') {
+    use reflexive_from;
+
+    x : true;
+
+    fn f : true -> prop_imply'(a, a) {
+        use std::imply_def;
+        use std::imply_refl;
+        use std::eq_to_left;
+
+        x : true;
+
+        let x2 = imply_def(x) : prop_imply'(a, a) == (a => a);
+        let x3 = imply_refl(x) : a => a;
+        let r = eq_to_left(x2, x3) : prop_imply'(a, a);
+        return r;
+    }
+
+    let f2 = f() : all(true -> prop_imply'(a, a));
+    let f3 = f2(x) : all(prop_imply'(a, a));
+    let f4 = f3() : sym(p, all(p'(a, a)))(prop_imply');
+    let r = reflexive_from(f4) : reflexive'(prop_imply');
+    return r;
+}
+
+use std::prop_eq;
+
+fn reflexive_prop_eq : true -> reflexive'(prop_eq') {
+    use reflexive_from;
+
+    x : true;
+
+    fn f : true -> prop_eq'(a, a) {
+        use std::eq_def;
+        use std::eq_refl;
+        use std::eq_to_left;
+
+        x : true;
+
+        let x2 = eq_def(x) : prop_eq'(a, a) == (a == a);
+        let x3 = eq_refl(x) : a == a;
+        let r = eq_to_left(x2, x3) : prop_eq'(a, a);
+        return r;
+    }
+
+    let f2 = f() : all(true -> prop_eq'(a, a));
+    let f3 = f2(x) : all(prop_eq'(a, a));
+    let f4 = f3() : sym(p, all(p'(a, a)))(prop_eq');
+    let r = reflexive_from(f4) : reflexive'(prop_eq');
+    return r;
+}
+

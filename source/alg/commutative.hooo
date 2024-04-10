@@ -1,0 +1,149 @@
+
+sym commutative;
+
+fn commutative_from : sym(p, all(p'(a, b) == p'(b, a)))(p)  ->  commutative'(p) {
+    axiom commutative_from : sym(p, all(p'(a, b) == p'(b, a)))(p) -> commutative'(p);
+    x : sym(p, all(p'(a, b) == p'(b, a)))(p);
+    let r = commutative_from(x) : commutative'(p);
+    return r;
+}
+
+fn commutative_to : commutative'(p)  ->  sym(p, all(p'(a, b) == p'(b, a)))(p) {
+    axiom commutative_to : commutative'(p) -> sym(p, all(p'(a, b) == p'(b, a)))(p);
+    x : commutative'(p);
+    let r = commutative_to(x) : sym(p, all(p'(a, b) == p'(b, a)))(p);
+    unsafe return r;
+}
+
+use std::prop_eq;
+
+fn commutative_prop_eq : true -> commutative'(prop_eq') {
+    use commutative_from;
+
+    x : true;
+
+    fn f : true -> prop_eq'(a, b) == prop_eq'(b, a) {
+        use std::eq_def;
+        use std::eq_transitivity;
+        use std::eq_transitivity_sym;
+        use std::eq_symmetry;
+        use std::refl;
+
+        x : true;
+
+        let x2 = eq_def(x) : prop_eq'(a, b) == (a == b);
+        let x3 = eq_def(x) : prop_eq'(b, a) == (b == a);
+        let x4 = eq_symmetry() : (a == b) => (b == a);
+        let x5 = eq_symmetry() : (b == a) => (a == b);
+        let y = refl(x4, x5) : (a == b) == (b == a);
+        let y2 = eq_transitivity(x2, y) : prop_eq'(a, b) == (b == a);
+        let r = eq_transitivity_sym(y2, x3) : prop_eq'(a, b) == prop_eq'(b, a);
+        return r;
+    }
+
+    let f2 = f() : all(true -> prop_eq'(a, b) == prop_eq'(b, a));
+    let f3 = f2(x) : all(prop_eq'(a, b) == prop_eq'(b, a));
+    let f4 = f3() : sym(p, all(p'(a, b) == p'(b, a)))(prop_eq');
+    let r = commutative_from(f4) : commutative'(prop_eq');
+    return r;
+}
+
+use std::prop_and;
+
+fn commutative_prop_and : true -> commutative'(prop_and') {
+    use commutative_from;
+
+    x : true;
+
+    fn f : true -> prop_and'(a, b) == prop_and'(b, a) {
+        use std::and_def;
+        use std::and_symmetry;
+        use std::eq_transitivity;
+        use std::eq_transitivity_sym;
+        use std::refl;
+
+        x : true;
+
+        let x2 = and_def(x) : prop_and'(a, b) == (a & b);
+        let x3 = and_def(x) : prop_and'(b, a) == (b & a);
+        let x4 = and_symmetry() : (a & b) => (b & a);
+        let x5 = and_symmetry() : (b & a) => (a & b);
+        let y = refl(x4, x5) : (a & b) == (b & a);
+        let y2 = eq_transitivity(x2, y) : prop_and'(a, b) == (b & a);
+        let r = eq_transitivity_sym(y2, x3) : prop_and'(a, b) == prop_and'(b, a);
+        return r;
+    }
+
+    let f2 = f() : all(true -> prop_and'(a, b) == prop_and'(b, a));
+    let f3 = f2(x) : all(prop_and'(a, b) == prop_and'(b, a));
+    let f4 = f3() : sym(p, all(p'(a, b) == p'(b, a)))(prop_and');
+    let r = commutative_from(f4) : commutative'(prop_and');
+    return r;
+}
+
+use std::prop_or;
+
+fn commutative_prop_or : true -> commutative'(prop_or') {
+    use commutative_from;
+
+    x : true;
+
+    fn f : true -> prop_or'(a, b) == prop_or'(b, a) {
+        use std::or_def;
+        use std::or_symmetry;
+        use std::eq_transitivity;
+        use std::eq_transitivity_sym;
+        use std::refl;
+
+        x : true;
+
+        let x2 = or_def(x) : prop_or'(a, b) == (a | b);
+        let x3 = or_def(x) : prop_or'(b, a) == (b | a);
+        let x4 = or_symmetry() : (a | b) => (b | a);
+        let x5 = or_symmetry() : (b | a) => (a | b);
+        let y = refl(x4, x5) : (a | b) == (b | a);
+        let y2 = eq_transitivity(x2, y) : prop_or'(a, b) == (b | a);
+        let r = eq_transitivity_sym(y2, x3) : prop_or'(a, b) == prop_or'(b, a);
+        return r;
+    }
+
+    let f2 = f() : all(true -> prop_or'(a, b) == prop_or'(b, a));
+    let f3 = f2(x) : all(prop_or'(a, b) == prop_or'(b, a));
+    let f4 = f3() : sym(p, all(p'(a, b) == p'(b, a)))(prop_or');
+    let r = commutative_from(f4) : commutative'(prop_or');
+    return r;
+}
+
+use std::q;
+
+fn commutative_q : true -> commutative'(q') {
+    use commutative_from;
+
+    x : true;
+
+    fn f : true -> q'(a, b) == q'(b, a) {
+        use std::q_def;
+        use std::q_symmetry;
+        use std::eq_transitivity;
+        use std::eq_transitivity_sym;
+        use std::refl;
+
+        x : true;
+
+        let x2 = q_def(x) : q'(a, b) == (a ~~ b);
+        let x3 = q_def(x) : q'(b, a) == (b ~~ a);
+        let x4 = q_symmetry() : (a ~~ b) => (b ~~ a);
+        let x5 = q_symmetry() : (b ~~ a) => (a ~~ b);
+        let y = refl(x4, x5) : (a ~~ b) == (b ~~ a);
+        let y2 = eq_transitivity(x2, y) : q'(a, b) == (b ~~ a);
+        let r = eq_transitivity_sym(y2, x3) : q'(a, b) == q'(b, a);
+        return r;
+    }
+
+    let f2 = f() : all(true -> q'(a, b) == q'(b, a));
+    let f3 = f2(x) : all(q'(a, b) == q'(b, a));
+    let f4 = f3() : sym(p, all(p'(a, b) == p'(b, a)))(q');
+    let r = commutative_from(f4) : commutative'(q');
+    return r;
+}
+

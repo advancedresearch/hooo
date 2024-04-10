@@ -1,0 +1,72 @@
+sym associative;
+
+fn associative_from :
+    sym(p, all(p'(p'(a, b), c) == p'(a, p'(b, c))))(p)  ->  associative'(p)
+{
+    axiom associative_from :
+        sym(p, all(p'(p'(a, b), c) == p'(a, p'(b, c))))(p) -> associative'(p);
+    x : sym(p, all(p'(p'(a, b), c) == p'(a, p'(b, c))))(p);
+    let r = associative_from(x) : associative'(p);
+    return r;
+}
+
+fn associative_to :
+    associative'(p)  ->  sym(p, all(p'(p'(a, b), c) == p'(a, p'(b, c))))(p)
+{
+    axiom associative_to :
+        associative'(p) -> sym(p, all(p'(p'(a, b), c) == p'(a, p'(b, c))))(p);
+    x : associative'(p);
+    let r = associative_to(x) : sym(p, all(p'(p'(a, b), c) == p'(a, p'(b, c))))(p);
+    unsafe return r;
+}
+
+use std::prop_eq;
+use std::Excm;
+
+fn associative_prop_eq_excm : Excm' -> associative'(prop_eq') {
+    use associative_from;
+
+    x : Excm';
+
+    fn f : Excm' -> prop_eq'(prop_eq'(a, b), c) == prop_eq'(a, prop_eq'(b, c)) {
+        use std::eq_associativity;
+        use std::eq_left;
+        use std::eq_def;
+        use std::eq_right;
+        use std::eq_symmetry;
+        use std::eq_transitivity;
+        use std::eq_transitivity_sym;
+        use std::excm_to;
+
+        x : Excm';
+
+        let tr = () : true;
+        let x2 = eq_def(tr) : prop_eq'(a, b) == (a == b);
+        let x3 = eq_def(tr) : prop_eq'(prop_eq'(a, b), c) == (prop_eq'(a, b) == c);
+        let x4 = eq_def(tr) : prop_eq'(b, c) == (b == c);
+        let x5 = eq_def(tr) : prop_eq'(a, prop_eq'(b, c)) == (a == prop_eq'(b, c));
+        let x6 = excm_to(x) : excm(a);
+        let x7 = excm_to(x) : excm(b);
+        let x8 = excm_to(x) : excm(c);
+        let y = eq_associativity(x6, x7, x8) : ((a == b) == c) == (a == (b == c));
+        let y2 = eq_left(x2) : (prop_eq'(a, b) == c) == ((a == b) == c);
+        let y3 = eq_transitivity(y2, y) : (prop_eq'(a, b) == c) == (a == (b == c));
+        let y4 = eq_transitivity(x3, y3) :
+            prop_eq'(prop_eq'(a, b), c) == (a == (b == c));
+        let y5 = eq_right(x4) : (a == prop_eq'(b, c)) == (a == (b == c));
+        let y6 = eq_transitivity_sym(y4, y5) :
+            prop_eq'(prop_eq'(a, b), c) == (a == prop_eq'(b, c));
+        let y7 = eq_symmetry(x5) : (a == prop_eq'(b, c)) == prop_eq'(a, prop_eq'(b, c));
+        let r = eq_transitivity(y6, y7) :
+            prop_eq'(prop_eq'(a, b), c) == prop_eq'(a, prop_eq'(b, c));
+        return r;
+    }
+
+    let f2 = f() :
+        all(Excm' -> prop_eq'(prop_eq'(a, b), c) == prop_eq'(a, prop_eq'(b, c)));
+    let f3 = f2(x) : all(prop_eq'(prop_eq'(a, b), c) == prop_eq'(a, prop_eq'(b, c)));
+    let f4 = f3() : sym(p, all(p'(p'(a, b), c) == p'(a, p'(b, c))))(prop_eq');
+    let r = associative_from(f4) : associative'(prop_eq');
+    return r;
+}
+
