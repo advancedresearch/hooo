@@ -160,3 +160,85 @@ fn nright : !(a | b) -> !b {
     return r;
 }
 
+fn or_eq_left : a == b -> (a | c) == (b | c) {
+    use eq_to_left;
+    use eq_to_right;
+    use left;
+    use refl;
+    use right;
+
+    x : a == b;
+
+    lam f : (a | c) => (b | c) {
+        y : a | c;
+
+        lam f : a => (b | c) {
+            z : a;
+
+            let z2 = eq_to_right(x, z) : b;
+            let r = left(z2) : b | c;
+            return r;
+        }
+        let g  = right() : c => (b | c);
+        let r = match y (f, g) : b | c;
+        return r;
+    }
+    lam g : (b | c) => (a | c) {
+        y : b | c;
+
+        lam f : b => (a | c) {
+            z : b;
+
+            let z2 = eq_to_left(x, z) : a;
+            let r = left(z2) : a | c;
+            return r;
+        }
+        let g = right() : c => (a | c);
+        let r = match y (f, g) : a | c;
+        return r;
+    }
+    let r = refl(f, g) : (a | c) == (b | c);
+    return r;
+}
+
+fn or_eq_right : a == b -> (c | a) == (c | b) {
+    use eq_to_left;
+    use eq_to_right;
+    use left;
+    use refl;
+    use right;
+
+    x : a == b;
+
+    lam f : (c | a) => (c | b) {
+        y : c | a;
+
+        let f = left() : c => (c | b);
+        lam g : a => (c | b) {
+            z : a;
+
+            let z2 = eq_to_right(x, z) : b;
+            let r = right(z2) : c | b;
+            return r;
+        }
+        let r = match y (f, g) : c | b;
+        return r;
+    }
+    lam g : (c | b) => (c | a) {
+        y : c | b;
+
+        let f = left() : c => (c | a);
+        lam g : b => (c | a) {
+            z : b;
+
+            let z2 = eq_to_left(x, z) : a;
+            let r = right(z2) : c | a;
+            return r;
+        }
+        let r = match y (f, g) : c | a;
+        return r;
+    }
+    let r = refl(f, g) : (c | a) == (c | b);
+    return r;
+}
+
