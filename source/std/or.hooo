@@ -58,6 +58,57 @@ fn or_symmetry : a | b -> b | a {
     return x4;
 }
 
+fn or_associativity : true -> ((a | b) | c) == (a | (b | c)) {
+    use left;
+    use refl;
+    use right;
+
+    x : true;
+
+    lam f : ((a | b) | c) => (a | (b | c)) {
+        y : (a | b) | c;
+
+        lam f : (a | b) => (a | (b | c)) {
+            z : a | b;
+
+            lam f : a => (a | (b | c)) {
+                z2 : a;
+
+                let r = left(z2) : a | (b | c);
+                return r;
+            }
+            lam g : b => (a | (b | c)) {
+                z2 : b;
+
+                let z3 = left(z2) : b | c;
+                let r = right(z3) : a | (b | c);
+                return r;
+            }
+            let r = match z (f, g) : a | (b | c);
+            return r;
+        }
+        lam g : c => (a | (b | c)) {
+            z : c;
+
+            let z2 = right(z) : b | c;
+            let r = right(z2) : a | (b | c);
+            return r;
+        }
+        let r = match y (f, g) : a | (b | c);
+        return r;
+    }
+    lam g : (a | (b | c)) => ((a | b) | c) {
+        y : a | (b | c);
+
+        axiom f : a => ((a | b) | c);
+        axiom g : (b | c) => ((a | b) | c);
+        let r = match y (f, g) : (a | b) | c;
+        return r;
+    }
+    let r = refl(f, g) : ((a | b) | c) == (a | (b | c));
+    return r;
+}
+
 fn left : a -> a | b {
     axiom left : a -> a | b;
     x : a;
