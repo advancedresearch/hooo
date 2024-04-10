@@ -127,3 +127,30 @@ fn snd : a & b -> b {
     return y;
 }
 
+fn and_left : a == b -> (a & c) == (b & c) {
+    use eq_to_left;
+    use eq_to_right;
+    use refl;
+
+    x : a == b;
+
+    lam f : (a & c) => (b & c) {
+        y1 : a;
+        y2 : c;
+
+        let y3 = eq_to_right(x, y1) : b;
+        let r = refl(y3, y2) : b & c;
+        return r;
+    }
+    lam g : (b & c) => (a & c) {
+        y1 : b;
+        y2 : c;
+
+        let y3 = eq_to_left(x, y1) : a;
+        let r = refl(y3, y2) : a & c;
+        return r;
+    }
+    let r = refl(f, g) : (a & c) == (b & c);
+    return r;
+}
+
