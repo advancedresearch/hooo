@@ -197,3 +197,23 @@ fn imply_excm_right_to_or : (a => b) & excm(b)  ->  (!a | b) {
     return r;
 }
 
+fn imply_from_or : (!a | b)  ->  (a => b) {
+    use imply_lift;
+
+    x : !a | b;
+
+    lam f : !a => (a => b) {
+        use absurd;
+        use imply_transitivity;
+
+        y : !a;
+
+        let y2 = absurd() : false => b;
+        let r = imply_transitivity(y, y2) : a => b;
+        return r;
+    }
+    let g = imply_lift() : b => (a => b);
+    let r = match x (f, g) : a => b;
+    return r;
+}
+
