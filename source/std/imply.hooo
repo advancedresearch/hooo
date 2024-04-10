@@ -147,3 +147,53 @@ fn imply_lift : a -> (b => a) {
     return f;
 }
 
+fn imply_excm_left_to_or : (a => b) & excm(a)  ->  (!a | b) {
+    x : a => b;
+    y : excm(a);
+    lam f : a => (!a | b) {
+        use right;
+
+        x2 : a;
+
+        let y2 = x(x2) : b;
+        let r = right(y2) : !a | b;
+        return r;
+    }
+    lam g : !a => (!a | b) {
+        use left;
+
+        x2 : !a;
+
+        let r = left(x2) : !a | b;
+        return r;
+    }
+    let r = match y (f, g) : !a | b;
+    return r;
+}
+
+fn imply_excm_right_to_or : (a => b) & excm(b)  ->  (!a | b) {
+    x : a => b;
+    y : excm(b);
+    lam f : b => (!a | b) {
+        use right;
+
+        x2 : b;
+
+        let r = right(x2) : !a | b;
+        return r;
+    }
+    lam g : !b => (!a | b) {
+        use left;
+        use modus_tollens;
+
+        x2 : !b;
+
+        let x3 = modus_tollens(x) : !b => !a;
+        let x4 = x3(x2) : !a;
+        let r = left(x4) : !a | b;
+        return r;
+    }
+    let r = match y (f, g) : !a | b;
+    return r;
+}
+
