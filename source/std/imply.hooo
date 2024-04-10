@@ -94,6 +94,31 @@ fn rev_modus_tollens_nn : (!!a => !!b)  ->  (!b => !a) {
     return r;
 }
 
+fn rev_modus_tollens_excm : (!a => !b) & excm(a) & excm(b)  ->  b => a {
+    use refl;
+
+    x : !a => !b;
+    y : excm(a);
+    z : excm(b);
+
+    lam f : b => a {
+        x2 : b;
+
+        let f = refl() : a => a;
+        lam g : !a => a {
+            x3 : !a;
+
+            let x4 = x(x3) : !b;
+            let x5 = x4(x2) : false;
+            let r = match x5 : a;
+            return r;
+        }
+        let r = match y (f, g) : a;
+        return r;
+    }
+    return f;
+}
+
 fn imply_in_left_arg : (a => b) & (a == c)  ->  (c => b) {
     x : a => b;
     y : a == c;
