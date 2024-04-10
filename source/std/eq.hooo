@@ -110,6 +110,292 @@ fn eq_transitivity_rev_sym : (a == b) & (a == c) -> (b == c) {
     return r;
 }
 
+fn eq_associativity :
+    excm(a) & excm(b) & excm(c) -> ((a == b) == c) == (a == (b == c))
+{
+    use eq_from_and;
+    use eq_rev_modus_tollens_excm;
+    use eq_to_left;
+    use eq_to_right;
+    use imply_lift;
+    use refl;
+
+    x : excm(a);
+    y : excm(b);
+    z : excm(c);
+
+    lam f : a => ((a == b) == c) == (a == (b == c)) {
+        x2 : a;
+
+        let to_a = imply_lift(x2) : (b == c) => a;
+        lam f : b => ((a == b) == c) == (a == (b == c)) {
+            y2 : b;
+
+            let eq_a_b = eq_from_and(x2, y2) : a == b;
+            let z6 = imply_lift(eq_a_b) : c => (a == b);
+            lam f : c => ((a == b) == c) == (a == (b == c)) {
+                z2 : c;
+
+                let z4 = eq_from_and(y2, z2) : b == c;
+                let z5 = imply_lift(z4) : a => (b == c);
+                let z7 = refl(z5, to_a) : a == (b == c);
+                let f = imply_lift(z7) : ((a == b) == c) => (a == (b == c));
+                
+                let z5 = imply_lift(z2) : (a == b) => c;
+                let z7 = refl(z5, z6) : (a == b) == c;
+                let g = imply_lift(z7) : (a == (b == c)) => ((a == b) == c);
+                let r = refl(f, g) : ((a == b) == c) == (a == (b == c));
+                return r;
+            }
+            lam g : !c => ((a == b) == c) == (a == (b == c)) {
+                z2 : !c;
+
+                lam f : ((a == b) == c) => (a == (b == c)) {
+                    z3 : (a == b) == c;
+
+                    let z4 = eq_to_right(z3, eq_a_b) : c;
+                    let z5 = z2(z4) : false;    
+                    let r = match z5 : a == (b == c);
+                    return r;
+                }
+                lam g : (a == (b == c)) => ((a == b) == c) {
+                    z3 : a == (b == c);
+
+                    let z4 = eq_to_right(z3, x2) : b == c;
+                    let z5 = eq_to_right(z4, y2) : c;
+                    let z6 = z2(z5) : false;
+                    let r = match z6 : (a == b) == c;
+                    return r;
+                }
+                let r = refl(f, g) : ((a == b) == c) == (a == (b == c));
+                return r;
+            }
+            let r = match z (f, g) : ((a == b) == c) == (a == (b == c));
+            return r;
+        }
+        lam g : !b => ((a == b) == c) == (a == (b == c)) {
+            y2 : !b;
+
+            lam f : c => ((a == b) == c) == (a == (b == c)) {
+                z2 : c;
+
+                lam f : ((a == b) == c) => (a == (b == c)) {
+                    z3 : (a == b) == c;
+                    let eq_a_b = eq_to_left(z3, z2) : a == b;
+                    let z4 = eq_to_right(eq_a_b, x2) : b;
+                    let fa = y2(z4) : false;
+                    let r = match fa : a == (b == c);
+                    return r;
+                }
+                lam g : (a == (b == c)) => ((a == b) == c) {
+                    z3 : a == (b == c);
+
+                    let z4 = eq_to_right(z3, x2) : b == c;
+                    let z5 = eq_to_left(z4, z2) : b;
+                    let fa = y2(z5) : false;
+                    let r = match fa : (a == b) == c;
+                    return r;
+                }
+                let r = refl(f, g) : ((a == b) == c) == (a == (b == c));
+                return r;
+            }
+            lam g : !c => ((a == b) == c) == (a == (b == c)) {
+                z2 : !c;
+
+                let z4 = eq_from_and(y2, z2) : !b == !c;
+                let z5 = eq_rev_modus_tollens_excm(z4, y, z) : b == c;
+                let f = imply_lift(z5) : a => (b == c);
+                let g = imply_lift(x2) : (b == c) => a;
+                let f = refl(f, g) : a == (b == c);
+                let f = imply_lift(f) : ((a == b) == c) => (a == (b == c));
+  
+                lam g : (a == (b == c)) => ((a == b) == c) {
+                    z3 : a == (b == c);
+
+                    lam f : (a == b) => c {
+                        z4 : a == b;
+
+                        let z5 = eq_to_right(z4, x2) : b;
+                        let z6 = y2(z5) : false;
+                        let r = match z6 : c;
+                        return r;
+                    }
+                    lam g : c => (a == b) {
+                        z4 : c;
+                        let z5 = z2(z4) : false;
+                        let r = match z5 : a == b;
+                        return r;
+                    }
+                    let r = refl(f, g) : (a == b) == c;
+                    return r;
+                }
+                let r = refl(f, g) : ((a == b) == c) == (a == (b == c));
+                return r;
+            }
+            let r = match z (f, g) : ((a == b) == c) == (a == (b == c));
+            return r;
+        }
+        let r = match y (f, g) : ((a == b) == c) == (a == (b == c));
+        return r;
+    }
+    lam g : !a => ((a == b) == c) == (a == (b == c)) {
+       x2 : !a; 
+
+       lam f : b => ((a == b) == c) == (a == (b == c)) {
+            y2 : b;
+
+            lam f : c => ((a == b) == c) == (a == (b == c)) {
+                z2 : c;
+
+                lam f : ((a == b) == c) => (a == (b == c)) {
+                    z3 : (a == b) == c;
+
+                    let eq_a_b = eq_to_left(z3, z2) : a == b;
+                    let z5 = eq_to_left(eq_a_b, y2) : a;
+                    let z6 = x2(z5) : false;
+                    let r = match z6 : a == (b == c);
+                    return r;
+                }
+                lam g : (a == (b == c)) => ((a == b) == c) {
+                    z3 : a == (b == c);
+
+                    let z4 = eq_from_and(y2, z2) : b == c;
+                    let z5 = eq_to_left(z3, z4) : a;
+                    let z6 = x2(z5) : false;
+                    let r = match z6 : (a == b) == c;
+                    return r;
+                }
+                let r = refl(f, g) : ((a == b) == c) == (a == (b == c));
+                return r;
+            }
+            lam g : !c => ((a == b) == c) == (a == (b == c)) {
+                z2 : !c;
+
+                lam f : ((a == b) == c) => (a == (b == c)) {
+                    z3 : (a == b) == c;
+
+                    lam f : a => (b == c) {
+                        z4 : a;
+
+                        let z5 = x2(z4) : false;
+                        let r = match z5 : b == c;
+                        return r;
+                    }
+                    lam g : (b == c) => a {
+                        z4 : b == c;
+
+                        let z5 = eq_to_right(z4, y2) : c;
+                        let z6 = z2(z5) : false;
+                        let r = match z6 : a;
+                        return r;
+                    }
+                    let r = refl(f, g) : a == (b == c);
+                    return r;
+                }
+                lam g : (a == (b == c)) => ((a == b) == c) {
+                    z3 : a == (b == c);
+
+                    lam f : (a == b) => c {
+                        z4 : a == b;
+
+                        let z5 = eq_to_left(z4, y2) : a;
+                        let z6 = x2(z5) : false;
+                        let r = match z6 : c;
+                        return r;
+                    }
+                    lam g : c => (a == b) {
+                        z4 : c;
+
+                        let z5 = z2(z4) : false;
+                        let r = match z5 : a == b;
+                        return r;
+                    }
+                    let r = refl(f, g) : (a == b) == c;
+                    return r;
+                }
+                let r = refl(f, g) : ((a == b) == c) == (a == (b == c));
+                return r;
+            }
+            let r = match z (f, g) : ((a == b) == c) == (a == (b == c));
+            return r;
+        }
+        lam g : !b => ((a == b) == c) == (a == (b == c)) {
+            y2 : !b;
+
+            lam f : c => ((a == b) == c) == (a == (b == c)) {
+                z2 : c;
+
+                lam f : ((a == b) == c) => (a == (b == c)) {
+                    z3 : (a == b) == c;
+
+                    lam f : a => (b == c) {
+                        z4 : a;
+
+                        let z5 = x2(z4) : false;
+                        let r = match z5 : b == c;
+                        return r;
+                    }
+                    lam g : (b == c) => a {
+                        z4 : b == c;
+
+                        let z5 = eq_to_left(z4, z2) : b;
+                        let z6 = y2(z5) : false;
+                        let r = match z6 : a;
+                        return r;
+                    }
+                    let r = refl(f, g) : a == (b == c);
+                    return r;
+                }
+                lam g : (a == (b == c)) => ((a == b) == c) {
+                    z3 : a == (b == c);
+
+                    let f = imply_lift(z2) : (a == b) => c;
+                    let z4 = refl(x2, y2) : !a & !b;
+                    let z5 = eq_from_and(z4) : !a == !b;
+                    let z6 = eq_rev_modus_tollens_excm(z5, x, y) : a == b;
+                    let g = imply_lift(z6) : c => (a == b);
+                    let r = refl(f, g) : (a == b) == c;
+                    return r;
+                }
+                let r = refl(f, g) : ((a == b) == c) == (a == (b == c));
+                return r;
+            }
+            lam g : !c => ((a == b) == c) == (a == (b == c)) {
+                z2 : !c;
+
+                lam f : ((a == b) == c) => (a == (b == c)) {
+                    z3 : (a == b) == c;
+
+                    let z4 = eq_from_and(x2, y2) : !a == !b;
+                    let z5 = eq_rev_modus_tollens_excm(z4, x, y) : a == b;
+                    let z6 = eq_to_right(z3, z5) : c;
+                    let z7 = z2(z6) : false;
+                    let r = match z7 : a == (b == c);
+                    return r;
+                }
+                lam g : (a == (b == c)) => ((a == b) == c) {
+                    z4 : a == (b == c);
+
+                    let z5 = eq_from_and(y2, z2) : !b == !c;
+                    let z6 = eq_rev_modus_tollens_excm(z5, y, z) : b == c;
+                    let z7 = eq_to_left(z4, z6) : a;
+                    let z8 = x2(z7) : false;
+                    let r = match z8 : (a == b) == c;
+                    return r;
+                }
+                let r = refl(f, g) : ((a == b) == c) == (a == (b == c));
+                return r;
+            }
+            let r = match z (f, g) : ((a == b) == c) == (a == (b == c));
+            return r;
+        }
+        let r = match y (f, g) : ((a == b) == c) == (a == (b == c));
+        return r;
+    }
+    let r = match x (f, g) : ((a == b) == c) == (a == (b == c));
+    return r;
+}
+
 fn eq_modus_tollens : (a == b)  ->  (!a == !b) {
     use fst;
     use modus_tollens;
