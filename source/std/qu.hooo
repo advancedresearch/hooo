@@ -181,3 +181,27 @@ fn qu_qu_true_tauto_excm_to_tauto : ~a & ~true & excm(a)^true  ->  a^true {
     return r;
 }
 
+fn qu_true_tauto_excm_to_eq_tauto_qu : ~true & excm(a)^true  ->  (a^true == ~a) {
+    use qu_qu_true_tauto_excm_to_tauto;
+    use refl;
+    use tauto_qu_true_to_qu;
+
+    x : ~true;
+    y : excm(a)^true;
+
+    lam f : a^true => ~a {
+        z : a^true;
+
+        let r = tauto_qu_true_to_qu(z, x) : ~a;
+        return r;
+    }
+    lam g : ~a => a^true {
+        z : ~a;
+
+        let r = qu_qu_true_tauto_excm_to_tauto(z, x, y) : a^true;
+        return r;
+    }
+    let r = refl(f, g) : a^true == ~a;
+    return r;
+}
+
