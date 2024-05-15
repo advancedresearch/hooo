@@ -455,3 +455,38 @@ fn hooo_rev_not_excm : !(a^b) & excm(a)^true -> (!a)^b {
     return r;
 }
 
+fn tauto_to_tauto_eq_true : a^true  ->  (a == true)^true {
+    use pow_tr;
+    use pow_eq_to_tauto_eq;
+
+    x : a^true;
+
+    let x2 = pow_tr() : true^a;
+    let r = pow_eq_to_tauto_eq(x2, x) : (a == true)^true;
+    return r;
+}
+
+fn tauto_eq_true_to_tauto : (a == true)^true  ->  a^true {
+    use snd;
+    use tauto_eq_to_pow_eq;
+
+    x : (a == true)^true;
+
+    let x2 = tauto_eq_to_pow_eq(x) : a =^= true;
+    let r = snd(x2) : a^true;
+    return r;
+}
+
+fn tauto_eq_symmetry : (a == b)^true  ->  (b == a)^true {
+    use and_symmetry;
+    use pow_eq_to_tauto_eq;
+    use tauto_eq_to_pow_eq;
+
+    x : (a == b)^true;
+
+    let x2 = tauto_eq_to_pow_eq(x) : a =^= b;
+    let x3 = and_symmetry(x2) : b =^= a;
+    let r = pow_eq_to_tauto_eq(x3) : (b == a)^true;
+    return r;
+}
+
