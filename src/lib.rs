@@ -878,10 +878,7 @@ impl Type {
             }
             (Nec(a), Nec(b)) |
             (Pos(a), Pos(b)) |
-            (Qu(a), Qu(b)) => {
-                let (a, b) = if contra {(b, a)} else {(a, b)};
-                a.bind(contra, b, bind)
-            }
+            (Qu(a), Qu(b)) => a.bind(contra, b, bind),
             (And(ab), And(cd)) |
             (Or(ab), Or(cd)) |
             (App(ab), App(cd)) |
@@ -1980,5 +1977,18 @@ mod tests {
         let b: Type = "a".try_into().unwrap();
         let mut bind = vec![];
         assert_eq!(a.de_sym(&mut bind), b);
+    }
+
+    #[test]
+    fn test_qu_eq_inv() {
+        let a: Type = "~!a -> !~a".try_into().unwrap();
+        let b = fun(qu(not("a".try_into().unwrap())), not(qu("a".try_into().unwrap())));
+        assert_eq!(a, b);
+
+        let c = all(a.clone()).de_all().unwrap();
+        let d = fun(qu(not(all_ty("a"))), not(qu(all_ty("a"))));
+        assert_eq!(c, d);
+        // assert!(c.has_(false, &b));        
+        assert!(c.has_bound(&b).is_ok());
     }
 }
