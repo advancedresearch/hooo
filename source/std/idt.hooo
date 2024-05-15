@@ -1,14 +1,26 @@
+/// # Identity Type
+///
+/// Martin-Löf Identity Type is used in Dependent Types and Homotopy Type Theory (HoTT).
+///
+/// In Dependent Types, an Identity Type is analoguous to definitional equality.
+///
+/// In HoTT, an identity type is used to create a path space between two points.
+
 use z;
 use type;
 use I;
 use i0;
 use i1;
 
+/// Used for identity types e.g. `Id'(a, b1, b2)`.
 sym Id;
-sym idt;
+/// Reflexivity.
 sym idt_r;
+/// Symmetry.
 sym idt_s;
+/// Transitivity.
 sym idt_t;
+/// Interval.
 sym idt_i;
 
 fn idt_type_formation : (a : type'(z')) & (b1 : a) & (b2 : a)
