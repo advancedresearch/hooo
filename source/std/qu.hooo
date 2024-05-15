@@ -117,3 +117,67 @@ fn nqu_to_nsd : !~a  ->  !sd(a, a) {
     return r;
 }
 
+fn qu_inv_to_nqu : ~!a  ->  !~a {
+    axiom qu_inv_to_nqu : ~!a -> !~a;
+    x : ~!a;
+    let r = qu_inv_to_nqu(x) : !~a;
+    return r;
+}
+
+fn nqu_to_qu_inv : !~a  ->  ~!a {
+    axiom nqu_to_qu_inv : !~a -> ~!a;
+    x : !~a;
+    let r = nqu_to_qu_inv(x) : ~!a;
+    return r;
+}
+
+fn qu_eq_inv : true  ->  (~!a == !~a) {
+    use nqu_to_qu_inv;
+    use qu_inv_to_nqu;
+    use refl;
+
+    let x1 = qu_inv_to_nqu() : ~!a => !~a;
+    let x2 = nqu_to_qu_inv() : !~a => ~!a;
+    let r = refl(x1, x2) : ~!a == !~a;
+    return r;
+}
+
+fn tauto_qu_true_to_qu : a^true & ~true  ->  ~a {
+    use tauto_to_tauto_eq_true;
+    use tauto_eq_symmetry;
+    use qu_in_arg;
+
+    x : a^true;
+    y : ~true;
+
+    let x2 = tauto_to_tauto_eq_true(x) : (a == true)^true;
+    let x3 = tauto_eq_symmetry(x2) : (true == a)^true;
+    let r = qu_in_arg(y, x3) : ~a;
+    return r;
+}
+
+fn qu_qu_true_tauto_excm_to_tauto : ~a & ~true & excm(a)^true  ->  a^true {
+    use qu_inv_to_nqu;
+    use refl;
+    use tauto_excm_to_or;
+    use tauto_qu_true_to_qu;
+
+    x : ~a;
+    y : ~true;
+    z : excm(a)^true;
+
+    let z2 = tauto_excm_to_or(z) : a^true | (!a)^true;
+    let f = refl() : a^true => a^true;
+    lam g : (!a)^true => a^true {
+        w : (!a)^true;
+
+        let w2 = tauto_qu_true_to_qu(w, y) : ~!a;
+        let w3 = qu_inv_to_nqu(w2) : !~a;
+        let w4 = w3(x) : false;
+        let r = match w4 : a^true;
+        return r;
+    }
+    let r = match z2 (f, g) : a^true;
+    return r;
+}
+
