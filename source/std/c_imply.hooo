@@ -1,0 +1,48 @@
+/// # Classical Implication
+///
+/// Classical implication `!a | b` is stronger than constructive implication `a => b`.
+
+fn c_imply_transitivity : (!a | b) & (!b | c)  ->  (!a | c) {
+    x : !a | b;
+    y : !b | c;
+
+    use std::left;
+    use std::right;
+
+    let x2 = left() : !a => (!a | c);
+    lam x3 : b => (!a | c) {
+        z : b;
+
+        lam z2 : !b => (!a | c) {
+            w : !b;
+
+            let w2 = w(z) : false;
+            let r = match w2 : !a | c;
+            return r;
+        }
+        let z3 = right() : c => (!a | c);
+        let r = match y (z2, z3) : !a | c;
+        return r;
+    }
+    let r = match x (x2, x3) : !a | c;
+    return r;
+}
+
+fn c_imply_to_excm : (!a | a)  ->  excm(a) {
+    use or_symmetry;
+
+    x : !a | a;
+
+    let r = or_symmetry(x) : excm(a);
+    return r;
+}
+
+fn excm_to_c_imply : excm(a)  ->  (!a | a) {
+    use or_symmetry;
+
+    x : excm(a);
+
+    let r = or_symmetry(x) : !a | a;
+    return r;
+}
+
