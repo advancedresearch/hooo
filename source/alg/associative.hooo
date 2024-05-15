@@ -30,9 +30,9 @@ fn associative_prop_eq_excm : Excm' -> associative'(prop_eq') {
 
     fn f : Excm' -> prop_eq'(prop_eq'(a, b), c) == prop_eq'(a, prop_eq'(b, c)) {
         use std::eq_associativity;
-        use std::eq_left;
         use std::eq_def;
-        use std::eq_right;
+        use std::eq_eq_left;
+        use std::eq_eq_right;
         use std::eq_symmetry;
         use std::eq_transitivity;
         use std::eq_transitivity_sym;
@@ -49,11 +49,11 @@ fn associative_prop_eq_excm : Excm' -> associative'(prop_eq') {
         let x7 = excm_to(x) : excm(b);
         let x8 = excm_to(x) : excm(c);
         let y = eq_associativity(x6, x7, x8) : ((a == b) == c) == (a == (b == c));
-        let y2 = eq_left(x2) : (prop_eq'(a, b) == c) == ((a == b) == c);
+        let y2 = eq_eq_left(x2) : (prop_eq'(a, b) == c) == ((a == b) == c);
         let y3 = eq_transitivity(y2, y) : (prop_eq'(a, b) == c) == (a == (b == c));
         let y4 = eq_transitivity(x3, y3) :
             prop_eq'(prop_eq'(a, b), c) == (a == (b == c));
-        let y5 = eq_right(x4) : (a == prop_eq'(b, c)) == (a == (b == c));
+        let y5 = eq_eq_right(x4) : (a == prop_eq'(b, c)) == (a == (b == c));
         let y6 = eq_transitivity_sym(y4, y5) :
             prop_eq'(prop_eq'(a, b), c) == (a == prop_eq'(b, c));
         let y7 = eq_symmetry(x5) : (a == prop_eq'(b, c)) == prop_eq'(a, prop_eq'(b, c));
@@ -67,6 +67,78 @@ fn associative_prop_eq_excm : Excm' -> associative'(prop_eq') {
     let f3 = f2(x) : all(prop_eq'(prop_eq'(a, b), c) == prop_eq'(a, prop_eq'(b, c)));
     let f4 = f3() : sym(p, all(p'(p'(a, b), c) == p'(a, p'(b, c))))(prop_eq');
     let r = associative_from(f4) : associative'(prop_eq');
+    return r;
+}
+
+use std::prop_and;
+
+fn associative_prop_and : true -> associative'(prop_and') {
+    use associative_from;
+
+    x : true;
+
+    fn f : true -> prop_and'(prop_and'(a, b), c) == prop_and'(a, prop_and'(b, c)) {
+        use std::and_associativity;
+        use std::and_def;
+        use std::and_eq_left;
+        use std::and_eq_right;
+        use std::eq_transitivity;
+        use std::eq_transitivity_sym;
+
+        x : true;
+
+        let x2 = and_def(x) : prop_and'(a, b) == (a & b);
+        let x3 = and_eq_left(x2) : (prop_and'(a, b) & c) == ((a & b) & c);
+        let x4 = and_def(x) : prop_and'(prop_and'(a, b), c) == (prop_and'(a, b) & c);
+        let x5 = eq_transitivity(x4, x3) :
+            prop_and'(prop_and'(a, b), c) == ((a & b) & c);
+        let x6 = and_associativity(x) : ((a & b) & c) == (a & (b & c));
+        let x7 = eq_transitivity(x5, x6) :
+            prop_and'(prop_and'(a, b), c) == (a & (b & c));
+        let x8 = and_def(x) : prop_and'(b, c) == (b & c);
+        let x9 = and_eq_right(x8) : (a & prop_and'(b, c)) == (a & (b & c));
+        let x10 = and_def(x) : prop_and'(a, prop_and'(b, c)) == (a & prop_and'(b, c));
+        let x11 = eq_transitivity(x10, x9) :
+            prop_and'(a, prop_and'(b, c)) == (a & (b & c));
+        let r = eq_transitivity_sym(x7, x11) :
+            prop_and'(prop_and'(a, b), c) == prop_and'(a, prop_and'(b, c));
+        return r;
+    }
+
+    let f2 = f() :
+        all(true -> prop_and'(prop_and'(a, b), c) == prop_and'(a, prop_and'(b, c)));
+    let f3 = f2(x) :
+        all(prop_and'(prop_and'(a, b), c) == prop_and'(a, prop_and'(b, c)));
+    let f4 = f3() : sym(p, all(p'(p'(a, b), c) == p'(a, p'(b, c))))(prop_and');
+    let r = associative_from(f4) : associative'(prop_and');
+    return r;
+}
+
+use std::prop_or;
+
+fn associative_prop_or : true -> associative'(prop_or') {
+    use associative_from;
+
+    x : true;
+
+    fn f : true -> prop_or'(prop_or'(a, b), c) == prop_or'(a, prop_or'(b, c)) {
+        use std::or_def;
+        use std::or_eq_left;
+
+        x : true;
+
+        let x2 = or_def(x) : prop_or'(a, b) == (a | b);
+        let x3 = or_eq_left(x2) : (prop_or'(a, b) | c) == ((a | b) | c);
+        axiom r : prop_or'(prop_or'(a, b), c) == prop_or'(a, prop_or'(b, c));
+        return r;
+    }
+
+    let f2 = f() :
+        all(true -> prop_or'(prop_or'(a, b), c) == prop_or'(a, prop_or'(b, c)));
+    let f3 = f2(x) :
+        all(prop_or'(prop_or'(a, b), c) == prop_or'(a, prop_or'(b, c)));
+    let f4 = f3() : sym(p, all(p'(p'(a, b), c) == p'(a, p'(b, c))))(prop_or');
+    let r = associative_from(f4) : associative'(prop_or');
     return r;
 }
 
