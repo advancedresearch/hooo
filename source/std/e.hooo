@@ -1,0 +1,91 @@
+/// # Existential Logic
+///
+/// Existential Logic (EL) is a stronger logic than Constructive Logic (IPL)
+/// but weaker than Classical Logic (PL).
+///
+/// EL uses excluded middle of non-existence.
+
+sym E;
+
+fn e_from : all(excm(!a))  ->  E' {
+    axiom e_from : all(excm(!a)) -> E';
+    x : all(excm(!a));
+    let r = e_from(x) : E';
+    return r;
+}
+
+fn e_to : E'  ->  all(excm(!a)) {
+    axiom e_to : E' -> all(excm(!a));
+    x : E';
+    let r = e_to(x) : all(excm(!a));
+    unsafe return r;
+}
+
+fn excm_n_to_e_triple : excm(!a) -> (a | !a | !!a) {
+    use right;
+
+    x : excm(!a);
+
+    let r = right(x) : a | !a | !!a;
+    return r;
+}
+
+fn excm_n_to_e_imply :
+    excm(!a) & excm(!b) -> ((!a | b) | (!b | a) | (!!a & !!b))
+{
+    use excm_n_to_e_triple;
+    use left;
+    use refl;
+    use right;
+
+    x : excm(!a);
+    e_b : excm(!b);
+
+    let x2 = excm_n_to_e_triple(x) : a | (!a | !!a);
+    lam f : a => (!a | b) | (!b | a) | (!!a & !!b) {
+        y : a;
+
+        let y2 = right(y) : !b | a;
+        let y3 = left(y2) : (!b | a) | (!!a & !!b);
+        let r = right(y3) : (!a | b) | (!b | a) | (!!a & !!b);
+        return r;
+    }
+    lam g : !a | !!a => (!a | b) | (!b | a) | (!!a & !!b) {
+        y : !a | !!a;
+
+        lam f : !a => (!a | b) | (!b | a) | (!!a & !!b) {
+            z : !a;
+
+            let z2 = left(z) : !a | b;
+            let r = left(z2) : (!a | b) | (!b | a) | (!!a & !!b);
+            return r;
+        }
+        lam g : !!a => (!a | b) | (!b | a) | (!!a & !!b) {
+            z : !!a;
+
+            lam f : !b => (!a | b) | (!b | a) | (!!a & !!b) {
+                x : !b;
+
+                let x2 = left(x) : !b | a;
+                let x3 = left(x2) : (!b | a) | (!!a & !!b);
+                let r = right(x3) : (!a | b) | (!b | a) | (!!a & !!b);
+                return r;
+            }
+            lam g : !!b => (!a | b) | (!b | a) | (!!a & !!b) {
+                x : !!b;
+
+                let x2 = refl(z, x) : !!a & !!b;
+                let x3 = right(x2) : (!b | a) | (!!a & !!b);
+                let r = right(x3) : (!a | b) | (!b | a) | (!!a & !!b);
+                return r;
+            }
+            let r = match e_b(f, g) : (!a | b) | (!b | a) | (!!a & !!b);
+            return r;
+        }
+        let r = match y (f, g) : (!a | b) | (!b | a) | (!!a & !!b);
+        return r;
+    }
+    let r = match x2 (f, g) : (!a | b) | (!b | a) | (!!a & !!b);
+    return r;
+}
+
