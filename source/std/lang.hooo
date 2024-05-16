@@ -1,6 +1,10 @@
 /// Type of propositions used by special operators, such as `sd`.
 /// This is needed to specify congruence.
 sym prop;
+/// Unsafe symbol, used to guard a subset of some logic which is not entirely safe.
+/// This is different from `unsafe return`.
+/// To temporary allow unsafety, one can declare `axiom u : unsafe';`.
+sym unsafe;
 
 fn refl : a -> a {
     x : a;
