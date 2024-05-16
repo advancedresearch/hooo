@@ -1,7 +1,15 @@
 
 use z;
+use unsafe;
 
 sym type;
+
+fn ty_lift : unsafe' -> (a : x) -> (a : (a : x)) {
+    axiom ty_lift : unsafe' -> (a : x) -> (a : (a : x));
+    x : unsafe';
+    let r = ty_lift(x) : (a : x) -> (a : (a : x));
+    return r;
+}
 
 fn ty_eq_left : a == b  ->  (a : c) == (b : c) {
     axiom ty_eq_left : a == b -> (a : c) == (b : c);
@@ -86,6 +94,36 @@ fn ty_in_right_arg : (a : b) & (b == c) -> (a : c) {
     let x2 = ty_eq_right(y) : (a : b) == (a : c);
     let x3 = fst(x2) : (a : b) => (a : c);
     let r = x3(x) : (a : c);
+    return r;
+}
+
+fn ty_judgement : (b : type'(n))  ->  ((a : b) : type'(n)) {
+    axiom ty_judgement : (b : type'(n)) -> ((a : b) : type'(n));
+    x : (b : type'(n));
+    let r = ty_judgement(x) : ((a : b) : type'(n));
+    return r;
+}
+
+fn ty_tup_type : true -> ((type'(n), type'(m)) : type'(z')) {
+    axiom ty_tup_type : true -> ((type'(n), type'(m)) : type'(z'));
+    x : true;
+    let r = ty_tup_type(x) : ((type'(n), type'(m)) : type'(z'));
+    return r;
+}
+
+fn ty_transitivity : (a : b) & (b : c)  ->  (a : c) {
+    axiom ty_transitivity : (a : b) & (b : c) -> (a : c);
+    x1 : (a : b);
+    x2 : (b : c);
+    let r = ty_transitivity(x1, x2) : (a : c);
+    return r;
+}
+
+fn ty_tup_ty : (a : x) & (b : y)  ->  ((a, b) : (x, y)) {
+    axiom ty_tup_ty : (a : x) & (b : y) -> ((a, b) : (x, y));
+    x1 : (a : x);
+    x2 : (b : y);
+    let r = ty_tup_ty(x1, x2) : ((a, b) : (x, y));
     return r;
 }
 

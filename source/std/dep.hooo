@@ -1,0 +1,75 @@
+use type;
+use z;
+
+fn dep_tup_ty : (a : x) & (b : y)^a  ->  ((a, b) : (x, y)) {
+    axiom dep_tup_ty : (a : x) & (b : y)^a -> ((a, b) : (x, y));
+    x1 : (a : x);
+    x2 : (b : y)^a;
+    let r = dep_tup_ty(x1, x2) : ((a, b) : (x, y));
+    return r;
+}
+
+fn dep_tup_ty_formation :
+    (x : type'(z'))^true &
+    (p(a) : type'(z'))^(a : x) &
+->  ((a : x, p(a)) : type'(z'))^true {
+    use dep_tup_ty;
+    use hooo_rev_and;
+    use pow_lift;
+    use pow_transitivity;
+    use ty_judgement;
+
+    ty_x : (x : type'(z'))^true;
+    pow_ty_pa_ty_a : (p(a) : type'(z'))^(a : x);
+
+    let y1 = ty_judgement() : (x : type'(z')) -> ((a : x) : type'(z'));
+    let x1 = pow_transitivity(ty_x, y1) : ((a : x) : type'(z'))^true;
+    let x2 = pow_lift(pow_ty_pa_ty_a) : ((p(a) : type'(z'))^(a : x))^true;
+    let x3 = hooo_rev_and(x1, x2) :
+        (((a : x) : type'(z')) & (p(a) : type'(z'))^(a : x))^true;
+    let f = dep_tup_ty() :
+        ((a : x) : type'(z')) &
+        (p(a) : type'(z'))^(a : x) -> ((a : x, p(a)) : (type'(z'), type'(z')));
+    let x4 = pow_transitivity(x3, f) :
+        ((a : x, p(a)) : (type'(z'), type'(z')))^true;
+    fn g : ((a : x, p(a)) : (type'(z'), type'(z'))) -> ((a : x, p(a)) : type'(z')) {
+        x : (a : x, p(a)) : (type'(z'), type'(z'));
+        use ty_transitivity;
+        use ty_tup_type;
+        use triv;
+        let x2 = triv(ty_tup_type) : ((type'(z'), type'(z')) : type'(z'));
+        let r = ty_transitivity(x, x2) : ((a : x, p(a)) : type'(z'));
+        return r;
+    }
+    let r = pow_transitivity(x4, g) : ((a : x, p(a)) : type'(z'))^true;
+    return r;
+}
+
+fn dep_tup_intro :
+    (a : x)^true & (b : p(a))^true  ->  ((a, b) : (a : x, p(a)))^true
+{
+    use hooo_imply;
+    use hooo_rev_and;
+    use ty_tup_ty;
+    use pow_lift;
+    use pow_transitivity;
+    use triv;
+    use ty_lift;
+    use unsafe;
+
+    ty_a : (a : x)^true;
+    ty_b : (b : p(a))^true;
+
+    let x1 = ty_tup_ty() : (a : (a : x)) & (b : p(a)) -> ((a, b) : (a : x, p(a)));
+    let x2 = pow_lift(x1) :
+        ((a : (a : x)) & (b : p(a)) => ((a, b) : (a : x, p(a))))^true;
+    let x3 = hooo_imply(x2) :
+        ((a : (a : x)) & (b : p(a)))^true => ((a, b) : (a : x, p(a)))^true;
+    axiom u : unsafe';
+    let x4 = ty_lift(u) : (a : x) -> (a : (a : x));
+    let x5 = pow_transitivity(ty_a, x4) : (a : (a : x))^true;
+    let x6 = hooo_rev_and(x5, ty_b) : ((a : (a : x)) & (b : p(a)))^true;
+    let r = x3(x6) : ((a, b) : (a : x, p(a)))^true;
+    return r;
+}
+
