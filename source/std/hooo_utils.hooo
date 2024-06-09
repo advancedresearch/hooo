@@ -156,7 +156,8 @@ fn pow_in_left_arg : a^b & (a == c)^true  ->  c^b {
     }
 
     use pow_transitivity;
-    let y4 = pow_transitivity() : (a & (a == c)^true)^b & c^(a & (a == c)^true) -> c^b;
+    let y4 = pow_transitivity() :
+        (a & (a == c)^true)^b & c^(a & (a == c)^true) -> c^b;
     let f2 = f() : a & (a == c)^true -> c;
     let r = y4(y3, f2) : c^b;
     return r;
