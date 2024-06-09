@@ -515,3 +515,20 @@ fn eq_eq_right : a == b -> (c == a) == (c == b) {
     return r;
 }
 
+fn eq_tr : x -> x == true {
+    use refl;
+
+    x : x;
+
+    lam f : x => true {
+        let r = () : true;
+        return r;
+    }
+    lam g : true => x {
+        let r = x() : x;
+        return r;
+    }
+    let r = refl(f, g) : x == true;
+    return r;
+}
+
