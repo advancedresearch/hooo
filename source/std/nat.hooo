@@ -186,6 +186,15 @@ fn nat_one_ty : true -> (1' : nat') {
     return r;
 }
 
+fn nat_sz_ty : true -> (s'(z') : nat') {
+    x : true;
+    use nat_zero_ty;
+    let y = nat_zero_ty(x) : (z' : nat');
+    use nat_succ_ty;
+    let r = nat_succ_ty(y) : (s'(z') : nat');
+    return r;
+}
+
 fn nat_two_to : 2' -> s'(s'(z')) {
     axiom two_to : 2' -> s'(s'(z'));
     x : 2';
