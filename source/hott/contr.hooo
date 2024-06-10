@@ -1,0 +1,52 @@
+use std::I;
+use std::z;
+use std::nat;
+
+use HLev;
+
+fn contr_tr : true -> HLev'(z', true) {
+    use hlev_z_from;
+
+    x : true;
+
+    let r = hlev_z_from(x) : HLev'(z', true);
+    return r;
+}
+
+fn contr_eq : x -> HLev'(z', x) == HLev'(z', true) {
+    use std::eq_tr;
+    use std::nat_zero_ty;
+    use std::triv;
+    use hlev_eq_right;
+
+    x : x;
+
+    let x2 = eq_tr(x) : x == true;
+    let zero_ty = triv(nat_zero_ty) : (z' : nat');
+    let r = hlev_eq_right(zero_ty, x2) : HLev'(z', x) == HLev'(z', true);
+    return r;
+}
+
+fn contr_unit : true -> (true : true) {
+    axiom contr_unit : true -> (true : true);
+    x : true;
+    let r = contr_unit(x) : (true : true);
+    return r;
+}
+
+fn path_tr : (a : true) & (b : true) -> ((a ~~ b) : I' => true) {
+    axiom path_tr : (a : true) & (b : true) -> ((a ~~ b) : I' => true);
+    x : (a : true);
+    y : (b : true);
+    let r = path_tr(x, y) : ((a ~~ b) : I' => true);
+    return r;
+}
+
+fn path_fa : (a : false) & (b : false) -> ((a ~~ b) : I' => false) {
+    axiom path_fa : (a : false) & (b : false) -> ((a ~~ b) : I' => false);
+    x : (a : false);
+    y : (b : false);
+    let r = path_fa(x, y) : ((a ~~ b) : I' => false);
+    return r;
+}
+
