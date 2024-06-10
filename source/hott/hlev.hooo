@@ -1,0 +1,186 @@
+use std::nat;
+use std::z;
+use std::s;
+use std::I;
+use std::cong;
+
+sym HLev;
+
+fn hlev_cong : (n : nat') -> cong'(HLev'(n)) {
+    axiom hlev_cong : (n : nat') -> cong'(HLev'(n));
+    x : (n : nat');
+    let r = hlev_cong(x) : cong'(HLev'(n));
+    return r;
+}
+
+fn hlev_eq_right : (n : nat') & (x == y) -> HLev'(n, x) == HLev'(n, y) {
+    use hlev_cong;
+    use std::cong_app_eq;
+
+    x : (n : nat');
+    y : (x == y);
+
+    let x2 = hlev_cong(x) : cong'(HLev'(n));
+    let r = cong_app_eq(x2, y) : HLev'(n, x) == HLev'(n, y);
+    return r;
+}
+
+fn hlev_z : true -> HLev'(z', x) == x {
+    axiom hlev_z : true -> HLev'(z', x) == x;
+    x : true;
+    let r = hlev_z(x) : HLev'(z', x) == x;
+    return r;
+}
+
+fn hlev_z_to : HLev'(z', x) -> x {
+    use hlev_z;
+    use std::eq_to_right;
+    use std::triv;
+
+    x : HLev'(z', x);
+
+    let x2 = triv(hlev_z) : HLev'(z', x) == x;
+    let r = eq_to_right(x2, x) : x;
+    return r;
+}
+
+fn hlev_z_from : x -> HLev'(z', x) {
+    use hlev_z;
+    use std::eq_to_left;
+    use std::triv;
+
+    x : x;
+
+    let x2 = triv(hlev_z) : HLev'(z', x) == x;
+    let r = eq_to_left(x2, x) : HLev'(z', x);
+    return r;
+}
+
+fn hlev_sn : (n : nat') ->
+    HLev'(s'(n), x) == sym(n, sym(x, all(
+        (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
+    )))(n)(x)
+{
+    axiom hlev_sn : (n : nat') ->
+        HLev'(s'(n), x) == sym(n, sym(x, all(
+            (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
+        )))(n)(x);
+    x : (n : nat');
+    let r = hlev_sn(x) : HLev'(s'(n), x) == sym(n, sym(x, all(
+        (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
+    )))(n)(x);
+    return r;
+}
+
+fn hlev_sn_to : (n : nat') & HLev'(s'(n), x) -> sym(n, sym(x, all(
+    (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
+)))(n)(x) {
+    use hlev_sn;
+    use std::eq_to_right;
+
+    x1 : (n : nat');
+    x2 : HLev'(s'(n), x);
+
+    let x3 = hlev_sn(x1) : HLev'(s'(n), x) == sym(n, sym(x, all(
+        (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
+    )))(n)(x);
+    let r = eq_to_right(x3, x2) : sym(n, sym(x, all(
+        (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
+    )))(n)(x);
+    return r;
+}
+
+fn hlev_sn_from : (n : nat') & sym(n, sym(x, all(
+    (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
+)))(n)(x) -> HLev'(s'(n), x) {
+    use hlev_sn;
+    use std::eq_to_left;   
+ 
+    x1 : (n : nat');
+    x2 : sym(n, sym(x, all(
+        (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
+    )))(n)(x);
+
+    let x3 = hlev_sn(x1) : HLev'(s'(n), x) == sym(n, sym(x, all(
+        (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
+    )))(n)(x);
+    let r = eq_to_left(x3, x2) : HLev'(s'(n), x);
+    return r;
+}
+
+fn hlev_sn_to_concrete : (n : nat') & HLev'(s'(n), x) ->
+    (a : x) & (b : x) => HLev'(n, (a ~~ b) : I' => x)
+{
+    use hlev_sn_to;
+
+    x : (n : nat');
+    y : HLev'(s'(n), x);
+
+    let x2 = hlev_sn_to(x, y) : sym(n, sym(x, all(
+        (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
+    )))(n)(x);
+    let r = x2() : (a : x) & (b : x) => HLev'(n, (a ~~ b) : I' => x);
+    return r;
+}
+
+fn hlev_prop : HLev'(s'(z'), x) -> (a : x) & (b : x) => ((a ~~ b) : I' => x) {
+    use hlev_z;
+    use hlev_sn_to_concrete;
+    use std::fst;
+    use std::imply_transitivity;
+    use std::nat_zero_ty;
+    use std::triv;
+
+    x : HLev'(s'(z'), x);    
+
+    let y = triv(nat_zero_ty) : (z' : nat');
+    let y2 = triv(hlev_z) : HLev'(z', (a ~~ b) : I' => x) == ((a ~~ b) : I' => x);
+    let y3 = fst(y2) : HLev'(z', (a ~~ b) : I' => x) => ((a ~~ b) : I' => x);
+    let x3 = hlev_sn_to_concrete(y, x) :
+        (a : x) & (b : x) => HLev'(z', (a ~~ b) : I' => x);
+    let r = imply_transitivity(x3, y3) : (a : x) & (b : x) => ((a ~~ b) : I' => x);
+    return r;
+}
+
+fn hlev_set : HLev'(s'(s'(z')), x) & (a : x) & (b : x) ->
+    (p : ((a ~~ b) : I' => x)) & (q : ((a ~~ b) : I' => x)) =>
+    ((p ~~ q) : I' => ((a ~~ b) : I' => x))
+{
+    use hlev_prop;
+    use hlev_sn_to_concrete;
+    use std::nat_sz_ty;
+    use std::triv;
+
+    x : HLev'(s'(s'(z')), x);
+    a_ty : (a : x);
+    b_ty : (b : x);
+
+    let one_ty = triv(nat_sz_ty) : (s'(z') : nat');
+    let y = hlev_sn_to_concrete(one_ty, x) :
+        (a : x) & (b : x) => HLev'(s'(z'), (a ~~ b) : I' => x);
+    let x2 = y(a_ty, b_ty) : HLev'(s'(z'), (a ~~ b) : I' => x);
+    let r = hlev_prop(x2) :
+        (p : ((a ~~ b) : I' => x)) & (q : ((a ~~ b) : I' => x)) =>
+        ((p ~~ q) : I' => ((a ~~ b) : I' => x));
+    return r;
+}
+
+fn hlev_contr_to_prop : HLev'(z', x) -> HLev'(s'(z'), x) {
+    
+    x : HLev'(z', x);
+
+    lam g : (a : x) & (b : x) => HLev'(z', (a ~~ b) : I' => x) {
+        
+        a_ty : (a : x);
+        b_ty : (b : x);
+
+        axiom y : (a ~~ b) : I' => x;
+        axiom r : HLev'(z', (a ~~ b) : I' => x);
+        return r;
+    }
+    axiom x2 : sym(n, sym(x, all(
+        (a : x') & (b : x') => HLev'(z', (a ~~ b) : I' => x')
+    )))(n)(x);
+    axiom r : HLev'(s'(z'), x);
+    return r;
+}
