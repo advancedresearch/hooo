@@ -38,3 +38,14 @@ fn test_sym_block_7 : sym(a, all(a'))(a) -> a {
     return r;
 }
 
+/* // This test should fail.
+sym a;
+fn test_sym_block_8 : a -> a' {
+    use std::sym_unwrap;
+    x : a;
+    let x2 = x() : sym(a, a')(a);
+    let r = sym_unwrap(x2) : a';
+    return r;
+}
+*/
+
