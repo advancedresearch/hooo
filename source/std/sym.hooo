@@ -5,10 +5,25 @@ fn sym_fun_eq : true -> sym(a, f(a')) == f {
     return r;
 }
 
+fn sym_transitivity : sym(a, b) & (b => c)^(sym a) -> sym(a, c) {
+    axiom sym_transitivity : sym(a, b) & (b => c)^(sym a) -> sym(a, c);
+    x : sym(a, b);
+    y : (b => c)^(sym a);
+    let r = sym_transitivity(x, y) : sym(a, c);
+    return r;    
+}
+
 fn sym_transport : sym(a, b) & (b == c)^(sym a) -> sym(a, c) {
-    axiom sym_transport : sym(a, b) & (b == c)^(sym a) -> sym(a, c);
-    x : sym(a, b) & (b == c)^(sym a);
-    let r = sym_transport(x) : sym(a, c);
+    use fst;
+    use pow_transitivity;
+    use sym_transitivity;
+
+    x : sym(a, b);
+    y : (b == c)^(sym a);
+
+    let z = fst() : (b => c)^(b == c);
+    let y2 = pow_transitivity(y, z) : (b => c)^(sym a);
+    let r = sym_transitivity(x, y2) : sym(a, c);
     return r;
 }
 
@@ -33,6 +48,24 @@ fn sym_eq : (a == b)^(sym c) -> sym(c, a) == sym(c, b) {
     }
     let r = refl(f, g) : sym(c, a) == sym(c, b);
     return r;
+}
+
+use cong;
+
+fn sym_cong_eq : cong'(sym(c, a)) & (a == b)^(sym c) -> sym(c, a)(x) == sym(c, b)(x) {
+    use sym_eq;
+    use cong_eq;
+    use cong_fun_eq;
+    use eq_to_right;
+
+    y : cong'(sym(c, a));
+    x : (a == b)^(sym c);
+
+    let x2 = sym_eq(x) : sym(c, a) == sym(c, b);
+    let x3 = cong_eq(x2) : cong'(sym(c, a)) == cong'(sym(c, b));
+    let y2 = eq_to_right(x3, y) : cong'(sym(c, b));
+    let r = cong_fun_eq(y, y2, x2) : sym(c, a)(x) == sym(c, b)(x);
+    unsafe return r;
 }
 
 fn sym_all_pow_absurd : all(a -> b) -> false {

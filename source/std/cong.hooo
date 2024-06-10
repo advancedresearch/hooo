@@ -553,8 +553,10 @@ fn cong_sym : true -> cong'(sym(f, all(a == b -> f'(a) == f'(b)))) {
     x : true;
 
     let x2 = cong_cong(x) : cong'(cong');
-    let x3 = cong_sym_def(x) : cong' == sym(f, all(a == b -> f'(a) == f'(b)));
-    let r = cong_in_arg(x2, x3) : cong'(sym(f, all(a == b -> f'(a) == f'(b))));
+    let x3 = cong_sym_def(x) :
+        cong' == sym(f, all(a == b -> f'(a) == f'(b)));
+    let r = cong_in_arg(x2, x3) :
+        cong'(sym(f, all(a == b -> f'(a) == f'(b))));
     return r;
 }
 
