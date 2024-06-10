@@ -739,6 +739,13 @@ impl TryFrom<&str> for Type {
     }
 }
 
+/// Type alias for binding variables.
+///
+/// The last binding flag tells whether it was a variable from a sym block.
+/// This is used to avoid an edge case where the body of the sym block
+/// is more general than some symbol bound to the bounded sym block (other, not pattern).
+pub type Bind = (Type, Type, bool);
+
 impl Type {
     pub fn is_safe_to_prove(&self) -> bool {
         use Type::*;
@@ -808,29 +815,35 @@ impl Type {
         }
     }
 
+    /// Binds variables.
     #[must_use]
     pub fn bind(
         &self,
         contra: bool,
         val: &Type,
-        bind: &mut Vec<(Type, Type)>
+        bind: &mut Vec<Bind>
     ) -> Result<(), String> {
         use Type::*;
 
-        fn bind_ty<F: FnOnce(&mut Vec<(Type, Type)>)>(
-            bind: &mut Vec<(Type, Type)>,
+        fn bind_ty<F: FnOnce(&mut Vec<Bind>)>(
+            bind: &mut Vec<(Type, Type, bool)>,
             a: &Type,
             b: &Type,
             f: F,
         ) -> Result<(), String> {
             let mut found = false;
-            for (ty, val) in bind.iter() {
+            for (ty, val, sym_block) in bind.iter() {
                 if ty == a {
                     if val != b && val.clone().lift() != b.clone().lift() {
                         return Err(format!("Could not unify:\n\n  {}\n\nWith:\n\n  {}\n", a, b));
                     }
                     found = true;
                     break;
+                }
+                if *sym_block {
+                    if val == b {
+                        return Err(format!("Symbol used by sym block:\n\n  {}\n\nWith:\n\n  {}\n", a, b));
+                    }
                 }
             }
             if !found {f(bind)};
@@ -849,18 +862,18 @@ impl Type {
                 else {Err(format!("Could not unify type:\n\n  {}\n\nWith:\n\n  {}\n", a, b))},
             (LocSym(a), LocSym(b)) => if a == b {Ok(())}
                 else {
-                    for (ty, _) in bind.iter() {
+                    for (ty, _, _) in bind.iter() {
                         if let Type::Sym(name) = ty {
                             if name == a {
                                 return Err(format!("Local symbol already bound:\n\n  {}\n", a))
                             }
                         }
                     }
-                    bind.push((Sym(a.clone()), Sym(b.clone())));
+                    bind.push((Sym(a.clone()), Sym(b.clone()), false));
                     Ok(())
                 },
             (Sym(a), Sym(b)) => {
-                for (ty, v) in bind.iter() {
+                for (ty, v, _) in bind.iter() {
                     if let Type::Sym(name) = ty {
                         if name == a && val == v {return Ok(())}
                     }
@@ -869,7 +882,7 @@ impl Type {
                 else {Err(format!("Could not unify symbol:\n\n  {}\n\nWith:\n\n  {}\n", a, b))}
             }
             (Sym(a), b) => {
-                for (ty, val) in bind.iter() {
+                for (ty, val, _) in bind.iter() {
                     if let Type::Sym(name) = ty {
                         if name == a && b == val {return Ok(())}
                     }
@@ -891,17 +904,17 @@ impl Type {
                 ab.1.bind(contra, &cd.1, bind)
             }
             (AllTy(_), _) => bind_ty(bind, self, val, |bind|
-                bind.push((self.clone(), val.clone()))),
+                bind.push((self.clone(), val.clone(), false))),
             (_, AllTy(_)) => Ok(()),
             (App(ab), x) => {
                 if let Type::SymBlock(s_ab) = &ab.0 {
                     let n = bind.len();
-                    bind.push((Type::Sym(s_ab.0.clone()), ab.1.clone()));
+                    bind.push((Type::Sym(s_ab.0.clone()), ab.1.clone(), false));
                     let res = s_ab.1.bind(contra, &x, bind);
                     if res.is_ok() {
                         let ty = s_ab.1.replace(bind);
                         bind.truncate(n);
-                        bind.push((self.clone(), ty));
+                        bind.push((self.clone(), ty, false));
                         return Ok(());
                     } else {
                         bind.truncate(n);
@@ -911,31 +924,31 @@ impl Type {
             }
             (All(a), All(b)) => {
                 let (a, b) = if contra {(b, a)} else {(a, b)};
-                let mut bind2: Vec<(Type, Type)> = bind.iter()
-                    .filter(|(a, b)| {
+                let mut bind2: Vec<Bind> = bind.iter()
+                    .filter(|(a, b, _)| {
                         if contra {
                             if let Sym(_) = b {true} else {false}
                         } else {
                             if let Sym(_) = a {true} else {false}
                         }
                     })
-                    .map(|(a, b)| if contra {(b.clone(), a.clone())}
-                                  else {(a.clone(), b.clone())})
+                    .map(|(a, b, sym_block)| if contra {(b.clone(), a.clone(), *sym_block)}
+                                  else {(a.clone(), b.clone(), *sym_block)})
                     .collect();
                 let _ = a.bind(contra, b, &mut bind2)?;
                 let res = a.replace(&bind2);
-                bind.push((self.clone(), All(Box::new(res))));
+                bind.push((self.clone(), All(Box::new(res)), false));
                 Ok(())
             }
             (All(a), b) if !contra => a.bind(contra, b, bind),
             (SymBlock(ab), SymBlock(cd)) => {
                 let n = bind.len();
-                bind.push((Sym(ab.0.clone()), Sym(cd.0.clone())));
+                bind.push((Sym(ab.0.clone()), Sym(cd.0.clone()), true));
                 let res = ab.1.bind(contra, &cd.1, bind);
                 if res.is_ok() {
                     let ty = self.replace(bind);
                     bind.truncate(n);
-                    bind.push((self.clone(), ty));
+                    bind.push((self.clone(), ty, false));
                 } else {bind.truncate(n)};
                 res
             }
@@ -944,10 +957,10 @@ impl Type {
         }
     }
 
-    pub fn replace(&self, bind: &[(Type, Type)]) -> Type {
+    pub fn replace(&self, bind: &[Bind]) -> Type {
         use Type::*;
 
-        for (arg, val) in bind {
+        for (arg, val, _) in bind {
             if arg == self {return val.clone()}
         }
         match self {
@@ -957,7 +970,7 @@ impl Type {
             Sym(_) => self.clone(),
             AllTy(_) => self.clone(),
             LocSym(a) => {
-                for (arg, val) in bind {
+                for (arg, val, _) in bind {
                     if let Sym(name) = arg {
                         if name == a {
                             if let Sym(other_name) = val {
@@ -985,7 +998,7 @@ impl Type {
             Pair(ab) => pair(ab.0.replace(bind), ab.1.replace(bind)),
             SymBlock(ab) => {
                 let mut a = ab.0.clone();
-                for (arg, val) in bind {
+                for (arg, val, _) in bind {
                     if let Type::Sym(name) = arg {
                         if name == &a {
                             if let Type::Sym(other_name) = val {
@@ -1026,7 +1039,7 @@ impl Type {
         }
     }
 
-    pub fn de_sym(&self, bind: &mut Vec<(Type, Type)>) -> Type {
+    pub fn de_sym(&self, bind: &mut Vec<Bind>) -> Type {
         use Type::*;
 
         match self {
@@ -1047,7 +1060,7 @@ impl Type {
             All(a) => All(Box::new(a.de_sym(bind))),
             SymBlock(ab) => sym_block(ab.0.clone(), ab.1.de_sym(bind)),
             Sym(_) => {
-                for (n, m) in bind.iter() {
+                for (n, m, _) in bind.iter() {
                    if n == self {return m.clone()} 
                 }
                 self.clone()
@@ -1057,7 +1070,7 @@ impl Type {
                 let b = ab.1.de_sym(bind);
                 if let SymBlock(s_ab) = a {
                     let n = bind.len();
-                    bind.push((Sym(s_ab.0.clone()), b));
+                    bind.push((Sym(s_ab.0.clone()), b, false));
                     let res = s_ab.1.de_sym(bind);
                     bind.truncate(n);
                     return res;
@@ -1090,6 +1103,8 @@ impl Type {
     }
 
     /// Whether application type checks.
+    ///
+    /// The pattern is `(f_in -> f_out)(self) : exp_t`.
     pub fn app_to_has_bound(
         &self,
         f_in: &Type,
@@ -1817,6 +1832,11 @@ mod tests {
         let f_out = f_out.lift();
         let ty: Type = "a == a".try_into().unwrap();
         assert!(input.app_to_has_bound(&f_in, &f_out, &ty).is_ok());
+
+        let sym_a: Type = "sym(a, a')(a)".try_into().unwrap();
+        let sym_b: Type = "sym(a, b)(a)".try_into().unwrap();
+        let a_sym: Type = "a'".try_into().unwrap();
+        assert!(sym_a.app_to_has_bound(&sym_b.lift(), &b.lift(), &a_sym).is_err());
     }
 
     #[test]
