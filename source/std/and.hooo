@@ -181,3 +181,16 @@ fn and_eq_right : a == b -> (c & a) == (c & b) {
     return r;
 }
 
+fn and_to_eq : a & b -> a == b {
+    use imply_lift;
+    use refl;
+
+    x : a;
+    y : b;
+
+    let f = imply_lift(y) : a => b;
+    let g = imply_lift(x) : b => a;
+    let r = refl(f, g) : a == b;
+    return r;
+}
+
