@@ -142,6 +142,52 @@ fn hlev_prop : HLev'(s'(z'), x) -> (a : x) & (b : x) => ((a ~~ b) : I' => x) {
     return r;
 }
 
+fn hlev_prop_eq : true ->
+    sym(x, (a : x') & (b : x') => HLev'(z', (a ~~ b) : I' => x'))(x) ==
+    sym(x, (a : x') & (b : x') => ((a ~~ b) : I' => x'))(x)
+{
+    use std::imply_eq_right;
+    use hlev_z;
+
+    x : true;
+
+    let x2 = hlev_z(x) : HLev'(z', (a ~~ b) : I' => x) == ((a ~~ b) : I' => x);
+    let x3 = imply_eq_right(x2) :
+        ((a : x) & (b : x) => HLev'(z', (a ~~ b) : I' => x)) ==
+        ((a : x) & (b : x) => ((a ~~ b) : I' => x));
+    let r = x3() :
+        sym(x, (a : x') & (b : x') => HLev'(z', (a ~~ b) : I' => x'))(x) ==
+        sym(x, (a : x') & (b : x') => ((a ~~ b) : I' => x'))(x);
+    unsafe return r;
+}
+
+fn hlev_prop_from :
+    sym(x, all((a : x') & (b : x') => ((a ~~ b) : I' => x')))(x) -> HLev'(s'(z'), x)
+{
+    use std::nat_zero_ty;
+    use std::triv;
+    use std::eq_transitivity;
+    use std::eq_to_left;
+    use hlev_sn;
+    use hlev_prop_eq;
+
+    x : sym(x, all((a : x') & (b : x') => ((a ~~ b) : I' => x')))(x);
+    
+    let z_ty = triv(nat_zero_ty) : (z' : nat');
+    let y = hlev_sn(z_ty) : HLev'(s'(z'), x) ==
+        sym(x, all((a : x') & (b : x') => HLev'(z', (a ~~ b) : I' => x')))(x);
+    let f = hlev_prop_eq() : true ->
+        sym(x, all((a : x') & (b : x') => HLev'(z', (a ~~ b) : I' => x')))(x) ==
+        sym(x, all((a : x') & (b : x') => ((a ~~ b) : I' => x')))(x);
+    let y2 = triv(f) :
+        sym(x, all((a : x') & (b : x') => HLev'(z', (a ~~ b) : I' => x')))(x) ==
+        sym(x, all((a : x') & (b : x') => ((a ~~ b) : I' => x')))(x);
+    let y3 = eq_transitivity(y, y2) : HLev'(s'(z'), x) ==
+        sym(x, all((a : x') & (b : x') => ((a ~~ b) : I' => x')))(x);
+    let r = eq_to_left(y3, x) : HLev'(s'(z'), x);
+    return r;
+}
+
 fn hlev_set : HLev'(s'(s'(z')), x) & (a : x) & (b : x) ->
     (p : ((a ~~ b) : I' => x)) & (q : ((a ~~ b) : I' => x)) =>
     ((p ~~ q) : I' => ((a ~~ b) : I' => x))
