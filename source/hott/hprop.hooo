@@ -1,7 +1,7 @@
-use std::I;
 use std::z;
 use std::s;
 
+use I;
 use HLev;
 
 fn hprop_tr : (a : true) & (b : true) -> ((a ~~ b) : I' => true) {

@@ -1,0 +1,144 @@
+use std::cong;
+use std::type;
+use std::z;
+
+sym I;
+sym i0;
+sym i1;
+
+fn i_ty : true -> (I' : type'(z')) {
+    axiom i_ty : true -> (I' : type'(z'));
+    x : true;
+    let r = i_ty(x) : (I' : type'(z'));
+    return r;
+}
+
+fn i0_ty : true -> (i0' : I') {
+    axiom i0_ty : true -> (i0' : I');
+    x : true;
+    let r = i0_ty(x) : (i0' : I');
+    return r;
+}
+
+fn i1_ty : true -> (i1' : I') {
+    axiom i1_ty : true -> (i1' : I');
+    x : true;
+    let r = i1_ty(x) : (i1' : I');
+    return r;
+}
+
+fn i_left_ty : (f : I' => a) -> (f(i0') : a) {
+    axiom i_left_ty : (f : I' => a) -> (f(i0') : a);
+    x : (f : I' => a);
+    let r = i_left_ty(x) : (f(i0') : a);
+    return r;
+}
+
+fn i_right_ty : (f : I' => a) -> (f(i1') : a) {
+    axiom i_right_ty : (f : I' => a) -> (f(i1') : a);
+    x : (f : I' => a);
+    let r = i_right_ty(x) : (f(i1') : a);
+    return r;
+}
+
+fn iq_cong : true -> cong'(a ~~ b) {
+    axiom iq_cong : true -> cong'(a ~~ b);
+    x : true;
+    let r = iq_cong(x) : cong'(a ~~ b);
+    return r;
+}
+
+fn iqu_cong : true -> cong'(~a) {
+    use iq_cong;
+    use std::eq_qu_q;
+    use std::eq_symmetry;
+    use std::cong_in_arg;
+
+    x : true;
+
+    let y = iq_cong(x) : cong'(a ~~ a);
+    let y2 = eq_qu_q(x) : (~a == (a ~~ a));
+    let y3 = eq_symmetry(y2) : (a ~~ a) == ~a;
+    let r = cong_in_arg(y, y3) : cong'(~a);
+    return r;
+}
+
+fn iq_left : true -> (a ~~ b)(i0') == a {
+    axiom iq_left : true -> (a ~~ b)(i0') == a;
+    x : true;
+    let r = iq_left(x) : (a ~~ b)(i0') == a;
+    return r;
+}
+
+fn iq_right : true -> (a ~~ b)(i1') == b {
+    axiom iq_right : true -> (a ~~ b)(i1') == b;
+    x : true;
+    let r = iq_right(x) : (a ~~ b)(i1') == b;
+    return r;
+}
+
+fn iqu_left : true -> (~a)(i0') == a {
+    use std::cong_fun_eq;
+    use std::cong_in_arg;
+    use std::eq_q_qu;
+    use std::eq_transitivity_rev_sym;
+    use iq_cong;
+    use iq_left;
+    use iqu_cong;
+
+    x : true;
+
+    let y = iq_left(x) : (a ~~ a)(i0') == a;
+    let y3 = iq_cong(x) : cong'(a ~~ a);
+    let y4 = eq_q_qu(x) : ((a ~~ a) == ~a);
+    let y5 = iqu_cong(x) : cong'(~a);
+    let y6 = cong_fun_eq(y3, y5, y4) : (a ~~ a)(i0') == (~a)(i0');
+    let r = eq_transitivity_rev_sym(y6, y) : (~a)(i0') == a;
+    return r;
+}
+
+fn iqu_right : true -> (~a)(i1') == a {
+    use std::cong_fun_eq;
+    use std::cong_in_arg;
+    use std::eq_q_qu;
+    use std::eq_transitivity_rev_sym;
+    use iq_cong;
+    use iq_right;
+    use iqu_cong;
+
+    x : true;
+
+    let y = iq_right(x) : (a ~~ a)(i1') == a;
+    let y3 = iq_cong(x) : cong'(a ~~ a);
+    let y4 = eq_q_qu(x) : ((a ~~ a) == ~a);
+    let y5 = iqu_cong(x) : cong'(~a);
+    let y6 = cong_fun_eq(y3, y5, y4) : (a ~~ a)(i1') == (~a)(i1');
+    let r = eq_transitivity_rev_sym(y6, y) : (~a)(i1') == a;
+    return r;
+}
+
+fn i_points : ((a ~~ b) : I' => x) -> (a : x) & (b : x) {
+    use std::eq_to_right;
+    use std::refl;
+    use std::ty_eq_left;
+    use std::triv;
+    use i_left_ty;
+    use i_right_ty;
+    use iq_left;
+    use iq_right;
+
+    x : ((a ~~ b) : I' => x);
+
+    let x2 = i_left_ty(x) : ((a ~~ b)(i0') : x);
+    let x3 = i_right_ty(x) : ((a ~~ b)(i1') : x);
+    let x4 = triv(iq_left) : (a ~~ b)(i0') == a;
+    let x5 = triv(iq_right) : (a ~~ b)(i1') == b;
+    let x6 = ty_eq_left(x4) :
+        ((a ~~ b)(i0') : x) == (a : x);
+    let x7 = ty_eq_left(x5) :
+        ((a ~~ b)(i1') : x) == (b : x);
+    let x8 = eq_to_right(x6, x2) : (a : x);
+    let x9 = eq_to_right(x7, x3) : (b : x);
+    let r = refl(x8, x9) : (a : x) & (b : x);
+    return r;
+}

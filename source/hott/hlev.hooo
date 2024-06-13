@@ -1,8 +1,9 @@
 use std::nat;
 use std::z;
 use std::s;
-use std::I;
 use std::cong;
+
+use I;
 
 sym HLev;
 
@@ -94,8 +95,8 @@ fn hlev_sn_from : (n : nat') & sym(n, sym(x, all(
     (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
 )))(n)(x) -> HLev'(s'(n), x) {
     use hlev_sn;
-    use std::eq_to_left;   
- 
+    use std::eq_to_left;
+
     x1 : (n : nat');
     x2 : sym(n, sym(x, all(
         (a : x') & (b : x') => HLev'(n', (a ~~ b) : I' => x')
@@ -131,7 +132,7 @@ fn hlev_prop : HLev'(s'(z'), x) -> (a : x) & (b : x) => ((a ~~ b) : I' => x) {
     use std::nat_zero_ty;
     use std::triv;
 
-    x : HLev'(s'(z'), x);    
+    x : HLev'(s'(z'), x);
 
     let y = triv(nat_zero_ty) : (z' : nat');
     let y2 = triv(hlev_z) : HLev'(z', (a ~~ b) : I' => x) == ((a ~~ b) : I' => x);
@@ -139,6 +140,28 @@ fn hlev_prop : HLev'(s'(z'), x) -> (a : x) & (b : x) => ((a ~~ b) : I' => x) {
     let x3 = hlev_sn_to_concrete(y, x) :
         (a : x) & (b : x) => HLev'(z', (a ~~ b) : I' => x);
     let r = imply_transitivity(x3, y3) : (a : x) & (b : x) => ((a ~~ b) : I' => x);
+    return r;
+}
+
+fn hlev_prop_qu : HLev'(s'(z'), x) -> (a : x) => (~a : I' => x) {
+    use std::eq_to_left;
+    use std::eq_qu_q;
+    use std::triv;
+    use std::ty_eq_left;
+    use hlev_prop;
+
+    x : HLev'(s'(z'), x);
+
+    let x2 = hlev_prop(x) : (a : x) & (a : x) => ((a ~~ a) : I' => x);
+    lam r : (a : x) => (~a : I' => x) {
+        y : (a : x);
+
+        let y2 = x2(y, y) : ((a ~~ a) : I' => x);
+        let y3 = triv(eq_qu_q) : (~a == (a ~~ a));
+        let y4 = ty_eq_left(y3) : (~a : I' => x) == ((a ~~ a) : I' => x);
+        let r = eq_to_left(y4, y2) : (~a : I' => x);
+        return r;
+    }
     return r;
 }
 
@@ -172,7 +195,7 @@ fn hlev_prop_from :
     use hlev_prop_eq;
 
     x : sym(x, all((a : x') & (b : x') => ((a ~~ b) : I' => x')))(x);
-    
+
     let z_ty = triv(nat_zero_ty) : (z' : nat');
     let y = hlev_sn(z_ty) : HLev'(s'(z'), x) ==
         sym(x, all((a : x') & (b : x') => HLev'(z', (a ~~ b) : I' => x')))(x);
@@ -212,11 +235,11 @@ fn hlev_set : HLev'(s'(s'(z')), x) & (a : x) & (b : x) ->
 }
 
 fn hlev_contr_to_prop : HLev'(z', x) -> HLev'(s'(z'), x) {
-    
+
     x : HLev'(z', x);
 
     lam g : (a : x) & (b : x) => HLev'(z', (a ~~ b) : I' => x) {
-        
+
         a_ty : (a : x);
         b_ty : (b : x);
 
