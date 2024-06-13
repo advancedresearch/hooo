@@ -162,6 +162,35 @@ fn imply_eq_left : (a == b)  ->   (a => c) == (b => c) {
     return r;
 }
 
+fn imply_eq_right : (a == b)  ->  (c => a) == (c => b) {
+    x : a == b;
+    lam f : (c => a) => (c => b) {
+        y : c => a;
+        lam r : c => b {
+            use eq_to_right;
+            z : c;
+            let z2 = y(z) : a;
+            let r = eq_to_right(x, z2) : b;
+            return r;
+        }
+        return r;
+    }
+    lam g : (c => b) => (c => a) {
+        y : c => b;
+        lam r : c => a {
+            use eq_to_left;
+            z : c;
+            let z2 = y(z) : b;
+            let r = eq_to_left(x, z2) : a;
+            return r;
+        }
+        return r;
+    }
+    use refl;
+    let r = refl(f, g) : (c => a) == (c => b);
+    return r;
+}
+
 fn imply_lift : a -> (b => a) {
     x : a;
     lam f : b => a {
