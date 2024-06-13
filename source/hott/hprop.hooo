@@ -1,0 +1,41 @@
+use std::I;
+use std::z;
+use std::s;
+
+use HLev;
+
+fn hprop_tr : (a : true) & (b : true) -> ((a ~~ b) : I' => true) {
+    axiom hprop_tr : (a : true) & (b : true) -> ((a ~~ b) : I' => true);
+    x : (a : true);
+    y : (b : true);
+    let r = hprop_tr(x, y) : ((a ~~ b) : I' => true);
+    return r;
+}
+
+fn hprop_fa : (a : false) & (b : false) -> ((a ~~ b) : I' => false) {
+    axiom hprop_fa : (a : false) & (b : false) -> ((a ~~ b) : I' => false);
+    x : (a : false);
+    y : (b : false);
+    let r = hprop_fa(x, y) : ((a ~~ b) : I' => false);
+    return r;
+}
+
+fn hprop_tr_hlev : true -> HLev'(s'(z'), true) {
+    use hlev_prop_from;
+    use hprop_tr;
+
+    let f = hprop_tr() :
+        sym(x, all((a : x') & (b : x') -> ((a ~~ b) : I' => x')))(true);
+    let r = hlev_prop_from(f) : HLev'(s'(z'), true);
+    return r;
+}
+
+fn hprop_fa_hlev : true -> HLev'(s'(z'), false) {
+    use hlev_prop_from;
+    use hprop_fa;
+
+    let f = hprop_fa() :
+        sym(x, all((a : x') & (b : x') -> ((a ~~ b) : I' => x')))(false);
+    let r = hlev_prop_from(f) : HLev'(s'(z'), false);
+    return r;
+}
