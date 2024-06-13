@@ -1,0 +1,36 @@
+use std::I;
+use std::z;
+use std::s;
+use std::nat;
+
+use HLev;
+
+fn hcontr_tr : true -> HLev'(z', true) {
+    use hlev_z_from;
+
+    x : true;
+
+    let r = hlev_z_from(x) : HLev'(z', true);
+    return r;
+}
+
+fn hcontr_eq : x -> HLev'(z', x) == HLev'(z', true) {
+    use std::eq_tr;
+    use std::nat_zero_ty;
+    use std::triv;
+    use hlev_eq_right;
+
+    x : x;
+
+    let x2 = eq_tr(x) : x == true;
+    let zero_ty = triv(nat_zero_ty) : (z' : nat');
+    let r = hlev_eq_right(zero_ty, x2) : HLev'(z', x) == HLev'(z', true);
+    return r;
+}
+
+fn hcontr_unit : true -> (true : true) {
+    axiom hcontr_unit : true -> (true : true);
+    x : true;
+    let r = hcontr_unit(x) : (true : true);
+    return r;
+}
