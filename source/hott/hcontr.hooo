@@ -1,8 +1,8 @@
-use std::I;
 use std::z;
 use std::s;
 use std::nat;
 
+use I;
 use HLev;
 
 fn hcontr_tr : true -> HLev'(z', true) {
