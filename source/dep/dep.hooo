@@ -1,5 +1,5 @@
-use type;
-use z;
+use std::type;
+use std::z;
 
 fn dep_tup_ty : (a : x) & (b : y)^a  ->  ((a, b) : (x, y)) {
     axiom dep_tup_ty : (a : x) & (b : y)^a -> ((a, b) : (x, y));
@@ -14,10 +14,10 @@ fn dep_tup_ty_formation :
     (p(a) : type'(z'))^(a : x) &
 ->  ((a : x, p(a)) : type'(z'))^true {
     use dep_tup_ty;
-    use hooo_rev_and;
-    use pow_lift;
-    use pow_transitivity;
-    use ty_judgement;
+    use std::hooo_rev_and;
+    use std::pow_lift;
+    use std::pow_transitivity;
+    use std::ty_judgement;
 
     ty_x : (x : type'(z'))^true;
     pow_ty_pa_ty_a : (p(a) : type'(z'))^(a : x);
@@ -34,9 +34,9 @@ fn dep_tup_ty_formation :
         ((a : x, p(a)) : (type'(z'), type'(z')))^true;
     fn g : ((a : x, p(a)) : (type'(z'), type'(z'))) -> ((a : x, p(a)) : type'(z')) {
         x : (a : x, p(a)) : (type'(z'), type'(z'));
-        use ty_transitivity;
-        use ty_tup_type;
-        use triv;
+        use std::ty_transitivity;
+        use std::ty_tup_type;
+        use std::triv;
         let x2 = triv(ty_tup_type) : ((type'(z'), type'(z')) : type'(z'));
         let r = ty_transitivity(x, x2) : ((a : x, p(a)) : type'(z'));
         return r;
@@ -48,14 +48,14 @@ fn dep_tup_ty_formation :
 fn dep_tup_intro :
     (a : x)^true & (b : p(a))^true  ->  ((a, b) : (a : x, p(a)))^true
 {
-    use hooo_imply;
-    use hooo_rev_and;
-    use ty_tup_ty;
-    use pow_lift;
-    use pow_transitivity;
-    use triv;
-    use ty_lift;
-    use unsafe;
+    use std::hooo_imply;
+    use std::hooo_rev_and;
+    use std::ty_tup_ty;
+    use std::pow_lift;
+    use std::pow_transitivity;
+    use std::triv;
+    use std::ty_lift;
+    use std::unsafe;
 
     ty_a : (a : x)^true;
     ty_b : (b : p(a))^true;
@@ -72,4 +72,3 @@ fn dep_tup_intro :
     let r = x3(x6) : ((a, b) : (a : x, p(a)))^true;
     return r;
 }
-
