@@ -24,7 +24,7 @@ fn test_sym_block_5 : all(a) -> sym(b, b')(a) {
 
 fn test_sym_block_6 : true -> true {
     x : true;
-    
+
     axiom y : all((a => c) -> c);
     let y2 = y() : sym(b, a => c)(b) -> c;
 
@@ -49,3 +49,34 @@ fn test_sym_block_8 : a -> a' {
 }
 */
 
+/* // This test should fail.
+fn oath_to_npara_statement : a & !(false^(a => b))  ->  !(false^b) {
+    x : a;
+    y : !(false^(a => b));
+
+    lam g : !(false^b) {
+        z : false^b;
+
+        lam f : !(a => b) {
+            x2 : a => b;
+
+            let x3 = x2(x) : b;
+            let r = z(x3) : false;
+            return r;
+        }
+
+        let r = y(f) : false;
+        return r;
+    }
+    return g;
+}
+*/
+
+/* // This test should fail.
+fn foo : !(false^a) & !a -> false {
+    x : !(false^a);
+    y : !a;
+    let r = x(y) : false;
+    return r;
+}
+*/

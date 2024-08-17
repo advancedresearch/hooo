@@ -393,7 +393,7 @@ impl Term {
                         if let Some(ty) = ty.de_all() {
                             if ty_f.has_bound(&ty).is_ok() {return Ok(())};
                         }
-                        
+
                         Err(format!("Expected:\n\n  {}\n\nFound:\n\n  {}\n", ty, ty_f))
                     } else {
                         let arg_ind = arg_inds.pop().unwrap();
@@ -850,9 +850,11 @@ impl Type {
             Ok(())
         }
 
-        if let (Some(ab), Some(cd)) = (self.fun_norm(), val.fun_norm()) {
-            let _ = ab.0.bind(!contra, &cd.0, bind)?;
-            return ab.1.bind(contra, &cd.1, bind);
+        if self.fun_stronger(val, contra) {
+            if let (Some(ab), Some(cd)) = (self.fun_norm(), val.fun_norm()) {
+                let _ = ab.0.bind(!contra, &cd.0, bind)?;
+                return ab.1.bind(contra, &cd.1, bind);
+            }
         }
 
         match (self, val) {
@@ -1061,7 +1063,7 @@ impl Type {
             SymBlock(ab) => sym_block(ab.0.clone(), ab.1.de_sym(bind)),
             Sym(_) => {
                 for (n, m, _) in bind.iter() {
-                   if n == self {return m.clone()} 
+                   if n == self {return m.clone()}
                 }
                 self.clone()
             }
@@ -1143,7 +1145,7 @@ impl Type {
     pub fn has_bound(&self, other: &Type) -> Result<(), String> {
         self.has_bound_(false, other)
     }
-    
+
     pub fn has_bound_contra(&self, other: &Type) -> Result<(), String> {
         self.has_bound_(true, other)
     }
@@ -1198,17 +1200,17 @@ impl Type {
                                   ab.1.has_(contra, &cd.1) => true,
             (Or(ab), Or(cd)) if ab.0.has_(contra, &cd.0) &&
                                 ab.1.has_(contra, &cd.1) => true,
- 
+
             (All(a), All(b)) |
             (Nec(a), Nec(b)) |
             (Pos(a), Pos(b)) |
             (Qu(a), Qu(b)) if a.has_(contra, b) => true,
-            
+
             (All(a), b) if !contra => a.has_(contra, b),
             (a, All(b)) if contra => a.has_(contra, b),
             (Sym(a), Sym(b)) if a == b => true,
             (LocSym(a), LocSym(b)) if a == b => true,
-            
+
             (App(ab), App(cd)) |
             (Sd(ab), Sd(cd)) |
             (Jud(ab), Jud(cd)) |
@@ -1216,7 +1218,7 @@ impl Type {
             (Q(ab), Q(cd)) |
             (Pair(ab), Pair(cd))
             if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
-            
+
             (SymBlock(ab), SymBlock(cd)) => ab.1.has_(contra, &cd.1),
             _ => false,
         }
@@ -1486,7 +1488,7 @@ mod tests {
 
         let a: Type = "a^c == b^c".try_into().unwrap();
         assert_eq!(a, eq(pow(ty("a"), ty("c")), pow(ty("b"), ty("c"))));
-    
+
         let a: Type = "(f, g)(a)".try_into().unwrap();
         assert_eq!(a, app(pair(ty("f"), ty("g")), ty("a")));
     }
@@ -1540,7 +1542,7 @@ mod tests {
         let a: Type = "sym(a, a')".try_into().unwrap();
         assert_eq!(a, sym_block(Arc::new("a".into()), sym("a")));
         assert_eq!(format!("{}", a), "sym(a, a')");
-    
+
         let a: Type = "sym a".try_into().unwrap();
         assert_eq!(a, loc_sym("a"));
         assert_eq!(format!("{}", a), "sym a");
@@ -1683,13 +1685,13 @@ mod tests {
 
         let a: Type = "q'(a, b)".try_into().unwrap();
         assert_eq!(format!("{}", a), "q'(a, b)".to_string());
-    
+
         let a: Type = "all(a -> b)".try_into().unwrap();
         assert_eq!(format!("{}", a), "all(a -> b)".to_string());
-    
+
         let a: Type = "a -> b^c".try_into().unwrap();
         assert_eq!(format!("{}", a), "a -> b^c".to_string());
-    
+
         let a: Type = "sym(a, a')".try_into().unwrap();
         assert_eq!(format!("{}", a), "sym(a, a')".to_string());
 
@@ -1748,7 +1750,7 @@ mod tests {
         assert!(y.has_bound(&x).is_ok());
         assert!(x.has_bound_contra(&y).is_ok());
         assert!(y.has_bound_contra(&x).is_err());
-    
+
         let x: Type = "(a -> a) & (a -> a)".try_into().unwrap();
         let y: Type = "a == a".try_into().unwrap();
         assert!(x.lift().has_bound(&y).is_ok());
@@ -1791,11 +1793,11 @@ mod tests {
         let mut bind = vec![];
         assert!(x.clone().lift().bind(false, &x, &mut bind).is_ok());
         assert!(x.has_bound(&x).is_ok());
-        
+
         let a: Type = "(a == b)^true".try_into().unwrap();
         let b: Type = "(x' == y')^true".try_into().unwrap();
         assert!(a.lift().bind(true, &b, &mut vec![]).is_ok());
-    
+
         let a: Type = and(tauto(eq(all_ty("a"), all_ty("b"))), all_ty("b"));
         let b: Type = and(tauto(eq(ty("x"), ty("y"))).lift(), ty("y"))
             .try_into().unwrap();
@@ -1823,7 +1825,11 @@ mod tests {
         let ab: Type = "a => b".try_into().unwrap();
         let fun_ab: Type = "a -> b".try_into().unwrap();
         assert!(fun_ab.app_to_has_bound(&ab, &b, &b).is_ok());
-    
+
+        let para_a: Type = "false^a".try_into().unwrap();
+        let na: Type = "!a".try_into().unwrap();
+        assert!(na.app_to_has_bound(&para_a, &Type::False, &Type::False).is_err());
+
         let input: Type = "(a -> a) & (a -> a)".try_into().unwrap();
         let input = input.lift();
         let f_in: Type = "a".try_into().unwrap();
@@ -1954,19 +1960,19 @@ mod tests {
         let a: Type = "sym(a, all(a'))(c)".try_into().unwrap();
         let b: Type = "sym(b, all(b'))(c)".try_into().unwrap();
         assert!(a.has_bound(&b).is_ok());
-        
+
         let a: Type = "all(a^a)"
             .try_into().unwrap();
         let b: Type = "all(sym(a, a'^a')(a))"
             .try_into().unwrap();
         assert!(a.has_bound(&b).is_ok());
-        
+
         let a: Type = "all(a^a)"
             .try_into().unwrap();
         let b: Type = "sym(p, all(p'(a)^a))(sym(a, a'))"
             .try_into().unwrap();
         assert!(a.has_bound(&b).is_ok());
-    
+
         let a: Type = "all((add'(z', s'(a)) == s'(a))^(a : nat'))"
             .try_into().unwrap();
         let b: Type = "sym(p, all(p'(s'(a))^(a : nat')))(sym(a, add'(z', a') == a'))"
@@ -1979,11 +1985,11 @@ mod tests {
         let a: Type = "a".try_into().unwrap();
         let mut bind = vec![];
         assert_eq!(a.de_sym(&mut bind), a);
-    
+
         let a: Type = "all(a)".try_into().unwrap();
         let mut bind = vec![];
         assert_eq!(a.de_sym(&mut bind), a);
-    
+
         let a: Type = "sym(a, a')".try_into().unwrap();
         let mut bind = vec![];
         assert_eq!(a.de_sym(&mut bind), a);
@@ -2008,7 +2014,7 @@ mod tests {
         let c = all(a.clone()).de_all().unwrap();
         let d = fun(qu(not(all_ty("a"))), not(qu(all_ty("a"))));
         assert_eq!(c, d);
-        // assert!(c.has_(false, &b));        
+        // assert!(c.has_(false, &b));
         assert!(c.has_bound(&b).is_ok());
     }
 }
