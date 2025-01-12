@@ -174,3 +174,10 @@ fn sym_swap_args : sym(a, sym(b, c)) -> sym(b, sym(a, c)) {
     return r;
 }
 
+fn sym_swap_app_args : sym(a, sym(b, c)(b))(a) -> sym(b, sym(a, c)(a))(b) {
+    x : sym(a, sym(b, c)(b))(a);
+
+    let r = x() : sym(b, sym(a, c)(a))(b);
+    unsafe return r;
+}
+
