@@ -167,3 +167,10 @@ fn sym_pow_lift : a^b -> (sym(a, all(a'))(a))^(sym(b, all(b'))(b)) {
     unsafe return r;
 }
 
+fn sym_swap_args : sym(a, sym(b, c)) -> sym(b, sym(a, c)) {
+    x : sym(a, sym(b, c));
+
+    let r = x() : sym(b, sym(a, c));
+    return r;
+}
+
