@@ -13,6 +13,14 @@ fn sym_transitivity : sym(a, b) & (b => c)^(sym a) -> sym(a, c) {
     return r;    
 }
 
+fn sym_pow_transitivity : sym(a, b) & (b -> c)^(sym a) -> sym(a, c) {
+    use sym_transitivity;
+    x : sym(a, b);
+    y : (b -> c)^(sym a);
+    let r = sym_transitivity(x, y) : sym(a, c);
+    return r;
+}
+
 fn sym_transport : sym(a, b) & (b == c)^(sym a) -> sym(a, c) {
     use fst;
     use pow_transitivity;
