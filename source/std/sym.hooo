@@ -35,6 +35,21 @@ fn sym_transport : sym(a, b) & (b == c)^(sym a) -> sym(a, c) {
     return r;
 }
 
+fn sym_bin_transport : sym(f, sym(g, a)) & ((a == b)^(sym g))^(sym f) -> sym(f, sym(g, b)) {
+    use sym_transport;
+    use sym_eq;
+    use pow_transitivity;
+
+    x : sym(f, sym(g, a));
+    y : ((a == b)^(sym g))^(sym f);
+
+    let x2 = sym_transport() : sym(f, sym(g, a)) & (sym(g, a) == sym(g, b))^(sym f) -> sym(f, sym(g, b));
+    let s = sym_eq() : (a == b)^(sym g) -> sym(g, a) == sym(g, b);
+    let s2 = pow_transitivity(y, s) : (sym(g, a) == sym(g, b))^(sym f);
+    let r = x2(x, s2) : sym(f, sym(g, b));
+    return r;
+}
+
 fn sym_imply : (a => b)^(sym c) -> sym(c, a) => sym(c, b) {
     use sym_transitivity;
 
@@ -179,5 +194,19 @@ fn sym_swap_app_args : sym(a, sym(b, c)(b))(a) -> sym(b, sym(a, c)(a))(b) {
 
     let r = x() : sym(b, sym(a, c)(a))(b);
     unsafe return r;
+}
+
+fn sym_bin_to_inner : sym(a, sym(b, c))(a, b) -> sym(a, sym(b, c)(b))(a) {
+    x : sym(a, sym(b, c))(a, b);
+
+    let r = x() : sym(a, sym(b, c)(b))(a);
+    unsafe return r;
+}
+
+fn sym_inner_to_bin : sym(a, sym(b, c)(b))(a) -> sym(a, sym(b, c))(a, b) {
+    x : sym(a, sym(b, c)(b))(a);
+
+    let r = x() : sym(a, sym(b, c))(a, b);
+    return r;
 }
 
