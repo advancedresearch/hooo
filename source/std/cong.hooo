@@ -61,9 +61,9 @@ fn tauto_cong_sym :
     return r;
 }
 
-fn cong_app : cong'(f) & (f : t1 => t2 => t3) -> cong'(f(a)) {
-    axiom cong_app : cong'(f) & (f : t1 => t2 => t3) -> cong'(f(a));
-    x : cong'(f) & (f : t1 => t2 => t3);
+fn cong_app : cong'(f) -> cong'(f(a)) {
+    axiom cong_app : cong'(f) -> cong'(f(a));
+    x : cong'(f);
     let r = cong_app(x) : cong'(f(a));
     return x;
 }
@@ -85,7 +85,6 @@ fn cong_fun_eq : cong'(f) & cong'(g) & (f == g) -> f(a) == g(a) {
 fn cong_fun_bin_eq :
     cong'(f) &
     cong'(g) &
-    (f : t1 => t2 => t3) &
     (f == g) ->
     f(a, b) == g(a, b)
 {
@@ -95,12 +94,10 @@ fn cong_fun_bin_eq :
     
     x : cong'(f);
     y : cong'(g);
-    z : (f : t1 => t2 => t3);
     w : f == g;
 
-    let z2 = ty_in_left_arg(z, w) : (g : t1 => t2 => t3);
-    let x2 = cong_app(x, z) : cong'(f(a));
-    let y2 = cong_app(y, z2) : cong'(g(a));
+    let x2 = cong_app(x) : cong'(f(a));
+    let y2 = cong_app(y) : cong'(g(a));
     let w2 = cong_fun_eq(x, y, w) : f(a) == g(a);
     let r = cong_fun_eq(x2, y2, w2) : f(a, b) == g(a, b);
     return r;
@@ -304,17 +301,16 @@ fn tauto_cong_in_arg : tauto_cong'(f) & (f == g)^true -> tauto_cong'(g) {
     return r;
 }
 
-fn cong_eq_left : cong'(f) & (f : t1 => t2 => t3) & (a == b) -> f(a, c) == f(b, c) {
+fn cong_eq_left : cong'(f) & (a == b) -> f(a, c) == f(b, c) {
     use cong_app;
     use cong_app_eq;
     use cong_fun_eq;
 
     x : cong'(f);
-    f_ty : (f : t1 => t2 => t3);
     y : a == b;
 
-    let x2 = cong_app(x, f_ty) : cong'(f(a));
-    let x3 = cong_app(x, f_ty) : cong'(f(b));
+    let x2 = cong_app(x) : cong'(f(a));
+    let x3 = cong_app(x) : cong'(f(b));
     let x4 = cong_app_eq(x, y) : f(a) == f(b);
     let r = cong_fun_eq(x2, x3, x4) : f(a, c) == f(b, c);
     return r;
@@ -351,15 +347,14 @@ fn tauto_cong_eq_left :
     return r;
 }
 
-fn cong_eq_right : cong'(f) & (f : t1 => t2 => t3) & (a == b) -> f(c, a) == f(c, b) {
+fn cong_eq_right : cong'(f) & (a == b) -> f(c, a) == f(c, b) {
     use cong_app;
     use cong_app_eq;
 
     x : cong'(f);
-    f_ty : (f : t1 => t2 => t3);
     y : a == b;
 
-    let x2 = cong_app(x, f_ty) : cong'(f(c));
+    let x2 = cong_app(x) : cong'(f(c));
     let r = cong_app_eq(x2, y) : f(c, a) == f(c, b);
     return r;
 }
@@ -380,19 +375,18 @@ fn tauto_cong_eq_right :
 }
 
 fn cong_eq_both :
-    cong'(f) & (f : t1 => t2 => t3) & (a == b) & (c == d) -> f(a, c) == f(b, d)
+    cong'(f) & (a == b) & (c == d) -> f(a, c) == f(b, d)
 {
     use cong_eq_left;
     use cong_eq_right;
     use eq_transitivity;
 
     x : cong'(f);
-    f_ty : (f : t1 => t2 => t3);
     y : a == b;
     z : c == d;
 
-    let x2 = cong_eq_left(x, f_ty, y) : f(a, c) == f(b, c);
-    let x3 = cong_eq_right(x, f_ty, z) : f(b, c) == f(b, d);
+    let x2 = cong_eq_left(x, y) : f(a, c) == f(b, c);
+    let x3 = cong_eq_right(x, z) : f(b, c) == f(b, d);
     let r = eq_transitivity(x2, x3) : f(a, c) == f(b, d);
     return r;
 }
@@ -421,16 +415,15 @@ fn tauto_cong_eq_both :
     return r;
 }
 
-fn cong_in_left_arg : cong'(f) & (f : t1 => t2 => t3) & f(a, b) & (a == c) -> f(c, b) {
+fn cong_in_left_arg : cong'(f) & f(a, b) & (a == c) -> f(c, b) {
     use cong_eq_left;
     use fst;
 
     x : cong'(f);
-    f_ty : (f : t1 => t2 => t3);
     y : f(a, b);
     z : a == c;
 
-    let x2 = cong_eq_left(x, f_ty, z) : f(a, b) == f(c, b);
+    let x2 = cong_eq_left(x, z) : f(a, b) == f(c, b);
     let x3 = fst(x2) : f(a, b) => f(c, b);
     let r = x3(y) : f(c, b);
     return r;
@@ -453,16 +446,15 @@ fn tauto_cong_in_left_arg :
     return r;
 }
 
-fn cong_in_right_arg : cong'(f) & (f : t1 => t2 => t3) & f(a, b) & (b == c) -> f(a, c) {
+fn cong_in_right_arg : cong'(f) & f(a, b) & (b == c) -> f(a, c) {
     use cong_eq_right;
     use fst;
 
     x : cong'(f);
-    f_ty : (f : t1 => t2 => t3);
     y : f(a, b);
     z : b == c;
 
-    let x2 = cong_eq_right(x, f_ty, z) : f(a, b) == f(a, c);
+    let x2 = cong_eq_right(x, z) : f(a, b) == f(a, c);
     let x3 = fst(x2) : f(a, b) => f(a, c);
     let r = x3(y) : f(a, c);
     return r;
@@ -486,19 +478,18 @@ fn tauto_cong_in_right_arg :
 }
 
 fn cong_in_both_args :
-    cong'(f) & (f : t1 => t2 => t3) & f(a, b) & (a == c) & (b == d) -> f(c, d)
+    cong'(f) & f(a, b) & (a == c) & (b == d) -> f(c, d)
 {
     use cong_in_left_arg;
     use cong_in_right_arg;
 
     x : cong'(f);
-    f_ty : (f : t1 => t2 => t3);
     y : f(a, b);
     z : a == c;
     w : b == d;
 
-    let x2 = cong_in_left_arg(x, f_ty, y, z) : f(c, b);
-    let r = cong_in_right_arg(x, f_ty, x2, w) : f(c, d);
+    let x2 = cong_in_left_arg(x, y, z) : f(c, b);
+    let r = cong_in_right_arg(x, x2, w) : f(c, d);
     return r;
 }
 

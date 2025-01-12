@@ -141,6 +141,25 @@ fn sym_cong_eq : cong'(sym(c, a)) & (a == b)^(sym c) -> sym(c, a)(x) == sym(c, b
     unsafe return r;
 }
 
+fn sym_bin_cong_eq :
+    cong'(sym(f, sym(g, a))) &
+    ((a == b)^(sym g))^(sym f)
+-> sym(f, sym(g, a))(x, y) == sym(f, sym(g, b))(x, y) {
+    use sym_bin_eq;
+    use cong_eq;
+    use eq_to_right;
+    use cong_fun_bin_eq;
+
+    x : cong'(sym(f, sym(g, a)));
+    y : ((a == b)^(sym g))^(sym f);
+
+    let x2 = sym_bin_eq(y) : sym(f, sym(g, a)) == sym(f, sym(g, b));
+    let x3 = cong_eq(x2) : cong'(sym(f, sym(g, a))) == cong'(sym(f, sym(g, b)));
+    let x4 = eq_to_right(x3, x) : cong'(sym(f, sym(g, b)));
+    let r = cong_fun_bin_eq(x, x4, x2) : sym(f, sym(g, a))(x, y) == sym(f, sym(g, b))(x, y);
+    return r;
+}
+
 fn sym_all_pow_absurd : all(a -> b) -> false {
     x : all(a -> b);
     let x2 = x() : a -> b;
