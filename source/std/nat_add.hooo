@@ -49,9 +49,8 @@ fn nat_add_eq_left : a == b -> add'(a, c) == add'(b, c) {
 
     x : a == b;
 
-    let add_ty = triv(nat_add_ty) : (add' : nat' => nat' => nat');
     let x2 = triv(nat_add_cong) : cong'(add');
-    let r = cong_eq_left(x2, add_ty, x) : add'(a, c) == add'(b, c);
+    let r = cong_eq_left(x2, x) : add'(a, c) == add'(b, c);
     return r;
 }
 
@@ -63,9 +62,8 @@ fn nat_add_eq_right : a == b -> add'(c, a) == add'(c, b) {
 
     x : a == b;
 
-    let add_ty = triv(nat_add_ty) : (add' : nat' => nat' => nat');
     let x2 = triv(nat_add_cong) : cong'(add');
-    let r = cong_eq_right(x2, add_ty, x) : add'(c, a) == add'(c, b);
+    let r = cong_eq_right(x2, x) : add'(c, a) == add'(c, b);
     return r;
 }
 
@@ -78,9 +76,8 @@ fn nat_add_eq_both : (a == c) & (b == d) -> add'(a, b) == add'(c, d) {
     x : a == c;
     y : b == d;
 
-    let add_ty = triv(nat_add_ty) : (add' : nat' => nat' => nat');
     let x2 = triv(nat_add_cong) : cong'(add');
-    let r = cong_eq_both(x2, add_ty, x, y) : add'(a, b) == add'(c, d);
+    let r = cong_eq_both(x2, x, y) : add'(a, b) == add'(c, d);
     return r;
 }
 
@@ -189,8 +186,7 @@ fn nat_add_zero_left_cong : true -> cong'(sym(a, add'(z', a') == a')) {
     x : true;
 
     let y = nat_add_cong(x) : cong'(add');
-    let y2 = nat_add_ty(x) : (add' : nat' => nat' => nat');
-    let x2 = cong_app(y, y2) : cong'(add'(z'));
+    let x2 = cong_app(y) : cong'(add'(z'));
     let r = cong_bin_eq_fst(x2) : cong'(sym(a, add'(z', a') == a'));
     return r;
 }
