@@ -87,6 +87,42 @@ fn sym_eq : (a == b)^(sym c) -> sym(c, a) == sym(c, b) {
     return r;
 }
 
+fn sym_bin_eq : ((a == b)^(sym g))^(sym f) -> sym(f, sym(g, a)) == sym(f, sym(g, b)) {
+    use refl;
+    use sym_bin_transport;
+    use eq_symmetry;
+    use pow_transitivity;
+
+    x : ((a == b)^(sym g))^(sym f);
+
+    lam f : sym(f, sym(g, a)) => sym(f, sym(g, b)) {
+        y : sym(f, sym(g, a));
+ 
+        let r = sym_bin_transport(y, x) : sym(f, sym(g, b));
+        return r;
+    }
+    lam g : sym(f, sym(g, b)) => sym(f, sym(g, a)) {
+        y : sym(f, sym(g, b));
+
+        fn y2 : (a == b)^c -> (b == a)^c {
+            use eq_symmetry;
+            use pow_transitivity;
+
+            x : (a == b)^c;
+
+            let x2 = eq_symmetry() : a == b -> b == a;
+            let r = pow_transitivity(x, x2) : (b == a)^c;
+            return r;
+        }
+        let y3 = y2() : (a == b)^(sym g) -> (b == a)^(sym g);
+        let x2 = pow_transitivity(x, y3) : ((b == a)^(sym g))^(sym f);
+        let r = sym_bin_transport(y, x2) : sym(f, sym(g, a));
+        return r;
+    }
+    let r = refl(f, g) : sym(f, sym(g, a)) == sym(f, sym(g, b));
+    return r;
+}
+
 use cong;
 
 fn sym_cong_eq : cong'(sym(c, a)) & (a == b)^(sym c) -> sym(c, a)(x) == sym(c, b)(x) {
