@@ -35,6 +35,20 @@ fn sym_transport : sym(a, b) & (b == c)^(sym a) -> sym(a, c) {
     return r;
 }
 
+fn sym_imply : (a => b)^(sym c) -> sym(c, a) => sym(c, b) {
+    use sym_transitivity;
+
+    x : (a => b)^(sym c);
+
+    lam r : sym(c, a) => sym(c, b) {
+        y : sym(c, a);
+
+        let r = sym_transitivity(y, x) : sym(c, b);
+        return r;
+    }
+    return r;
+}
+
 fn sym_eq : (a == b)^(sym c) -> sym(c, a) == sym(c, b) {
     use eq_symmetry;
     use pow_transitivity;
