@@ -30,7 +30,7 @@ use std::sync::Arc;
 use rayon::prelude::*;
 
 fn main() {
-    println!("==== Hooo 0.7 ====");
+    println!("==== Hooo 0.8 ====");
     let file = std::env::args_os()
         .nth(1)
         .and_then(|s| s.into_string().ok());
