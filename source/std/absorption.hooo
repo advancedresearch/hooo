@@ -1,0 +1,58 @@
+
+fn and_absorb_from : a & (a | b) -> a {
+    x : a;
+    y : a | b;
+
+    return x;
+}
+
+fn and_absorb_to : a -> a & (a | b) {
+    use left;
+    use refl;
+
+    x : a;
+
+    let x2 = left(x) : a | b;
+    let r = refl(x, x2) : a & (a | b);
+    return r;
+}
+
+fn and_absorb_eq : true -> (a & (a | b)) == a {
+    use refl;
+    use and_absorb_from;
+    use and_absorb_to;
+
+    let r = refl(and_absorb_from, and_absorb_to) : (a & (a | b)) == a;
+    return r;
+}
+
+fn or_absorb_from : a | (a & b) -> a {
+    use refl;
+    use fst;
+
+    x : a | (a & b);
+
+    let f = refl() : a => a;
+    let g = fst() : a & b => a;
+    let r = match x (f, g) : a;
+    return r;
+}
+
+fn or_absorb_to : a -> a | (a & b) {
+    use left;
+
+    x : a;
+
+    let r = left(x) : a | (a & b);
+    return r;
+}
+
+fn or_absorb_eq : true -> (a | (a & b)) == a {
+    use refl;
+    use or_absorb_from;
+    use or_absorb_to;
+
+    let r = refl(or_absorb_from, or_absorb_to) : (a | (a & b)) == a;
+    return r;
+}
+
