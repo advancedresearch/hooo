@@ -1015,7 +1015,7 @@ impl Type {
         }
     }
 
-    /// Prepease type for Herbrandization.
+    /// Prepare type for Herbrandization.
     pub fn de_all(&self) -> Option<Type> {
         use Type::*;
 
