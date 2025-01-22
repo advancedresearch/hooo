@@ -1,0 +1,85 @@
+fn and_from_de_morgan : !(a | b) -> !a & !b {
+    use refl;
+    use modus_tollens;
+    use left;
+    use right;
+
+    x : !(a | b);
+
+    let f = left() : a => a | b;
+    let g = right() : b => a | b;
+    let f2 = modus_tollens(f) : !(a | b) => !a;
+    let g2 = modus_tollens(g) : !(a | b) => !b;
+    let x2 = f2(x) : !a;
+    let x3 = g2(x) : !b;
+    let r = refl(x2, x3) : !a & !b;
+    return r;
+}
+
+fn and_to_de_morgan : !a & !b -> !(a | b) {
+    x : !a;
+    y : !b;
+
+    lam f : !(a | b) {
+        z : a | b;
+
+        let r = match z (x, y) : false;
+        return r;
+    }
+    return f;
+}
+
+fn or_from_de_morgan : !(a & b) & excm(a) & excm(b) -> !a | !b {
+    use left;
+    use right;
+
+    x : !(a & b);
+    y : excm(a);
+    z : excm(b);
+
+    lam f : a => !a | !b {
+        x2 : a;
+
+        lam f : b => !a | !b {
+            x3 : b;
+
+            let x4 = x(x2, x3) : false;
+            let r = match x4 : !a | !b;
+            return r;
+        }
+        lam g : !b => !a | !b {
+            x3 : !b;
+
+            let r = right(x3) : !a | !b;
+            return r;
+        }
+        let r = match z (f, g) : !a | !b;
+        return r;
+    }
+    lam g : !a => !a | !b {
+        x2 : !a;
+
+        let r = left(x2) : !a | !b;
+        return r;
+    }
+    let r = match y (f, g) : !a | !b;
+    return r;
+}
+
+fn or_to_de_morgan : !a | !b -> !(a & b) {
+    use not_double;
+
+    x : !a | !b;
+
+    lam f : !(a & b) {
+        y : a;
+        z : b;
+
+        let f = not_double(y) : !!a;
+        let g = not_double(z) : !!b;
+        let r = match x (f, g) : false;
+        return r;
+    }
+    return f;
+}
+
