@@ -41,7 +41,7 @@ fn hooo_dual_or : c^(a | b)  ->  c^a & c^b {
     use right;
 
     x : c^(a | b);
-    
+
     let x2 = pow_transitivity(left, x) : c^a;
     let x3 = pow_transitivity(right, x) : c^b;
     let r = refl(x2, x3) : c^a & c^b;
@@ -246,5 +246,35 @@ fn triv : a^true  ->  a {
     x : a^true;
     let y = () : true;
     let r = x(y) : a;
+    return r;
+}
+
+fn tauto_hooo_eq : (a == b)^c  ->  (a^c == b^c)^true {
+    use fst;
+    use snd;
+    use pow_transitivity;
+    use tauto_hooo_imply;
+    use hooo_rev_and;
+
+    x : (a == b)^c;
+
+    let x2 = fst() : (a == b) -> (a => b);
+    let x3 = snd() : (a == b) -> (b => a);
+    let x4 = pow_transitivity(x, x2) : (a => b)^c;
+    let x5 = pow_transitivity(x, x3) : (b => a)^c;
+    let x6 = tauto_hooo_imply(x4) : (a^c => b^c)^true;
+    let x7 = tauto_hooo_imply(x5) : (b^c => a^c)^true;
+    let r = hooo_rev_and(x6, x7) : (a^c == b^c)^true;
+    return r;
+}
+
+fn hooo_eq : (a == b)^c  ->  a^c == b^c {
+    use triv;
+    use tauto_hooo_eq;
+
+    x : (a == b)^c;
+
+    let x2 = tauto_hooo_eq(x) : (a^c == b^c)^true;
+    let r = triv(x2) : a^c == b^c;
     return r;
 }
