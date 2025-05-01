@@ -1,0 +1,172 @@
+use tauto_cong;
+
+sym qi;
+
+fn qi_def : true -> qi'(a, b) == (a ~> b) {
+    axiom qi_def : true -> qi'(a, b) == (a ~> b);
+    x : true;
+    let r = qi_def(x) : qi'(a, b) == (a ~> b);
+    return r;
+}
+
+fn qi_from : (a => b) & ~a & ~b -> a ~> b {
+    axiom qi_from : (a => b) & ~a & ~b -> a ~> b;
+    x : a => b;
+    y : ~a;
+    z : ~b;
+    let r = qi_from(x, y, z) : a ~> b;
+    return r;
+}
+
+fn qi_to : a ~> b -> (a => b) & ~a & ~b {
+    axiom qi_to : a ~> b -> (a => b) & ~a & ~b;
+    x : a ~> b;
+    let r = qi_to(x) : (a => b) & ~a & ~b;
+    return r;
+}
+
+fn qi_tauto_cong : true -> tauto_cong'(qi') {
+    axiom qi_tauto_cong : true -> tauto_cong'(qi');
+    x : true;
+    let r = qi_tauto_cong(x) : tauto_cong'(qi');
+    return r;
+}
+
+fn qi_transitivity : (a ~> b) & (b ~> c)  ->  (a ~> c) {
+    use qi_to;
+    use qi_from;
+    use fst;
+    use snd;
+
+    x : a ~> b;
+    y : b ~> c;
+
+    let x2 = qi_to(x) : (a => b) & ~a & ~b;
+    let y2 = qi_to(y) : (b => c) & ~b & ~c;
+    let x3 = fst(x2) : a => b;
+    let y3 = fst(y2) : b => c;
+    lam f : a => c {
+        z : a;
+        let z2 = x3(z) : b;
+        let r = y3(z2) : c;
+        return r;
+    }
+    let x4 = snd(x2) : ~a & ~b;
+    let y4 = snd(y2) : ~b & ~c;
+    let x5 = fst(x4) : ~a;
+    let y5 = snd(y4) : ~c;
+    let r = qi_from(f, x5, y5) : a ~> c;
+    return r;
+}
+
+fn qi_left : a ~> b  ->  a ~> a {
+    use qi_from;
+    use qi_to;
+    use snd;
+    use fst;
+    use imply_refl;
+    use triv;
+
+    x : a ~> b;
+
+    let x2 = qi_to(x) : (a => b) & ~a & ~b;
+    let x3 = snd(x2) : ~a & ~b;
+    let x4 = fst(x3) : ~a;
+    let x5 = triv(imply_refl) : a => a;
+    let r = qi_from(x5, x4, x4) : a ~> a;
+    return r;
+}
+
+fn qi_right : a ~> b  ->  b ~> b {
+    use qi_from;
+    use qi_to;
+    use snd;
+    use imply_refl;
+    use triv;
+
+    x : a ~> b;
+
+    let x2 = qi_to(x) : (a => b) & ~a & ~b;
+    let x3 = snd(x2) : ~a & ~b;
+    let x4 = snd(x3) : ~b;
+    let x5 = triv(imply_refl) : b => b;
+    let r = qi_from(x5, x4, x4) : b ~> b;
+    return r;
+}
+
+fn qi_to_imply : a ~> b  ->  a => b {
+    use qi_to;
+    use fst;
+
+    x : a ~> b;
+
+    let x2 = qi_to(x) : (a => b) & ~a & ~b;
+    let r = fst(x2) : a => b;
+    return r;
+}
+
+fn tauto_qi_to_tauto_imply : (a ~> b)^true  ->  (a => b)^true {
+    use qi_to_imply;
+    use pow_transitivity;
+
+    x : (a ~> b)^true;
+
+    let r = pow_transitivity(x, qi_to_imply) : (a => b)^true;
+    return r;
+}
+
+fn nimply_to_nqi : !(a => b)  ->  !(a ~> b) {
+    use qi_to_imply;
+    use modus_tollens;
+
+    x : !(a => b);
+
+    let y = qi_to_imply() : (a ~> b) => (a => b);
+    let y2 = modus_tollens(y) : !(a => b) => !(a ~> b);
+    let r = y2(x) : !(a ~> b);
+    return r;
+}
+
+fn nqi_left : !(a ~> a)  ->  !(a ~> b) {
+    use qi_left;
+    use modus_tollens;
+
+    x : !(a ~> a);
+
+    let y = modus_tollens(qi_left) : !(a ~> a) => !(a ~> b);
+    let r = y(x) : !(a ~> b);
+    return r;
+}
+
+fn nqi_right : !(b ~> b)  ->  !(a ~> b) {
+    use qi_right;
+    use modus_tollens;
+
+    x : !(b ~> b);
+
+    let y = modus_tollens(qi_right) : !(b ~> b) => !(a ~> b);
+    let r = y(x) : !(a ~> b);
+    return r;
+}
+
+fn sd_to_qi : sd(a, a)  ->  a ~> a {
+    use sd_to_qu;
+    use qu_to_qi;
+
+    x : sd(a, a);
+
+    let x2 = sd_to_qu(x) : ~a;
+    let r = qu_to_qi(x2) : a ~> a;
+    return r;
+}
+
+fn nqi_to_nsd : !(a ~> a)  ->  !sd(a, a) {
+    use modus_tollens;
+    use sd_to_qi;
+
+    x : !(a ~> a);
+
+    let x2 = modus_tollens(sd_to_qi) : !(a ~> a) => !sd(a, a);
+    let r = x2(x) : !sd(a, a);
+    return r;
+}
