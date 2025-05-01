@@ -85,35 +85,41 @@ fn q_transitivity : (a ~~ b) & (b ~~ c)  ->  (a ~~ c) {
 }
 
 fn q_left : a ~~ b  ->  a ~~ a {
-    x : a ~~ b;
+    use fst;
+    use snd;
     use q_to;
-    let y = q_to(x) : (a == b) & ~a & ~b;
-    use std::snd;
-    let y2 = snd(y) : ~a & ~b;
-    use std::fst;
-    let y3 = fst(y2) : ~a;
     use qu_to_q;
+
+    x : a ~~ b;
+
+    let y = q_to(x) : (a == b) & ~a & ~b;
+    let y2 = snd(y) : ~a & ~b;
+    let y3 = fst(y2) : ~a;
     let r = qu_to_q(y3) : a ~~ a;
     return r;
 }
 
 fn q_right : a ~~ b  ->  b ~~ b {
-    x : a ~~ b;
+    use snd;
     use q_to;
+    use qu_to_q;
+
+    x : a ~~ b;
+
     let y = q_to(x) : (a == b) & ~a & ~b;
-    use std::snd;
     let y2 = snd(y) : ~a & ~b;
     let y3 = snd(y2) : ~b;
-    use qu_to_q;
     let r = qu_to_q(y3) : b ~~ b;
     return r;
 }
 
 fn q_to_eq : a ~~ b  ->  (a == b) {
-    x : a ~~ b;
+    use fst;
     use q_to;
+
+    x : a ~~ b;
+
     let y = q_to(x) : (a == b) & ~a & ~b;
-    use std::fst;
     let r = fst(y) : (a == b);
     return r;
 }
@@ -129,28 +135,34 @@ fn tauto_q_to_tauto_eq : (a ~~ b)^true  ->  (a == b)^true {
 }
 
 fn neq_to_sesh : !(a == b)  ->  !(a ~~ b) {
-    x : !(a == b);
+    use modus_tollens;
     use q_to_eq;
+
+    x : !(a == b);
+
     let y = q_to_eq() : (a ~~ b) => (a == b);
-    use std::modus_tollens;
     let y2 = modus_tollens(y) : !(a == b) => !(a ~~ b);
     let r = y2(x) : !(a ~~ b);
     return r;
 }
 
 fn sesh_left : !(a ~~ a)  ->  !(a ~~ b) {
-    x : !(a ~~ a);
-    use std::modus_tollens;
+    use modus_tollens;
     use q_left;
+
+    x : !(a ~~ a);
+
     let y = modus_tollens(q_left) : !(a ~~ a) => !(a ~~ b);
     let r = y(x) : !(a ~~ b);
     return r;
 }
 
 fn sesh_right : !(b ~~ b)  ->  !(a ~~ b) {
-    x : !(b ~~ b);
-    use std::modus_tollens;
+    use modus_tollens;
     use q_right;
+
+    x : !(b ~~ b);
+
     let y = modus_tollens(q_right) : !(b ~~ b) => !(a ~~ b);
     let r = y(x) : !(a ~~ b);
     return r;
@@ -178,4 +190,3 @@ fn sesh_to_nsd : !(a ~~ a)  ->  !sd(a, a) {
     let r = x2(x) : !sd(a, a);
     return r;
 }
-
