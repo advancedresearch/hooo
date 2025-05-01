@@ -24,6 +24,7 @@ _seps: "',.(){}=-<>^&|!-□◇~"
 6 bin = [type_or_pow:"left" .w? {
     "==":"eq"
     "=^=":"pow_eq"
+    "~>":"qi"
     "~~":"q"
     ".":"comp"
 } .w? type_or_pow:"right"]
@@ -51,4 +52,3 @@ _seps: "',.(){}=-<>^&|!-□◇~"
     or:"or"
 }
 0 doc = [.w? type_or_fun:"type" .w?]
-

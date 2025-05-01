@@ -76,7 +76,7 @@ fn run_ctx(
             convert.update(range);
             break;
         }
-       
+
         match parse_var(meta_cache, "fun_decl", convert, ignored) {
             Ok((range, (name, _, ty))) => {
                 convert.update(range);
@@ -139,7 +139,7 @@ fn run_ctx(
             let range = convert.ignore();
             convert.update(range);
             continue;
-        }        
+        }
 
         match parse_var(meta_cache, "axiom", convert, ignored) {
             Ok((range, (name, args, ty))) => {
@@ -157,8 +157,8 @@ fn run_ctx(
             }
             Err(Some(err)) => return Err((start_range, err)),
             Err(None) => {}
-        } 
- 
+        }
+
         match parse_var(meta_cache, "var", convert, ignored) {
             Ok((range, (name, args, ty))) => {
                 convert.update(range);
@@ -643,6 +643,9 @@ fn parse_bin(
         } else if let Ok((range, _)) = convert.meta_bool("q") {
             convert.update(range);
             op = Some(Op::Q);
+        } else if let Ok((range, _)) = convert.meta_bool("qi") {
+            convert.update(range);
+            op = Some(Op::Qi);
         } else if let Ok((range, _)) = convert.meta_bool("pair") {
             convert.update(range);
             op = Some(Op::Pair);
@@ -671,6 +674,7 @@ fn parse_bin(
         Op::Jud => jud(left, right),
         Op::Comp => comp(left, right),
         Op::Q => q(left, right),
+        Op::Qi => qi(left, right),
         Op::Pair => pair(left, right),
         _ => return Err(()),
     };
@@ -861,7 +865,7 @@ pub fn lib_str(
     if let Some(data) = meta_cache.get(&key) {
         meta_data = data?;
     } else {
-        let syntax = LIB_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?; 
+        let syntax = LIB_SYNTAX_RULES.as_ref().map_err(|err| err.clone())?;
         match parse_errstr(&syntax, &data, &mut meta_data) {
             Ok(()) => {
                 meta_cache.insert(key, Ok(meta_data.clone()));
