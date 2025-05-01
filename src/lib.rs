@@ -908,6 +908,7 @@ impl Type {
             (Sd(ab), Sd(cd)) |
             (Jud(ab), Jud(cd)) |
             (Comp(ab), Comp(cd)) |
+            (Qi(ab), Qi(cd)) |
             (Q(ab), Q(cd)) |
             (Pair(ab), Pair(cd)) => {
                 let _ = ab.0.bind(contra, &cd.0, bind)?;
@@ -1004,8 +1005,8 @@ impl Type {
             Nec(a) => nec(a.replace(bind)),
             Pos(a) => pos(a.replace(bind)),
             Qu(a) => qu(a.replace(bind)),
-            Q(ab) => q(ab.0.replace(bind), ab.1.replace(bind)),
             Qi(ab) => qi(ab.0.replace(bind), ab.1.replace(bind)),
+            Q(ab) => q(ab.0.replace(bind), ab.1.replace(bind)),
             Pair(ab) => pair(ab.0.replace(bind), ab.1.replace(bind)),
             SymBlock(ab) => {
                 let mut a = ab.0.clone();
@@ -1039,8 +1040,8 @@ impl Type {
             Sd(ab) => Some(sd(ab.0.de_all()?, ab.1.de_all()?)),
             Jud(ab) => Some(jud(ab.0.de_all()?, ab.1.de_all()?)),
             Comp(ab) => Some(comp(ab.0.de_all()?, ab.1.de_all()?)),
-            Q(ab) => Some(q(ab.0.de_all()?, ab.1.de_all()?)),
             Qi(ab) => Some(qi(ab.0.de_all()?, ab.1.de_all()?)),
+            Q(ab) => Some(q(ab.0.de_all()?, ab.1.de_all()?)),
             Pow(ab) => Some(pow(ab.0.de_all()?, ab.1.de_all()?)),
             Fun(ab) => Some(fun(ab.0.de_all()?, ab.1.de_all()?)),
             Nec(a) => Some(nec(a.de_all()?)),
@@ -1063,8 +1064,8 @@ impl Type {
             Sd(ab) => sd(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Jud(ab) => jud(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Comp(ab) => comp(ab.0.de_sym(bind), ab.1.de_sym(bind)),
-            Q(ab) => q(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Qi(ab) => qi(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Q(ab) => q(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Pow(ab) => pow(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Fun(ab) => fun(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Nec(a) => nec(a.de_sym(bind)),
@@ -1226,6 +1227,7 @@ impl Type {
             (Sd(ab), Sd(cd)) |
             (Jud(ab), Jud(cd)) |
             (Comp(ab), Comp(cd)) |
+            (Qi(ab), Qi(cd)) |
             (Q(ab), Q(cd)) |
             (Pair(ab), Pair(cd))
             if ab.0.has_(contra, &cd.0) && ab.1.has_(contra, &cd.1) => true,
