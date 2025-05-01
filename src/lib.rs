@@ -99,7 +99,8 @@ impl Context {
                 res
             }
             And(ab) | Or(ab) | Imply(ab) |
-            App(ab) | Sd(ab) | Jud(ab) | Comp(ab) | Q(ab) | Pair(ab) =>
+            App(ab) | Sd(ab) | Jud(ab) | Comp(ab) |
+            Q(ab) | Qi(ab) | Pair(ab) =>
                 self.is_type_declared(&ab.0, sym_blocks) &&
                 self.is_type_declared(&ab.1, sym_blocks),
             All(a) | Nec(a) | Pos(a) | Qu(a) => self.is_type_declared(a, sym_blocks),
@@ -502,6 +503,8 @@ pub enum Type {
     Pos(Box<Type>),
     /// Path semantical qubit.
     Qu(Box<Type>),
+    /// Path semantical qualitative implication.
+    Qi(Box<(Type, Type)>),
     /// Path semantical quality.
     Q(Box<(Type, Type)>),
     /// Avatar Logic pair.
@@ -529,6 +532,7 @@ pub enum Op {
     Nec,
     Pos,
     Qu,
+    Qi,
     Q,
     Pair,
     SymBlock,
@@ -584,6 +588,7 @@ impl Type {
             Nec(_) => Some(Op::Nec),
             Pos(_) => Some(Op::Pos),
             Qu(_) => Some(Op::Qu),
+            Qi(_) => Some(Op::Qi),
             Q(_) => Some(Op::Q),
             Pair(_) => Some(Op::Pair),
             SymBlock(_) => Some(Op::SymBlock),
@@ -724,6 +729,7 @@ impl fmt::Display for Type {
             Nec(a) => write!(w, "□{}", a.to_str(false, op))?,
             Pos(a) => write!(w, "◇{}", a.to_str(false, op))?,
             Qu(a) => write!(w, "~{}", a.to_str(false, op))?,
+            Qi(ab) => write!(w, "{} ~> {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             Q(ab) => write!(w, "{} ~~ {}", ab.0.to_str(false, op), ab.1.to_str(false, op))?,
             Pair(ab) => write!(w, "({}, {})", ab.0.to_str(true, op), ab.1.to_str(true, op))?,
             SymBlock(ab) => write!(w, "sym({}, {})", ab.0, ab.1.to_str(true, op))?,
@@ -769,6 +775,7 @@ impl Type {
             Nec(_) => true,
             Pos(_) => true,
             Qu(_) => true,
+            Qi(_) => true,
             Q(_) => true,
             Pair(_) => true,
             SymBlock(ab) => ab.1.is_safe_to_prove(),
@@ -809,6 +816,7 @@ impl Type {
             Nec(a) => nec(a.lift()),
             Pos(a) => pos(a.lift()),
             Qu(a) => qu(a.lift()),
+            Qi(ab) => qi(ab.0.lift(), ab.1.lift()),
             Q(ab) => q(ab.0.lift(), ab.1.lift()),
             Pair(ab) => pair(ab.0.lift(), ab.1.lift()),
             SymBlock(ab) => sym_block(ab.0.clone(), ab.1.lift()),
@@ -997,6 +1005,7 @@ impl Type {
             Pos(a) => pos(a.replace(bind)),
             Qu(a) => qu(a.replace(bind)),
             Q(ab) => q(ab.0.replace(bind), ab.1.replace(bind)),
+            Qi(ab) => qi(ab.0.replace(bind), ab.1.replace(bind)),
             Pair(ab) => pair(ab.0.replace(bind), ab.1.replace(bind)),
             SymBlock(ab) => {
                 let mut a = ab.0.clone();
@@ -1031,6 +1040,7 @@ impl Type {
             Jud(ab) => Some(jud(ab.0.de_all()?, ab.1.de_all()?)),
             Comp(ab) => Some(comp(ab.0.de_all()?, ab.1.de_all()?)),
             Q(ab) => Some(q(ab.0.de_all()?, ab.1.de_all()?)),
+            Qi(ab) => Some(qi(ab.0.de_all()?, ab.1.de_all()?)),
             Pow(ab) => Some(pow(ab.0.de_all()?, ab.1.de_all()?)),
             Fun(ab) => Some(fun(ab.0.de_all()?, ab.1.de_all()?)),
             Nec(a) => Some(nec(a.de_all()?)),
@@ -1054,6 +1064,7 @@ impl Type {
             Jud(ab) => jud(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Comp(ab) => comp(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Q(ab) => q(ab.0.de_sym(bind), ab.1.de_sym(bind)),
+            Qi(ab) => qi(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Pow(ab) => pow(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Fun(ab) => fun(ab.0.de_sym(bind), ab.1.de_sym(bind)),
             Nec(a) => nec(a.de_sym(bind)),
@@ -1446,6 +1457,7 @@ pub fn comp(a: Type, b: Type) -> Type {Type::Comp(Box::new((a, b)))}
 pub fn nec(a: Type) -> Type {Type::Nec(Box::new(a))}
 pub fn pos(a: Type) -> Type {Type::Pos(Box::new(a))}
 pub fn qu(a: Type) -> Type {Type::Qu(Box::new(a))}
+pub fn qi(a: Type, b: Type) -> Type {Type::Qi(Box::new((a, b)))}
 pub fn q(a: Type, b: Type) -> Type {Type::Q(Box::new((a, b)))}
 pub fn pair(a: Type, b: Type) -> Type {Type::Pair(Box::new((a, b)))}
 pub fn sym_block(a: Arc<String>, b: Type) -> Type {Type::SymBlock(Box::new((a, b)))}
@@ -1599,6 +1611,10 @@ mod tests {
         let a: Type = "a ~~ b".try_into().unwrap();
         assert_eq!(a, q(ty("a"), ty("b")));
         assert_eq!(format!("{}", a), "a ~~ b".to_string());
+
+        let a: Type = "a ~> b".try_into().unwrap();
+        assert_eq!(a, qi(ty("a"), ty("b")));
+        assert_eq!(format!("{}", a), "a ~> b".to_string());
     }
 
     #[test]
