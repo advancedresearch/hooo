@@ -64,6 +64,30 @@ fn q_to_qu : a ~~ a  ->  ~a {
     return r;
 }
 
+fn qu_to_qi : ~a  ->  a ~> a {
+    use imply_refl;
+    use triv;
+    use qi_from;
+
+    x : ~a;
+
+    let x2 = triv(imply_refl) : a => a;
+    let r = qi_from(x2, x, x) : a ~> a;
+    return r;
+}
+
+fn qi_to_qu : a ~> a  ->  ~a {
+    use qi_to;
+    use snd;
+
+    x : a ~> a;
+
+    let x2 = qi_to(x) : (a => a) & ~a & ~a;
+    let x3 = snd(x2) : ~a & ~a;
+    let r = snd(x3) : ~a;
+    return r;
+}
+
 fn eq_qu_q : true  ->  ~a == (a ~~ a) {
     use q_to_qu;
     use qu_to_q;
@@ -72,6 +96,17 @@ fn eq_qu_q : true  ->  ~a == (a ~~ a) {
     x : true;
 
     let r = refl(qu_to_q, q_to_qu) : (~a == (a ~~ a));
+    return r;
+}
+
+fn eq_qu_qi : true  ->  ~a == (a ~> a) {
+    use qi_to_qu;
+    use qu_to_qi;
+    use refl;
+
+    x : true;
+
+    let r = refl(qu_to_qi, qi_to_qu) : ~a == (a ~> a);
     return r;
 }
 
@@ -86,12 +121,34 @@ fn eq_q_qu : true  ->  (a ~~ a) == ~a {
     return r;
 }
 
+fn eq_qi_qu : true  ->  (a ~> a) == ~a {
+    use eq_qu_qi;
+    use eq_symmetry;
+
+    x : true;
+
+    let y = eq_qu_qi(x) : ~a == (a ~> a);
+    let r = eq_symmetry(y) : (a ~> a) == ~a;
+    return r;
+}
+
 fn nqu_to_sesh : !~a  ->  !(a ~~ a) {
     x: !~a;
     use q_to_qu;
     use std::modus_tollens;
     let y = modus_tollens(q_to_qu) : !~a => !(a ~~ a);
     let r = y(x) : !(a ~~ a);
+    return r;
+}
+
+fn nqu_to_nqi : !~a  ->  !(a ~> a) {
+    use qi_to_qu;
+    use modus_tollens;
+
+    x : !~a;
+
+    let y = modus_tollens(qi_to_qu) : !~a => !(a ~> a);
+    let r = y(x) : !(a ~> a);
     return r;
 }
 
@@ -204,4 +261,3 @@ fn qu_true_tauto_excm_to_eq_tauto_qu : ~true & excm(a)^true  ->  (a^true == ~a) 
     let r = refl(f, g) : a^true == ~a;
     return r;
 }
-
