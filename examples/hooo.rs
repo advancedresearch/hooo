@@ -30,7 +30,7 @@ use std::sync::Arc;
 use rayon::prelude::*;
 
 fn main() {
-    println!("==== Hooo 0.8 ====");
+    println!("==== Hooo 0.9 ====");
     let file = std::env::args_os()
         .nth(1)
         .and_then(|s| s.into_string().ok());
@@ -127,12 +127,12 @@ fn lib_check(
     use std::fs::File;
     use std::io::Write as OtherWrite;
     use std::sync::Mutex;
- 
+
     let path = Path::new(&**loader.dir).join("Hooo.config");
     let lib: Option<LibInfo> = loader.load_info(meta_cache)?;
-  
-    let files = loader.files.clone(); 
- 
+
+    let files = loader.files.clone();
+
     loader.silent = true;
     let error: Arc<Mutex<Result<(), String>>> = Arc::new(Ok(()).into());
     let _ = (0..files.len()).into_par_iter().map(|i| {
@@ -170,11 +170,11 @@ fn lib_check(
     } else {
         "add your description here"
     };
- 
+
     writeln!(s, "name: {};", json(name)).unwrap();
-    writeln!(s, "version: {};", json(version)).unwrap();   
+    writeln!(s, "version: {};", json(version)).unwrap();
     writeln!(s, "description: {};", json(desc)).unwrap();
- 
+
     writeln!(s, "functions {{").unwrap();
     let top = true;
     for (name, ty) in functions {
@@ -214,15 +214,15 @@ fn lib_check(
             }
         };
     }
-    
+
     let mut file = File::create(path).unwrap();
     file.write(s.as_bytes()).unwrap();
     Ok(())
 }
 
 fn json(s: &str) -> String {
-    use piston_meta::json::write_string; 
-    
+    use piston_meta::json::write_string;
+
     let mut buf: Vec<u8> = vec![];
     write_string(&mut buf, s).unwrap();
     String::from_utf8(buf).unwrap()
@@ -240,4 +240,3 @@ fn proof_check(file: String, loader: &mut Loader, meta_cache: &MetaCache) -> Res
     }
     Ok(())
 }
-
