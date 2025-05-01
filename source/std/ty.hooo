@@ -33,10 +33,12 @@ fn ty_app : (f : a => b) & (a2 : a) -> (f(a2) : b) {
 }
 
 fn ty_app2 : (f : a => b => c) & (a2 : a) & (b2 : b) -> (f(a2, b2) : c) {
+    use ty_app;
+
     x : (f : a => b => c);
     y : (a2 : a);
     z : (b2 : b);
-    use ty_app;
+
     let x2 = ty_app(x, y) : (f(a2) : b => c);
     let r = ty_app(x2, z) : (f(a2, b2) : c);
     return r;
@@ -74,10 +76,10 @@ fn ty_fun_ty : true -> (type'(a) => type'(b) : type'(z')) {
 fn ty_in_left_arg : (a : b) & (a == c) -> (c : b) {
     use ty_eq_left;
     use fst;
-    
+
     x : (a : b);
     y : a == c;
-    
+
     let x2 = ty_eq_left(y) : (a : b) == (c : b);
     let x3 = fst(x2) : (a : b) => (c : b);
     let r = x3(x) : (c : b);
@@ -87,10 +89,10 @@ fn ty_in_left_arg : (a : b) & (a == c) -> (c : b) {
 fn ty_in_right_arg : (a : b) & (b == c) -> (a : c) {
     use ty_eq_right;
     use fst;
-    
+
     x : (a : b);
     y : b == c;
-    
+
     let x2 = ty_eq_right(y) : (a : b) == (a : c);
     let x3 = fst(x2) : (a : b) => (a : c);
     let r = x3(x) : (a : c);
@@ -126,4 +128,3 @@ fn ty_tup_ty : (a : x) & (b : y)  ->  ((a, b) : (x, y)) {
     let r = ty_tup_ty(x1, x2) : ((a, b) : (x, y));
     return r;
 }
-
