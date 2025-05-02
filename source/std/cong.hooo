@@ -91,7 +91,7 @@ fn cong_fun_bin_eq :
     use cong_app;
     use cong_fun_eq;
     use ty_in_left_arg;
-    
+
     x : cong'(f);
     y : cong'(g);
     w : f == g;
@@ -120,7 +120,7 @@ fn cong_sym_def : true -> cong' == sym(f, all(a == b -> f'(a) == f'(b))) {
 fn cong_def : true -> cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f) {
     use cong_cong;
     use cong_fun_eq;
-    use cong_sym;
+    use cong_cong_to_sym;
     use cong_sym_def;
     use triv;
 
@@ -128,7 +128,8 @@ fn cong_def : true -> cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f) {
 
     let x2 = triv(cong_sym_def) : cong' == sym(f, all(a == b -> f'(a) == f'(b)));
     let x3 = triv(cong_cong) : cong'(cong');
-    let x4 = triv(cong_sym) : cong'(sym(f, all(a == b -> f'(a) == f'(b))));
+    let x4 = triv(cong_cong_to_sym) :
+        cong'(sym(f, all(a == b -> f'(a) == f'(b))));
     let r = cong_fun_eq(x3, x4, x2) :
         cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f);
     unsafe return r;
@@ -519,13 +520,25 @@ fn tauto_cong_in_both_args :
 fn cong_sym_id : true -> cong'(sym(a, a')) {
     use cong_from;
     use refl;
-    
+
     x : true;
 
     let x2 = refl() : all(a == b -> a == b);
     let x3 = x2() : all(a == b -> sym(a, a')(a) == sym(a, a')(b));
     let x4 = x3() : sym(f, all(a == b -> f'(a) == f'(b)))(sym(a, a'));
     let r = cong_from(x4) : cong'(sym(a, a'));
+    return r;
+}
+
+fn cong_sym : true -> cong'(sym(a, b)) {
+    use cong_sym_id;
+    use cong_app;
+
+    x : true;
+
+    let x2 = cong_sym_id(x) : cong'(sym(a, a'));
+    let x3 = cong_app(x2) : cong'(sym(a, a')(sym(a, b)));
+    let r = x3() : cong'(sym(a, b));
     return r;
 }
 
@@ -536,7 +549,7 @@ fn cong_cong : true -> cong'(cong') {
     return r;
 }
 
-fn cong_sym : true -> cong'(sym(f, all(a == b -> f'(a) == f'(b)))) {
+fn cong_cong_to_sym : true -> cong'(sym(f, all(a == b -> f'(a) == f'(b)))) {
     use cong_cong;
     use cong_in_arg;
     use cong_sym_def;
@@ -715,4 +728,3 @@ fn cong_bin_eq_fst : cong'(f) -> cong'(sym(a, f(a') == a')) {
     let r = cong_in_arg(z2, y2) : cong'(sym(a, f(a') == a'));
     return r;
 }
-
