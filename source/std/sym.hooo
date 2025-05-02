@@ -10,14 +10,16 @@ fn sym_transitivity : sym(a, b) & (b => c)^(sym a) -> sym(a, c) {
     x : sym(a, b);
     y : (b => c)^(sym a);
     let r = sym_transitivity(x, y) : sym(a, c);
-    return r;    
+    return r;
 }
 
-fn sym_pow_transitivity : sym(a, b) & (b -> c)^(sym a) -> sym(a, c) {
+fn sym_pow_transitivity : sym(a, b) & (b -> c) -> sym(a, c) {
     use sym_transitivity;
+    use pow_lift;
     x : sym(a, b);
-    y : (b -> c)^(sym a);
-    let r = sym_transitivity(x, y) : sym(a, c);
+    y : (b -> c);
+    let y2 = pow_lift(y) : (b -> c)^(sym c);
+    let r = sym_transitivity(x, y2) : sym(a, c);
     return r;
 }
 
@@ -97,7 +99,7 @@ fn sym_bin_eq : ((a == b)^(sym g))^(sym f) -> sym(f, sym(g, a)) == sym(f, sym(g,
 
     lam f : sym(f, sym(g, a)) => sym(f, sym(g, b)) {
         y : sym(f, sym(g, a));
- 
+
         let r = sym_bin_transport(y, x) : sym(f, sym(g, b));
         return r;
     }
@@ -264,4 +266,3 @@ fn sym_inner_to_bin : sym(a, sym(b, c)(b))(a) -> sym(a, sym(b, c))(a, b) {
     let r = x() : sym(a, sym(b, c))(a, b);
     return r;
 }
-
