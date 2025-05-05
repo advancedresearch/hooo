@@ -1,0 +1,207 @@
+/*
+
+# Value fix-point
+
+In most logical theories, it is common to assume that all operators are
+normal congruent, because it makes theorem proving easier.
+All operators in normal logic are normal congruent.
+
+For example, AND and IMPLY are normal congruent operators.
+
+Normal congruence means that when you evaluate an operator, the input determines
+the output locally, such that for all `a, b` where `a == b`, `f(a) == f(b)`.
+However, since `a == b` can be assumed arbitrarily in logic, this causes some
+problems with the semantics of proofs. In logic you can just assume `a == b`,
+but in many practical models of theories in logic you can not do this.
+
+Logic is used to reason about systems, even when they go wrong, so a good
+language design for logic is to allow assuming `a == b`, but this can be bad
+language design for some practical language tool. The problem here is not that
+there is something wrong in the tool we build, but that there is a semantic
+drift where the meaning of expressions in logic no longer correspond to our
+intuition about how the tools work in practice. We don't get rid of this problem
+entirely, but we can make tradeoffs in language design to balance things out.
+
+The most common trick is to introduce definitional equality as a stronger
+notion of equality, for example in Martin-Löf Intuitionistic Type Theory.
+This is consider ad-hoc from a Path Semantical perspective, because it deviates
+from the intuition that if `a` implies `b` and vice versa, then they are
+logically equivalent, but the strength of this equality depends on other
+assumptions in that specific context. When using definitional equality, you are
+kind of leaving logic behind and not taking it seriously.
+
+However, in the foundation of Path Semantics, you can not just do these tricks.
+Path Semantics has a higher standard of how to generate mathematical knowledge.
+The biggest difference is that the path semantical qubit operator `~` is only
+tautological congruent, which means the output is determined from the input
+globally only, not just locally. This happens because in the classical model of
+brute force theorem proving, `~` generates a random truth table using the
+argument as seed. The truth table is fixed under normal exponential complexity,
+but between checks of the same proofs, the truth table is randomized again.
+This means, you can never determine the truth table semantically.
+The tautological congruence is a result of fixing the truth table under
+normal evaluation of proofs, which is exponentially complex.
+For `N` propositional arguments, the complexity increases with `2^N`.
+
+This means, the actual semantics of `~` goes beyond `2^N` in complexity and
+gives rise to infinite-valued logic. With other words, the foundation of
+Path Semantics is infinitely complex, not just exponentially complex.
+When `(a == b)^true`, which means `a == b` is provable in an empty context,
+`~a == ~b`. Now, people can introduce axioms that gives `~` various
+properties, which are not true in the semantics of brute force solvers.
+
+For example, in models of functional programming, one can use `~inv(f)` as a
+proposition that says the imaginary inverse of `f` has a solution.
+This is done by introducing axioms, but there is nothing in some brute force
+solver that has a corresponding semantics. It is simply language design.
+The imaginary inverse `inv` does not have any underlying model, just like the
+imaginary unit `i` does not have any model among the real numbers.
+
+What we are talking about here is language design and how to make tradeoffs
+such that logic corresponds to the intuitions we develop from observing how
+language tools work in practice. You can not study Path Semantics without
+making observations. Language tools have to work properly in a practice, not in
+some abstract Platonic world. So, in Path Semantics, people simply avoid
+repeating the errors in language design that have been made previously in math.
+
+We are not claiming that mathematics is possible to model in Set Theory or
+some non-sense like that. It is true that a lot of math can be formalized in
+Set Theory and people can prove lots of theorems that others can use, but this
+fact is very different from merely claiming mathematics is Set Theory. That is
+simply not true, because Set Theory can not reason about uniqueness without some
+equality operator and the equality operator that Set Theory uses is not very
+suitable when talking about semantics about actual language tools. So, it is
+just an obvious lie and many mathematicians have come to the same conclusion.
+Modern mathematics is simply not built on Set Theory, but Set Theory is one of
+multiple foundations that each have their own language biases and tradeoffs.
+
+This modern understanding of what a mathematical foundation means, is needed to
+provide background knowledge of what value fix-points are. A value fix-point is
+a property of some specific logical theories where what people call "values" in
+normal programming have a special property that they can be applied. However,
+while value fix-point behave like operators, they only return themselves:
+
+    f(a) = f    for all `a`
+
+Some tools have this property, typically theorem prover assistants, e.g. Poi,
+but most tools do not have this property for values. So, you should be aware of
+the fact that value fix-points are not a universally accepted property. It is
+merely used as a convenience and it has consequences for language design.
+
+There can be more than one motivation to use value fix-points. In most cases,
+when using a tool that has value fix-points, you can reuse theorems without
+problems, so while technically the semantics has a slight drift from one
+language tool to another, this drift is small enough to not cause problems.
+
+The motivation of using value fix-points in the standard library of Hooo, is
+because Hooo uses a unified universe of operators that are normal congruent or
+can be only tautological congruent. In other language tools, there might be two
+different universes of operators, by distinguishing two kinds of function
+application. Since it is more convenient to assume normal congruence everywhere,
+the extra complexity in theorem proving when reasoning about tautological
+congruence is needed, is a tradeoff between choosing two universes, thereby
+limiting what the tool can reason about, or one universe, which adds even more
+complexity.
+
+In the research on the foundation of Path Semantics, we have to go with a
+unified universe. We know this tradeoff has downsides, but there is nothing we
+can do about it, except leviate some of the burden to libraries. In Path
+Semantics, we simply have to study by observation. That is a requirement.
+
+What happens when you use a unified universe of operators, is that this axiom,
+which normally does not cause problems, becomes too strong:
+
+    cong'(f) -> cong'(f(a))
+
+The easiest way to fix this problem, is to weaken this axiom to the following:
+
+    cong'(f) & cong'(a) -> cong'(f(a))
+
+Value fix-points are useful here, because they imply congruence of values.
+
+Normally, you do not have to worry about this stuff in mathematics. By far,
+most operators are normal congruent and there is usually no need for value
+fix-points. As a user of mathematics, you should not have to worry about this
+extra cmoplexity. However, researchers, particularly in Path Semantics, have
+to study the precise semantics between logic and language, not by dreaming about
+some abstract and idealized world, but by making observations in the real world.
+So, they have to deal with this extra complexity. Otherwise, they would not be
+able to have the highest possible standard of generating mathematical knowledge,
+whether this is from a Seshatic or a Platonic perspective, or a higher duality.
+
+*/
+
+sym val;
+
+use cong;
+
+fn val_sym_def : true -> val' == sym(a, all(a'(b) == a')) {
+    axiom val_sym_def : true -> val' == sym(a, all(a'(b) == a'));
+    x : true;
+    let r = val_sym_def(x) : val' == sym(a, all(a'(b) == a'));
+    unsafe return r;
+}
+
+fn val_def : true -> val'(a) == sym(a, all(a'(b) == a'))(a) {
+    use val_sym_def;
+    use cong_fun_eq;
+
+    x : true;
+
+    let x2 = val_sym_def(x) : val' == sym(a, all(a'(b) == a'));
+    axiom x3 : cong'(val');
+    axiom x4 : cong'(sym(a, all(a'(b) == a')));
+    let r = cong_fun_eq(x3, x4, x2) : val'(a) == sym(a, all(a'(b) == a'))(a);
+    unsafe return r;
+}
+
+fn val_from : sym(a, all(a'(b) == a'))(a) -> val'(a) {
+    axiom r : val'(a);
+    return r;
+}
+
+fn val_to : val'(a) -> sym(a, all(a'(b) == a'))(a) {
+    axiom r : sym(a, all(a'(b) == a'))(a);
+    unsafe return r;
+}
+
+fn val_to_cong : val'(f) -> cong'(f) {
+    use val_to;
+    use cong_from;
+
+    x : val'(f);
+
+    fn f : all(sym(f, all(f'(x) == f'))(f) -> sym(f, x)(f))
+    -> all(sym(f, all(f'(x) == f'))(f) -> sym(f, all(x))(f)) {
+        x : all(sym(f, all(f'(x) == f'))(f) -> sym(f, x)(f));
+        let r = x() : all(sym(f, all(f'(x) == f'))(f) -> sym(f, all(x))(f));
+        unsafe return r;
+    }
+
+    fn g : sym(f, all(f'(x) == f'))(f)
+    -> sym(f, (a == b) => (f'(a) == f'(b)))(f) {
+        use eq_transitivity_sym;
+        use imply_lift;
+
+        x : sym(f, all(f'(x) == f'))(f);
+        let x2 = x() : f(a) == f;
+        let x3 = x() : f(b) == f;
+        let x4 = eq_transitivity_sym(x2, x3) : f(a) == f(b);
+        let x5 = imply_lift(x4) : (a == b) => (f(a) == f(b));
+        let r = x5() : sym(f, (a == b) => (f'(a) == f'(b)))(f);
+        unsafe return r;
+    }
+
+    let x2 = val_to(x) : sym(a, all(a'(b) == a'))(f);
+    let x3 = g() : all(
+        sym(f, all(f'(x) == f'))(f)
+        -> sym(f, (a == b) => (f'(a) == f'(b)))(f)
+    );
+    let x4 = f(x3) : all(
+        sym(f, all(f'(x) == f'))(f)
+        -> sym(f, all((a == b) => (f'(a) == f'(b))))(f)
+    );
+    let x5 = x4(x2) : sym(f, all((a == b) => (f'(a) == f'(b))))(f);
+    let r = cong_from(x5) : cong'(f);
+    return r;
+}

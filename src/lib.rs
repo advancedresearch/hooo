@@ -1646,6 +1646,10 @@ mod tests {
         let b: Type = "all(a -> b)".try_into().unwrap();
         assert!(b.has_bound(&a).is_ok());
         assert!(a.has_bound(&b).is_err());
+
+        let a: Type = "all(a)".try_into().unwrap();
+        let b: Type = "all(all(b))".try_into().unwrap();
+        assert!(a.has_bound(&b).is_ok());
     }
 
     #[test]
