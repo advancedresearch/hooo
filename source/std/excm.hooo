@@ -99,3 +99,43 @@ fn excm_lift_neg : (excm(a) => !b) -> !b {
     let r = not_rev_triple(x5) : !b;
     return r;
 }
+
+fn excm_lift : (excm(a) => b) -> !!b {
+    use modus_tollens;
+    use nnexcm;
+    use triv;
+
+    x : excm(a) -> b;
+
+    let x2 = modus_tollens(x) : !b => !excm(a);
+    let x3 = modus_tollens(x2) : !!excm(a) => !!b;
+    let x4 = triv(nnexcm) : !!excm(a);
+    let r = x3(x4) : !!b;
+    return r;
+}
+
+fn excm_ex : true -> excm(!a) {
+    use refl;
+    use hooo_or;
+    use excm_lift;
+    use excm_lift_neg;
+    use left;
+    use right;
+
+    let x = refl() : excm(a) -> excm(a);
+    let x2 = hooo_or(x) : a^excm(a) | (!a)^excm(a);
+    lam f : a^excm(a) => excm(!a) {
+        y : a^excm(a);
+        let y2 = excm_lift(y) : !!a;
+        let r = right(y2) : excm(!a);
+        return r;
+    }
+    lam g : (!a)^excm(a) => excm(!a) {
+        y : (!a)^excm(a);
+        let y2 = excm_lift_neg(y) : !a;
+        let r = left(y2) : excm(!a);
+        return r;
+    }
+    let r = match x2 (f, g) : excm(!a);
+    return r;
+}
