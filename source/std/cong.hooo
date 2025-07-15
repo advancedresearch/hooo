@@ -50,6 +50,77 @@ are tautological congruent but not normal congruent.
 sym cong;
 sym tauto_cong;
 
+// Symbol definitions.
+
+fn cong_sym_def : true -> cong' == sym(f, all(a == b -> f'(a) == f'(b))) {
+    axiom cong_sym_def : true -> cong' == sym(f, all(a == b -> f'(a) == f'(b)));
+    x : true;
+    let r = cong_sym_def(x) : cong' == sym(f, all(a == b -> f'(a) == f'(b)));
+    unsafe return r;
+}
+
+// Normal definitions.
+
+fn cong_def : true -> cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f) {
+    use cong_cong;
+    use cong_fun_eq;
+    use cong_cong_to_sym;
+    use cong_sym_def;
+    use triv;
+
+    x : true;
+
+    let x2 = triv(cong_sym_def) : cong' == sym(f, all(a == b -> f'(a) == f'(b)));
+    let x3 = triv(cong_cong) : cong'(cong');
+    let x4 = triv(cong_cong_to_sym) :
+        cong'(sym(f, all(a == b -> f'(a) == f'(b))));
+    let r = cong_fun_eq(x3, x4, x2) :
+        cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f);
+    unsafe return r;
+}
+
+// Conversions.
+
+fn cong_to : cong'(f) -> sym(f, all(a == b -> f'(a) == f'(b)))(f) {
+    use cong_def;
+    use eq_to_right;
+    use triv;
+
+    x : cong'(f);
+
+    let x2 = triv(cong_def) : cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f);
+    let r = eq_to_right(x2, x) : sym(f, all(a == b -> f'(a) == f'(b)))(f);
+    unsafe return r;
+}
+
+fn cong_from : sym(f, all(a == b -> f'(a) == f'(b)))(f) -> cong'(f) {
+    use cong_def;
+    use eq_to_left;
+    use triv;
+
+    x : sym(f, all(a == b -> f'(a) == f'(b)))(f);
+
+    let x2 = triv(cong_def) : cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f);
+    let r = eq_to_left(x2, x) : cong'(f);
+    return r;
+}
+
+fn tauto_cong_to : tauto_cong'(f) -> sym(f, all((a == b)^true -> f'(a) == f'(b)))(f) {
+    axiom tauto_cong_to : tauto_cong'(f) -> sym(f, all((a == b)^true -> f'(a) == f'(b)))(f);
+    x : tauto_cong'(f);
+    let r = tauto_cong_to(x) : sym(f, all((a == b)^true -> f'(a) == f'(b)))(f);
+    unsafe return r;
+}
+
+fn tauto_cong_from : sym(f, all((a == b)^true -> f'(a) == f'(b)))(f) -> tauto_cong'(f) {
+    axiom tauto_cong_from : sym(f, all((a == b)^true -> f'(a) == f'(b)))(f) -> tauto_cong'(f);
+    x : sym(f, all((a == b)^true -> f'(a) == f'(b)))(f);
+    let r = tauto_cong_from(x) : tauto_cong'(f);
+    return r;
+}
+
+// Utils.
+
 fn tauto_cong_sym :
     true -> tauto_cong'(sym(f, all((a == b)^true -> f'(a) == f'(b))))
 {
@@ -107,69 +178,6 @@ fn tauto_cong_fun_eq : tauto_cong'(f) & tauto_cong'(g) & (f == g)^true -> f(a) =
     axiom tauto_cong_fun_eq : tauto_cong'(f) & tauto_cong'(g) & (f == g)^true -> f(a) == g(a);
     x : tauto_cong'(f) & tauto_cong'(g) & (f == g)^true;
     let r = tauto_cong_fun_eq(x) : f(a) == g(a);
-    return r;
-}
-
-fn cong_sym_def : true -> cong' == sym(f, all(a == b -> f'(a) == f'(b))) {
-    axiom cong_sym_def : true -> cong' == sym(f, all(a == b -> f'(a) == f'(b)));
-    x : true;
-    let r = cong_sym_def(x) : cong' == sym(f, all(a == b -> f'(a) == f'(b)));
-    unsafe return r;
-}
-
-fn cong_def : true -> cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f) {
-    use cong_cong;
-    use cong_fun_eq;
-    use cong_cong_to_sym;
-    use cong_sym_def;
-    use triv;
-
-    x : true;
-
-    let x2 = triv(cong_sym_def) : cong' == sym(f, all(a == b -> f'(a) == f'(b)));
-    let x3 = triv(cong_cong) : cong'(cong');
-    let x4 = triv(cong_cong_to_sym) :
-        cong'(sym(f, all(a == b -> f'(a) == f'(b))));
-    let r = cong_fun_eq(x3, x4, x2) :
-        cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f);
-    unsafe return r;
-}
-
-fn cong_to : cong'(f) -> sym(f, all(a == b -> f'(a) == f'(b)))(f) {
-    use cong_def;
-    use eq_to_right;
-    use triv;
-
-    x : cong'(f);
-
-    let x2 = triv(cong_def) : cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f);
-    let r = eq_to_right(x2, x) : sym(f, all(a == b -> f'(a) == f'(b)))(f);
-    unsafe return r;
-}
-
-fn cong_from : sym(f, all(a == b -> f'(a) == f'(b)))(f) -> cong'(f) {
-    use cong_def;
-    use eq_to_left;
-    use triv;
-
-    x : sym(f, all(a == b -> f'(a) == f'(b)))(f);
-
-    let x2 = triv(cong_def) : cong'(f) == sym(f, all(a == b -> f'(a) == f'(b)))(f);
-    let r = eq_to_left(x2, x) : cong'(f);
-    return r;
-}
-
-fn tauto_cong_to : tauto_cong'(f) -> sym(f, all((a == b)^true -> f'(a) == f'(b)))(f) {
-    axiom tauto_cong_to : tauto_cong'(f) -> sym(f, all((a == b)^true -> f'(a) == f'(b)))(f);
-    x : tauto_cong'(f);
-    let r = tauto_cong_to(x) : sym(f, all((a == b)^true -> f'(a) == f'(b)))(f);
-    unsafe return r;
-}
-
-fn tauto_cong_from : sym(f, all((a == b)^true -> f'(a) == f'(b)))(f) -> tauto_cong'(f) {
-    axiom tauto_cong_from : sym(f, all((a == b)^true -> f'(a) == f'(b)))(f) -> tauto_cong'(f);
-    x : sym(f, all((a == b)^true -> f'(a) == f'(b)))(f);
-    let r = tauto_cong_from(x) : tauto_cong'(f);
     return r;
 }
 
