@@ -42,9 +42,9 @@ fn tauto_eq_tauto_not_para : true -> (!a)^true == false^a {
     use tauto_not_to_para;
     use para_to_tauto_not;
     use refl;
-    
+
     x : true;
-    
+
     let r = refl(tauto_not_to_para, para_to_tauto_not) : (!a)^true == false^a;
     return r;
 }
@@ -265,6 +265,12 @@ fn pow_to_pow_tauto : a^b -> a^(b^true) {
     return r;
 }
 
+fn pow_to_imply : b^a -> (a => b) {
+    x : b^a;
+    let r = x() : a => b;
+    return r;
+}
+
 fn tauto_eq_to_left : (a == b)^true & b -> a {
     use triv;
     use eq_to_left;
@@ -292,28 +298,28 @@ fn tauto_eq_to_right : (a == b)^true & a -> b {
 fn pow_elim_fst : p^(a & b) & a^true -> p^b {
     use pow_in_right_arg;
     use pow_transitivity;
-    
+
     x : p^(a & b);
     y : a^true;
-    
+
     fn f : a -> (a & b) == b {
         use refl;
-        
+
         x : a;
-        
+
         lam g1 : a & b => b {
             use snd;
-            
+
             y : a & b;
-            
+
             let r = snd(y) : b;
             return r;
         }
         lam g2 : b => a & b {
             use refl;
-            
+
             y : b;
-            
+
             let r = refl(x, y) : a & b;
             return r;
         }
@@ -328,25 +334,25 @@ fn pow_elim_fst : p^(a & b) & a^true -> p^b {
 fn pow_elim_snd : p^(a & b) & b^true -> p^a {
     use pow_in_right_arg;
     use pow_transitivity;
-    
+
     x : p^(a & b);
     y : b^true;
-    
+
     fn f : b -> (a & b) == a {
         use refl;
-        
+
         x : b;
-        
+
         lam g1 : a & b => a {
             use fst;
-            
+
             y : a & b;
             let r = fst(y) : a;
             return r;
         }
         lam g2 : a => a & b {
             use refl;
-            
+
             y : a;
             let r = refl(y, x) : a & b;
             return r;
@@ -371,7 +377,7 @@ fn pow_elim : (a^b)^b -> a^b {
     let x3 = pow_transitivity(x, x2) : (b => a)^b;
     let x4 = hooo_imply(x3) : b^b => a^b;
     let x5 = refl() : b^b;
-    let r = x4(x5) : a^b;    
+    let r = x4(x5) : a^b;
     return r;
 }
 
@@ -490,4 +496,3 @@ fn tauto_eq_symmetry : (a == b)^true  ->  (b == a)^true {
     let r = pow_eq_to_tauto_eq(x3) : (b == a)^true;
     return r;
 }
-
