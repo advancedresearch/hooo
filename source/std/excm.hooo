@@ -29,7 +29,7 @@ fn para_nexcm : !excm(a) -> false {
         use left;
         let y2 = left(y) : excm(a);
         let r = x(y2) : false;
-        return r; 
+        return r;
     }
     use right;
     let x2 = right() : !a => excm(a);
@@ -50,7 +50,7 @@ fn excm_or_imply_left : excm(a)  ->  ((a => b) | (b => a)) {
     lam f : a => ((a => b) | (b => a)) {
         use imply_lift;
         use right;
-        
+
         z : a;
 
         let z2 = imply_lift(z) : b => a;
@@ -84,3 +84,18 @@ fn excm_or_imply_right : excm(b)  ->  ((a => b) | (b => a)) {
     return r;
 }
 
+fn excm_lift_neg : (excm(a) => !b) -> !b {
+    use modus_tollens;
+    use nnexcm;
+    use triv;
+    use not_rev_triple;
+
+    x : excm(a) -> !b;
+
+    let x2 = modus_tollens(x) : !!b => !excm(a);
+    let x3 = modus_tollens(x2) : !!excm(a) => !!!b;
+    let x4 = triv(nnexcm) : !!excm(a);
+    let x5 = x3(x4) : !!!b;
+    let r = not_rev_triple(x5) : !b;
+    return r;
+}
