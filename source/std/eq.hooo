@@ -91,7 +91,7 @@ fn eq_transitivity_sym : (a == b) & (c == b)  ->  (a == c) {
 
     x : a == b;
     y : c == b;
-    
+
     let y2 = eq_symmetry(y) : b == c;
     let r = eq_transitivity(x, y2) : a == c;
     return r;
@@ -139,7 +139,7 @@ fn eq_associativity :
                 let z5 = imply_lift(z4) : a => (b == c);
                 let z7 = refl(z5, to_a) : a == (b == c);
                 let f = imply_lift(z7) : ((a == b) == c) => (a == (b == c));
-                
+
                 let z5 = imply_lift(z2) : (a == b) => c;
                 let z7 = refl(z5, z6) : (a == b) == c;
                 let g = imply_lift(z7) : (a == (b == c)) => ((a == b) == c);
@@ -153,7 +153,7 @@ fn eq_associativity :
                     z3 : (a == b) == c;
 
                     let z4 = eq_to_right(z3, eq_a_b) : c;
-                    let z5 = z2(z4) : false;    
+                    let z5 = z2(z4) : false;
                     let r = match z5 : a == (b == c);
                     return r;
                 }
@@ -207,7 +207,7 @@ fn eq_associativity :
                 let g = imply_lift(x2) : (b == c) => a;
                 let f = refl(f, g) : a == (b == c);
                 let f = imply_lift(f) : ((a == b) == c) => (a == (b == c));
-  
+
                 lam g : (a == (b == c)) => ((a == b) == c) {
                     z3 : a == (b == c);
 
@@ -238,7 +238,7 @@ fn eq_associativity :
         return r;
     }
     lam g : !a => ((a == b) == c) == (a == (b == c)) {
-       x2 : !a; 
+       x2 : !a;
 
        lam f : b => ((a == b) == c) == (a == (b == c)) {
             y2 : b;
@@ -402,9 +402,9 @@ fn eq_modus_tollens : (a == b)  ->  (!a == !b) {
     use snd;
 
     x : a == b;
- 
+
     let x2 = fst(x) : a => b;
-    let x3 = snd(x) : b => a; 
+    let x3 = snd(x) : b => a;
     let x4 = modus_tollens(x2) : !b => !a;
     let x5 = modus_tollens(x3) : !a => !b;
     let r = refl(x5, x4) : !a == !b;
@@ -471,7 +471,7 @@ fn eq_eq_left : a == b -> (a == c) == (b == c) {
 
     lam f : (a == c) => (b == c) {
         use eq_transitivity_rev_sym;
-    
+
         y : a == c;
 
         let r = eq_transitivity_rev_sym(x, y) : b == c;
@@ -531,3 +531,38 @@ fn eq_tr : x -> x == true {
     return r;
 }
 
+fn eq_para_self_neg : a == !a -> false {
+    use excm_lift_neg;
+
+    x : a == !a;
+
+    fn f : excm(a) -> !(a == !a) {
+        use eq_to_right;
+        use eq_to_left;
+
+        y : excm(a);
+
+        lam r : !(a == !a) {
+            z : a == !a;
+            lam g1 : a => false {
+                w : a;
+                let w2 = eq_to_right(z, w) : !a;
+                let r = w2(w) : false;
+                return r;
+            }
+            lam g2 : !a => false {
+                w : !a;
+                let w2 = eq_to_left(z, w) : a;
+                let r = w(w2) : false;
+                return r;
+            }
+            let r = match y (g1, g2): false;
+            return r;
+        }
+        return r;
+    }
+
+    let x2 = excm_lift_neg(f) : !(a == !a);
+    let r = x2(x) : false;
+    return r;
+}
