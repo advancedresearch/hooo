@@ -1,3 +1,24 @@
+fn pow_lift : a^b -> (a^b)^c {
+    axiom pow_lift : a^b -> (a^b)^c;
+    x : a^b;
+    let r = pow_lift(x) : (a^b)^c;
+    return r;
+}
+
+fn tauto_hooo_imply : (a => b)^c  ->  (a^c => b^c)^true {
+    axiom tauto_hooo_imply : (a => b)^c -> (a^c => b^c)^true;
+    x : (a => b)^c;
+    let r = tauto_hooo_imply(x) : (a^c => b^c)^true;
+    return r;
+}
+
+fn tauto_hooo_or : (a | b)^c  ->  (a^c | b^c)^true {
+    axiom tauto_hooo_or : (a | b)^c -> (a^c | b^c)^true;
+    x : (a | b)^c;
+    let r = tauto_hooo_or(x) : (a^c | b^c)^true;
+    return r;
+}
+
 fn hooo_and : (a & b)^c  ->  (a^c & b^c) {
     use pow_transitivity;
     use fst;
@@ -137,13 +158,6 @@ fn hooo_dual_rev_or : c^a & c^b  ->  c^(a | b) {
     return r;
 }
 
-fn pow_lift : a^b -> (a^b)^c {
-    axiom pow_lift : a^b -> (a^b)^c;
-    x : a^b;
-    let r = pow_lift(x) : (a^b)^c;
-    return r;
-}
-
 fn pow_to_imply : b^a -> a => b {
     x : b^a;
 
@@ -216,20 +230,6 @@ fn tauto_hooo_and : (a & b)^c -> (a^c & b^c)^true {
     let x3 = hooo_and() : (a & b)^c -> (a^c & b^c);
     let x4 = pow_transitivity(x2, x3) : (a^c & b^c)^true;
     return x4;
-}
-
-fn tauto_hooo_imply : (a => b)^c  ->  (a^c => b^c)^true {
-    axiom tauto_hooo_imply : (a => b)^c -> (a^c => b^c)^true;
-    x : (a => b)^c;
-    let r = tauto_hooo_imply(x) : (a^c => b^c)^true;
-    return r;
-}
-
-fn tauto_hooo_or : (a | b)^c  ->  (a^c | b^c)^true {
-    axiom tauto_hooo_or : (a | b)^c -> (a^c | b^c)^true;
-    x : (a | b)^c;
-    let r = tauto_hooo_or(x) : (a^c | b^c)^true;
-    return r;
 }
 
 fn tauto_hooo_rev_and : (a^c & b^c)^true  ->  (a & b)^c {
