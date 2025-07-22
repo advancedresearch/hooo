@@ -265,12 +265,6 @@ fn pow_to_pow_tauto : a^b -> a^(b^true) {
     return r;
 }
 
-fn pow_to_imply : b^a -> (a => b) {
-    x : b^a;
-    let r = x() : a => b;
-    return r;
-}
-
 fn tauto_eq_to_left : (a == b)^true & b -> a {
     use triv;
     use eq_to_left;
