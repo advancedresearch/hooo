@@ -388,11 +388,11 @@ fn hooo_imply_elim : (b => a)^b -> (b => a) {
 }
 
 fn tauto_excm_to_or : (a | !a)^true -> a^true | (!a)^true {
-    use hooo_or;
+    use hooo_tauto_or;
 
     x : (a | !a)^true;
 
-    let r = hooo_or(x) : a^true | (!a)^true;
+    let r = hooo_tauto_or(x) : a^true | (!a)^true;
     return r;
 }
 
