@@ -13,6 +13,7 @@ use meta_cache::MetaCache;
 pub mod parsing;
 pub mod meta_cache;
 pub mod cycle_detector;
+pub mod grader;
 
 /// Used to keep track of how much it costs to prove something.
 pub struct Search {
@@ -1258,13 +1259,16 @@ pub struct Loader {
     pub silent: bool,
     pub files: Vec<String>,
     pub cycle_check: Option<Sender<(Arc<String>, Arc<String>)>>,
+    /// Theorem grading.
+    pub grade_check: Option<Sender<(Arc<String>, Vec<Arc<String>>)>>,
 }
 
 impl Loader {
     pub fn new(
         dir: Arc<String>,
         meta_cache: &MetaCache,
-        cycle_check: Option<Sender<(Arc<String>, Arc<String>)>>
+        cycle_check: Option<Sender<(Arc<String>, Arc<String>)>>,
+        grade_check: Option<Sender<(Arc<String>, Vec<Arc<String>>)>>,
     ) -> Result<Loader, String> {
         use rayon::prelude::*;
         use std::sync::Mutex;
@@ -1279,6 +1283,7 @@ impl Loader {
             silent: false,
             files: vec![],
             cycle_check,
+            grade_check,
         };
 
         let std = parsing::lib_str(include_str!("../source/std/Hooo.config"), meta_cache)?;

@@ -1,3 +1,5 @@
+grade meta_strength [pow_lift, tauto_hooo_imply, tauto_hooo_tauto_or, tauto_hooo_or];
+
 fn pow_lift : a^b -> (a^b)^c {
     axiom pow_lift : a^b -> (a^b)^c;
     x : a^b;
@@ -16,6 +18,13 @@ fn tauto_hooo_or : (a | b)^c  ->  (a^c | b^c)^true {
     axiom tauto_hooo_or : (a | b)^c -> (a^c | b^c)^true;
     x : (a | b)^c;
     let r = tauto_hooo_or(x) : (a^c | b^c)^true;
+    return r;
+}
+
+fn tauto_hooo_tauto_or : (a | b)^true  ->  (a^true | b^true)^true {
+    use tauto_hooo_or;
+    x : (a | b)^true;
+    let r = tauto_hooo_or(x) : (a^true | b^true)^true;
     return r;
 }
 
@@ -53,6 +62,16 @@ fn hooo_or : (a | b)^c  ->  (a^c | b^c) {
     let x2 = tauto_hooo_or(x) : (a^c | b^c)^true;
     let x3 = triv(x2) : a^c | b^c;
     return x3;
+}
+
+fn hooo_tauto_or : (a | b)^true  ->  (a^true | b^true) {
+    use tauto_hooo_tauto_or;
+    use triv;
+
+    x : (a | b)^true;
+    let x2 = tauto_hooo_tauto_or(x) : (a^true | b^true)^true;
+    let r = triv(x2) : a^true | b^true;
+    return r;
 }
 
 fn hooo_dual_or : c^(a | b)  ->  c^a & c^b {
