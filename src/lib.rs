@@ -1404,6 +1404,65 @@ impl Loader {
             return Err(format!("Could not find `{}`", f));
         }
     }
+
+    pub fn to_library_format(&self, lib: &Option<LibInfo>) -> String {
+        fn json(s: &str) -> String {
+            use piston_meta::json::write_string;
+
+            let mut buf: Vec<u8> = vec![];
+            write_string(&mut buf, s).unwrap();
+            String::from_utf8(buf).unwrap()
+        }
+
+        use std::fmt::Write;
+
+        let mut s = String::new();
+        // Extract functions and generate library format.
+        let mut functions: Vec<(Arc<String>, Type)> = self.functions.iter()
+            .map(|(name, ty)| (name.clone(), ty.clone())).collect();
+        functions.sort();
+
+        let name: &str = if let Some(lib) = lib {
+            &**lib.name
+        } else {
+            Path::new(&**self.dir).file_stem().unwrap().to_str().unwrap()
+        };
+        let version: &str = if let Some(lib) = &lib {
+            &**lib.version
+        } else {
+            "0.1.0"
+        };
+        let desc: &str = if let Some(lib) = &lib {
+            &**lib.description
+        } else {
+            "add your description here"
+        };
+
+        writeln!(s, "name: {};", json(name)).unwrap();
+        writeln!(s, "version: {};", json(version)).unwrap();
+        writeln!(s, "description: {};", json(desc)).unwrap();
+
+        writeln!(s, "functions {{").unwrap();
+        let top = true;
+        for (name, ty) in functions {
+            writeln!(s, "  {} : {};", name, ty.to_str(top, None)).unwrap();
+        }
+        writeln!(s, "}}").unwrap();
+
+        writeln!(s, "dependencies {{").unwrap();
+        if let Some(lib) = &lib {
+            for dep in &lib.dependencies {
+                match dep {
+                    Dep::Path(p) => {
+                        writeln!(s, "  path({});", json(&p)).unwrap();
+                    }
+                }
+            }
+        }
+        writeln!(s, "}}").unwrap();
+
+        s
+    }
 }
 
 /// Represents dependency information.
