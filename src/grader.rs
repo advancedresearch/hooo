@@ -3,6 +3,21 @@ use crate::*;
 use cycle_detector::CycleDetector;
 use std::collections::HashMap;
 
+pub fn grade_report<I: Iterator<Item = (Arc<String>, Vec<Arc<String>>)>>(
+    iter: I,
+    cycle_detector: &CycleDetector,
+) -> String {
+    use std::fmt::Write;
+
+    let mut s = String::new();
+    writeln!(&mut s, "grades {{").unwrap();
+    for (name, args) in iter {
+        Grader {name, args, cycle_detector}.report(&mut s);
+    }
+    writeln!(&mut s, "}}").unwrap();
+    s
+}
+
 pub struct Grader<'a> {
     pub name: Arc<String>,
     pub args: Vec<Arc<String>>,
@@ -10,7 +25,9 @@ pub struct Grader<'a> {
 }
 
 impl<'a> Grader<'a> {
-    pub fn report(&self) {
+    pub fn report(&self, s: &mut String) {
+        use std::fmt::Write;
+
         // Stores grades and whether they are locked.
         let mut grades: HashMap<usize, (usize, bool)> = HashMap::new();
 
@@ -18,6 +35,7 @@ impl<'a> Grader<'a> {
             if let Some(id) = self.cycle_detector.ids.get(arg) {
                 grades.insert(*id, (gr, true));
             } else {
+                eprintln!("ERROR:\n");
                 eprintln!("Grader check error #100:");
                 eprintln!("Could not find function `{}`", arg);
             }
@@ -42,7 +60,7 @@ impl<'a> Grader<'a> {
             if !changed {break}
         }
 
-        eprintln!("    {}: {{", self.name);
+        writeln!(s, "    {}: {{", self.name).unwrap();
         for gr in 0..self.args.len() {
             let mut fns: Vec<Arc<String>> = vec![];
             for (gr_key, (gr_val, _)) in &grades {
@@ -57,18 +75,18 @@ impl<'a> Grader<'a> {
             }
 
             fns.sort();
-            eprint!("        {}: [", gr + 1);
+            write!(s, "        {}: [", gr + 1).unwrap();
             let mut first = true;
             for f in &fns {
                 if !first {
-                    eprint!(", ");
+                    write!(s, ", ").unwrap();
                 } else {
                     first = false;
                 }
-                eprint!("{}", f);
+                write!(s, "{}", f).unwrap();
             }
-            eprintln!("];");
+            writeln!(s, "];").unwrap();
         }
-        eprintln!("    }};");
+        writeln!(s, "    }};").unwrap();
     }
 }

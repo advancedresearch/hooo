@@ -83,14 +83,8 @@ fn main() {
                         eprintln!("");
                     }
 
-                    eprintln!("grades {{");
-                    for (name, args) in rx_grade.iter() {
-                        let grader = hooo::grader::Grader {
-                            name, args, cycle_detector: &cycle_detector
-                        };
-                        grader.report();
-                    }
-                    eprintln!("}}");
+                    let s = hooo::grader::grade_report(rx_grade.iter(), &cycle_detector);
+                    println!("{}", s);
                 }
                 Err(err) => {
                     eprintln!("\nERROR:\n{}", err);
