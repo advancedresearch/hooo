@@ -1371,8 +1371,8 @@ impl Loader {
                 if &**tr == &**f {
                     return Err(format!("Cyclic proof, `{}` uses `{}`", tr, f));
                 }
-                if let Some(rx) = self.cycle_check.as_ref() {
-                    let _ = rx.send((tr.clone(), f.clone()));
+                if let Some(tx) = self.cycle_check.as_ref() {
+                    let _ = tx.send((self.trace[0].clone(), f.clone()));
                 }
             }
         }
