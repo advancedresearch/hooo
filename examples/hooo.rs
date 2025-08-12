@@ -134,7 +134,6 @@ fn lib_check(
     meta_cache: &MetaCache,
     overwrite: Option<bool>,
 ) -> Result<(), String> {
-    use std::fmt::Write;
     use std::path::Path;
     use std::fs::File;
     use std::io::Write as OtherWrite;
@@ -161,50 +160,7 @@ fn lib_check(
     let error = error.lock().unwrap();
     let _ = error.as_ref().map_err(|err| err.clone())?;
 
-    let mut s = String::new();
-    // Extract functions and generate library format.
-    let mut functions: Vec<(Arc<String>, Type)> = loader.functions.iter()
-        .map(|(name, ty)| (name.clone(), ty.clone())).collect();
-    functions.sort();
-
-    let name: &str = if let Some(lib) = &lib {
-        &**lib.name
-    } else {
-        Path::new(&**loader.dir).file_stem().unwrap().to_str().unwrap()
-    };
-    let version: &str = if let Some(lib) = &lib {
-        &**lib.version
-    } else {
-        "0.1.0"
-    };
-    let desc: &str = if let Some(lib) = &lib {
-        &**lib.description
-    } else {
-        "add your description here"
-    };
-
-    writeln!(s, "name: {};", json(name)).unwrap();
-    writeln!(s, "version: {};", json(version)).unwrap();
-    writeln!(s, "description: {};", json(desc)).unwrap();
-
-    writeln!(s, "functions {{").unwrap();
-    let top = true;
-    for (name, ty) in functions {
-        writeln!(s, "  {} : {};", name, ty.to_str(top, None)).unwrap();
-    }
-    writeln!(s, "}}").unwrap();
-
-    writeln!(s, "dependencies {{").unwrap();
-    if let Some(lib) = &lib {
-        for dep in &lib.dependencies {
-            match dep {
-                Dep::Path(p) => {
-                    writeln!(s, "  path({});", json(&p)).unwrap();
-                }
-            }
-        }
-    }
-    writeln!(s, "}}").unwrap();
+    let s = loader.to_library_format(&lib);
 
     println!("");
     println!("=== New Hooo.config ===");
@@ -230,14 +186,6 @@ fn lib_check(
     let mut file = File::create(path).unwrap();
     file.write(s.as_bytes()).unwrap();
     Ok(())
-}
-
-fn json(s: &str) -> String {
-    use piston_meta::json::write_string;
-
-    let mut buf: Vec<u8> = vec![];
-    write_string(&mut buf, s).unwrap();
-    String::from_utf8(buf).unwrap()
 }
 
 fn proof_check(file: String, loader: &mut Loader, meta_cache: &MetaCache) -> Result<(), String> {
