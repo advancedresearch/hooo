@@ -37,28 +37,6 @@ impl CycleDetector {
 
     /// Detects cycles, if any.
     pub fn cycles(&self) -> Option<Vec<(usize, usize)>> {
-        /*
-        let mut trace = vec![];
-        for &(a, b) in &self.edges {
-            trace.clear();
-            trace.push(a);
-            trace.push(b);
-            loop {
-                let mut changed = false;
-                for &(c, d) in &self.edges {
-                    if c == *trace.last().unwrap() {
-                        if trace.iter().any(|&n| n == d) {
-                            trace.push(d);
-                            return Some(trace);
-                        }
-                        trace.push(d);
-                        changed = true;
-                    }
-                }
-                if !changed {break}
-            }
-        }
-        */
         let mut visited = vec![false; self.ids.len()];
         // Mark all leaves.
         for &(a, b) in &self.edges {
@@ -95,4 +73,3 @@ impl CycleDetector {
         if cycles.len() == 0 {None} else {Some(cycles)}
     }
 }
-
