@@ -1,3 +1,4 @@
+// Syntax for types.
 _seps: "',.(){}=-<>^&|!-□◇~"
 
 23 sym_block = ["sym(" .w? .._seps!:"sym" , type_or_fun:"arg" .w? ")"]
