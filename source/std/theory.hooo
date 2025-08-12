@@ -74,7 +74,7 @@ fn theory_to : theory'(a)  ->  !(a^true | false^a) {
 
     let y = theory_to_uniform(x) : !uniform'(a);
     let y2 = triv(tauto_uniform_eq) : uniform'(a) == (a^true | false^a);
-    let r = imply_in_left_arg(y, y2) : !(a^true | false^a);        
+    let r = imply_in_left_arg(y, y2) : !(a^true | false^a);
     return r;
 }
 
@@ -84,9 +84,9 @@ fn nor_tauto_para_to_theory : !(a^true | false^a)  -> theory'(a) {
     use tauto_uniform_eq;
     use triv;
     use uniform_to_theory;
-    
+
     x : !(a^true | false^a);
-    
+
     let x2 = triv(tauto_uniform_eq) : uniform'(a) == (a^true | false^a);
     let x3 = eq_symmetry(x2) : (a^true | false^a) == uniform'(a);
     let x4 = imply_in_left_arg(x, x3) : !uniform'(a);
@@ -165,20 +165,19 @@ fn uniform_to_tauto_excm : uniform'(a)  ->  excm(a)^true {
 }
 
 fn tauto_excm_to_uniform : excm(a)^true  ->  uniform'(a) {
-    use hooo_or;
+    use hooo_tauto_or;
     use imply_transitivity;
     use tauto_not_to_para;
     use tauto_to_uniform;
 
     x : excm(a)^true;
 
-    let x2 = hooo_or(x) : a^true | (!a)^true;
+    let x2 = hooo_tauto_or(x) : a^true | (!a)^true;
     let y = tauto_to_uniform() : a^true => uniform'(a);
     let tnp = tauto_not_to_para() : (!a)^true => false^a;
     use para_to_uniform;
     let ptu = para_to_uniform() : false^a => uniform'(a);
-    let y2 = imply_transitivity(tnp, ptu) : (!a)^true => uniform'(a); 
+    let y2 = imply_transitivity(tnp, ptu) : (!a)^true => uniform'(a);
     let r = match x2 (y, y2) : uniform'(a);
     return r;
 }
-

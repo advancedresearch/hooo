@@ -77,6 +77,19 @@ fn run_ctx(
             break;
         }
 
+        match parse_grade("grade", convert, ignored) {
+            Ok((range, (name, args))) => {
+                convert.update(range);
+                if loader.run {
+                    if let Some(tx) = loader.grade_check.as_ref() {
+                        let _ = tx.send((name, args));
+                    }
+                }
+            }
+            Err(Some(err)) => return Err((start_range, err)),
+            Err(None) => {}
+        }
+
         match parse_var(meta_cache, "fun_decl", convert, ignored) {
             Ok((range, (name, _, ty))) => {
                 convert.update(range);
@@ -330,6 +343,38 @@ fn parse_use(
 
     let fun = fun.ok_or(())?;
     Ok((convert.subtract(start), (ns, fun)))
+}
+
+fn parse_grade(
+    node: &str,
+    mut convert: Convert,
+    ignored: &mut Vec<Range>
+) -> Result<(Range, (Arc<String>, Vec<Arc<String>>)), Option<String>> {
+    let start = convert;
+    let start_range = convert.start_node(node).map_err(|_| None)?;
+    convert.update(start_range);
+
+    let mut name: Option<Arc<String>> = None;
+    let mut args: Vec<Arc<String>> = vec![];
+    loop {
+        if let Ok(range) = convert.end_node(node) {
+            convert.update(range);
+            break;
+        } else if let Ok((range, val)) = convert.meta_string("name") {
+            convert.update(range);
+            name = Some(val);
+        } else if let Ok((range, val)) = convert.meta_string("arg") {
+            convert.update(range);
+            args.push(val);
+        } else {
+            let range = convert.ignore();
+            convert.update(range);
+            ignored.push(range);
+        }
+    }
+
+    let name = name.ok_or(None)?;
+    Ok((convert.subtract(start), (name, args)))
 }
 
 fn parse_var(

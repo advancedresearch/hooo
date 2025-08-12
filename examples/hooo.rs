@@ -50,11 +50,13 @@ fn main() {
         let path = Path::new(&file);
         let mut meta_cache = MetaCache::restore(meta_store_file);
         if path.is_dir() {
-            let (tx, rx) = std::sync::mpsc::channel();
+            let (tx_cycle, rx_cycle) = std::sync::mpsc::channel();
+            let (tx_grade, rx_grade) = std::sync::mpsc::channel();
             let mut loader = match Loader::new(
                 Arc::new(file.clone()),
                 &mut meta_cache,
-                Some(tx),
+                Some(tx_cycle),
+                Some(tx_grade),
             ) {
                 Ok(x) => x,
                 Err(err) => {
@@ -66,7 +68,7 @@ fn main() {
                 Ok(()) => {
                     // Detect cycle, if any.
                     drop(loader);
-                    let cycle_detector = hooo::cycle_detector::CycleDetector::new(rx);
+                    let cycle_detector = hooo::cycle_detector::CycleDetector::new(rx_cycle);
                     if let Some(cycles) = cycle_detector.cycles() {
                         let mut names = vec![None; cycle_detector.ids.len()];
                         for name in cycle_detector.ids.keys() {
@@ -80,6 +82,15 @@ fn main() {
                         }
                         eprintln!("");
                     }
+
+                    eprintln!("grades {{");
+                    for (name, args) in rx_grade.iter() {
+                        let grader = hooo::grader::Grader {
+                            name, args, cycle_detector: &cycle_detector
+                        };
+                        grader.report();
+                    }
+                    eprintln!("}}");
                 }
                 Err(err) => {
                     eprintln!("\nERROR:\n{}", err);
@@ -91,6 +102,7 @@ fn main() {
             let ref mut loader = match Loader::new(
                 Arc::new(dir),
                 &mut meta_cache,
+                None,
                 None,
             ) {
                 Ok(x) => x,

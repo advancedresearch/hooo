@@ -1,4 +1,4 @@
-_seps: ";:.{}()=,"
+_seps: ";:.{}()[]=,"
 _ty: ";{}"
 
 200 multi_line_comment = ["/*" ..."*/"? .r?({
@@ -6,6 +6,8 @@ _ty: ";{}"
 }) "*/"]
 201 comment = {multi_line_comment ["//" ..."\n"?]}
 
+15 grade = ["grade" .w! .._seps!:"name" .w! "["
+  .w? .s!(, .._seps!:"arg") .w? "]" .w? ";"]
 14 sym_decl = ["sym" .w! .._seps!:"sym"]
 13 let = ["let" .w! .._seps!:"name" .w? "=" .w?]
 12 use = ["use" .w! .r?([.._seps!:"ns" "::"]) .._seps!:"fun"]
@@ -35,8 +37,8 @@ _ty: ";{}"
 }
 1 script = [.w? .l([.w? {
     comment
+    grade:"grade"
     fn
     [command ";"]
 }]) .w?]
 0 doc = script:"script"
-
