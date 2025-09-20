@@ -44,6 +44,22 @@ fn hooo_and : (a & b)^c  ->  (a^c & b^c) {
     return x6;
 }
 
+fn hooo_and3 : (a & b & c)^d -> (a^d & b^d & c^d) {
+    use fst;
+    use hooo_and;
+    use refl;
+    use snd;
+
+    x : (a & b & c)^d;
+
+    let x2 = hooo_and(x) : a^d & (b & c)^d;
+    let x3 = snd(x2) : (b & c)^d;
+    let x4 = hooo_and(x3) : b^d & c^d;
+    let x5 = fst(x2) : a^d;
+    let r = refl(x5, x4) : a^d & b^d & c^d;
+    return r;
+}
+
 fn hooo_imply : (a => b)^c  ->  a^c => b^c {
     use tauto_hooo_imply;
     use triv;
@@ -103,6 +119,18 @@ fn hooo_rev_and : a^c & b^c -> (a & b)^c {
     let x5 = hooo_imply(x4) : b^c => (a & b)^c;
     let x6 = modus_ponens(y, x5) : (a & b)^c;
     return x6;
+}
+
+fn hooo_rev_and3 : a^d & b^d & c^d -> (a & b & c)^d {
+    use hooo_rev_and;
+
+    x : a^d;
+    y : b^d;
+    z : c^d;
+
+    let x2 = hooo_rev_and(y, z) : (b & c)^d;
+    let r = hooo_rev_and(x, x2) : (a & b & c)^d;
+    return r;
 }
 
 fn hooo_dual_rev_and : c^a | c^b  ->  c^(a & b) {
