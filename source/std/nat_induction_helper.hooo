@@ -1,0 +1,66 @@
+
+use nat;
+use s;
+use z;
+use cong;
+
+fn nat_induction_helper :
+    (x : nat') & cong'(g) & g(z') &
+    (sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f))^(cong'(f) & cong'(g) & (f == g)) &
+    (f == g)
+-> g(x) {
+    use nat_induction;
+    use cong_in_arg;
+    use cong_fun_eq;
+    use eq_symmetry;
+    use eq_to_left;
+    use eq_to_right;
+
+    x_ty : (x : nat');
+    x : cong'(g);
+    y : g(z');
+    z : (sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f))^(cong'(f) & cong'(g) & (f == g));
+    v : f == g;
+
+    let x2 = eq_symmetry(v) : g == f;
+    let x3 = cong_in_arg(x, x2) : cong'(f);
+    let y2 = cong_fun_eq(x3, x, v) : f(z') == g(z');
+    let y = eq_to_left(y2, y) : f(z');
+    let x4 = z(x3, x, v) : sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f);
+    let x5 = nat_induction(x3, y, x4) : (x : nat') => f(x);
+    let x6 = x5(x_ty) : f(x);
+    let x7 = cong_fun_eq(x3, x, v) : f(x) == g(x);
+    let r = eq_to_right(x7, x6) : g(x);
+    return r;
+}
+
+fn nat_induction_helper_ctx :
+    (x : nat') & cong'(g) & g(z') &
+    (sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f))^(cong'(f) & cong'(g) & (f == g) & c) &
+    (f == g) & c
+-> g(x) {
+    use nat_induction;
+    use cong_in_arg;
+    use cong_fun_eq;
+    use eq_symmetry;
+    use eq_to_left;
+    use eq_to_right;
+
+    x_ty : (x : nat');
+    x : cong'(g);
+    y : g(z');
+    z : (sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f))^(cong'(f) & cong'(g) & (f == g) & c);
+    v : f == g;
+    w : c;
+
+    let x2 = eq_symmetry(v) : g == f;
+    let x3 = cong_in_arg(x, x2) : cong'(f);
+    let y2 = cong_fun_eq(x3, x, v) : f(z') == g(z');
+    let y = eq_to_left(y2, y) : f(z');
+    let x4 = z(x3, x, v, w) : sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f);
+    let x5 = nat_induction(x3, y, x4) : (x : nat') => f(x);
+    let x6 = x5(x_ty) : f(x);
+    let x7 = cong_fun_eq(x3, x, v) : f(x) == g(x);
+    let r = eq_to_right(x7, x6) : g(x);
+    return r;
+}

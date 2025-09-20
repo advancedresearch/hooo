@@ -1,0 +1,35 @@
+
+use s;
+use z;
+use 0;
+use 1;
+use 2;
+
+fn nat_one : true -> 1' == s'(z') {
+    use nat_zero_def;
+    use nat_one_def;
+    use nat_succ_eq;
+    use triv;
+    use eq_transitivity;
+
+    let x = triv(nat_zero_def) : 0' == z';
+    let x2 = triv(nat_one_def) : 1' == s'(0');
+    let y = nat_succ_eq(x) : s'(0') == s'(z');
+    let r = eq_transitivity(x2, y) : 1' == s'(z');
+    return r;
+}
+
+fn nat_two : true -> 2' == s'(s'(z')) {
+    use nat_one_def;
+    use nat_two_def;
+    use nat_one;
+    use nat_succ_eq;
+    use triv;
+    use eq_transitivity;
+
+    let x = triv(nat_one): 1' == s'(z');
+    let x2 = nat_succ_eq(x) : s'(1') == s'(s'(z'));
+    let x3 = triv(nat_two_def) : 2' == s'(1');
+    let r = eq_transitivity(x3, x2) : 2' == s'(s'(z'));
+    return r;
+}

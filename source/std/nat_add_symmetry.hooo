@@ -1,0 +1,238 @@
+
+use cong;
+use nat;
+use add;
+use s;
+use z;
+
+fn nat_add_symmetry : (a : nat') & (b : nat') -> add'(a, b) == add'(b, a) {
+    use eq_refl;
+    use triv;
+
+    a_ty : (a : nat');
+    b_ty : (b : nat');
+
+    fn inner1 : (a : nat') &
+        (f == sym(a, sym(b, add'(a', b') == add'(b', a'))))
+     -> sym(b, add'(a, b') == add'(b', a)) {
+        use nat_induction_helper;
+
+        a_ty : (a : nat');
+        x1 : f == sym(a, sym(b, add'(a', b') == add'(b', a')));
+
+        axiom x2 : cong'(sym(a, sym(b, add'(a', b') == add'(b', a'))));
+        axiom x3 : sym(a, sym(b, add'(a', b') == add'(b', a')))(z');
+        axiom x4 : (sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f))^
+            (cong'(f) & cong'(sym(a, sym(b, add'(a', b') == add'(b', a')))) &
+            (f == sym(a, sym(b, add'(a', b') == add'(b', a')))));
+
+        let x5 = nat_induction_helper(a_ty, x2, x3, x4, x1) : sym(a, sym(b, add'(a', b') == add'(b', a')))(a);
+        let x6 = x5() : sym(b, add'(a, b') == add'(b', a));
+        return x6;
+    }
+
+    let x = triv(eq_refl) : sym(a, sym(b, add'(a', b') == add'(b', a'))) ==
+        sym(a, sym(b, add'(a', b') == add'(b', a')));
+    let x6 = inner1(a_ty, x) : sym(b, add'(a, b') == add'(b', a));
+
+    fn inner2 : (a : nat') & (b : nat') &
+        (f == sym(b, add'(a, b') == add'(b', a)))
+     -> add'(a, b) == add'(b, a) {
+        use nat_induction_helper;
+        use nat_induction_helper_ctx;
+        use eq_refl;
+        use triv;
+        use cong_from;
+
+        a_ty : (a : nat');
+        b_ty : (b : nat');
+        f_eq2 : f == sym(b, add'(a, b') == add'(b', a));
+
+        fn h : a == b -> (add'(a, a) == add'(a, a)) == (add'(a, b) == add'(b, a)) {
+            use nat_add_eq_left;
+            use nat_add_eq_right;
+            use eq_eq_left;
+            use eq_eq_right;
+            use eq_transitivity;
+
+            x : a == b;
+
+            let x2 = nat_add_eq_right(x) : add'(a, a) == add'(a, b);
+            let x3 = eq_eq_left(x2) : (add'(a, a) == add'(a, a)) == (add'(a, b) == add'(a, a));
+            let x4 = nat_add_eq_left(x) : add'(a, a) == add'(b, a);
+            let x5 = eq_eq_right(x4) : (add'(a, b) == add'(a, a)) == (add'(a, b) == add'(b, a));
+
+            let r = eq_transitivity(x3, x5) : (add'(a, a) == add'(a, a)) == (add'(a, b) == add'(b, a));
+            return r;
+        }
+
+        let h2 = h() : all(
+            a == b -> (add'(a, a) == add'(a, a)) == (add'(a, b) == add'(b, a))
+        );
+        axiom h3 : sym(f, all((a == b) => (f'(a) == f'(b))))(sym(b, add'(a, b') == add'(b', a)));
+        let x7 = cong_from(h3) : cong'(sym(b, add'(a, b') == add'(b', a)));
+
+        fn f : (a : nat') & (f == sym(a, a' == add'(z', a'))) -> add'(a, z') == add'(z', a) {
+            use nat_induction_helper;
+            use nat_add_zero;
+            use nat_zero_ty;
+            use eq_transitivity;
+            use eq_symmetry;
+            use triv;
+            use cong_from;
+
+            a_ty : (a : nat');
+            y1 : f == sym(a, a' == add'(z', a'));
+
+            let x1 = nat_add_zero(a_ty) : add'(a, z') == a;
+
+            fn h : (a == b) -> (a == add'(z', a)) == (b == add'(z', b)) {
+                use nat_add_eq_right;
+                use eq_transitivity;
+                use eq_eq_left;
+                use eq_eq_right;
+
+                x : a == b;
+
+                let x2 = eq_eq_left(x) : (a == add'(z', a)) == (b == add'(z', a));
+                let x3 = nat_add_eq_right(x) : add'(z', a) == add'(z', b);
+                let x4 = eq_eq_right(x3) : (b == add'(z', a)) == (b == add'(z', b));
+
+                let r = eq_transitivity(x2, x4) : (a == add'(z', a)) == (b == add'(z', b));
+                return r;
+            }
+            let c1 = h() : sym(f, all((a == b) => (f'(a) == f'(b))))(sym(a, a' == add'(z', a')));
+            let y2 = cong_from(c1) : cong'(sym(a, a' == add'(z', a')));
+
+            let zero_ty = triv(nat_zero_ty) : z' : nat';
+            let az = nat_add_zero(zero_ty) : add'(z', z') == z';
+            let z3 = eq_symmetry(az) : z' == add'(z', z');
+
+            let y3 = z3() : sym(a, a' == add'(z', a'))(z');
+
+            fn g : cong'(f) & cong'(sym(a, a' == add'(z', a'))) & (f == sym(a, a' == add'(z', a')))
+                -> (x : nat') => (f(x) => f(s'(x)))
+            {
+                use nat_succ_eq;
+                use nat_add_succ;
+                use nat_zero_ty;
+                use eq_to_left;
+                use eq_to_right;
+                use eq_symmetry;
+                use eq_transitivity;
+                use cong_fun_eq;
+                use triv;
+
+                x1 : cong'(f);
+                x2 : cong'(sym(a, a' == add'(z', a')));
+                x3 : f == sym(a, a' == add'(z', a'));
+
+                lam r : (x : nat') => (f(x) => f(s'(x))) {
+
+                    x_ty : (x : nat');
+
+                    lam r : f(x) => f(s'(x)) {
+
+                        fx : f(x);
+
+                        let z = cong_fun_eq(x1, x2, x3) : f(x) == sym(a, a' == add'(z', a'))(x);
+                        let gx = eq_to_right(z, fx) : sym(a, a' == add'(z', a'))(x);
+                        let gx2 = gx() : x == add'(z', x);
+                        let gx3 = nat_succ_eq(gx2) : s'(x) == s'(add'(z', x));
+                        let zero_ty = triv(nat_zero_ty) : (z' : nat');
+                        let p1 = nat_add_succ(zero_ty, x_ty) : add'(z', s'(x)) == s'(add'(z', x));
+                        let p2 = eq_symmetry(p1) : s'(add'(z', x)) == add'(z', s'(x));
+                        let p3 = eq_transitivity(gx3, p2) : s'(x) == add'(z', s'(x));
+
+                        let q1 = p3() : sym(a, a' == add'(z', a'))(s'(x));
+                        let z2 = cong_fun_eq(x1, x2, x3) : f(s'(x)) == sym(a, a' == add'(z', a'))(s'(x));
+                        let r = eq_to_left(z2, q1) : f(s'(x));
+                        return r;
+                    }
+                    return r;
+                }
+                return r;
+            }
+
+            let g2 = g() : all(
+                cong'(f) & cong'(sym(a, a' == add'(z', a'))) & (f == sym(a, a' == add'(z', a')))
+                -> (x : nat') => (f(x) => f(s'(x)))
+            );
+            let y4 = g2() : (sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f))^
+                (cong'(f) & cong'(sym(a, a' == add'(z', a'))) & (f == sym(a, a' == add'(z', a'))));
+            let y5 = nat_induction_helper(a_ty, y2, y3, y4, y1) : sym(a, a' == add'(z', a'))(a);
+
+            let x2 = y5() : a == add'(z', a);
+            let r = eq_transitivity(x1, x2) : add'(a, z') == add'(z', a);
+            return r;
+        }
+        let f_eq = triv(eq_refl) : sym(a, a' == add'(z', a')) == sym(a, a' == add'(z', a'));
+        let y8 = f(a_ty, f_eq) : add'(a, z') == add'(z', a);
+
+        let x8 = y8() : sym(b, add'(a, b') == add'(b', a))(z');
+
+        fn g2 :
+            cong'(f) &
+            cong'(sym(b, add'(a, b') == add'(b', a))) &
+            (f == sym(b, add'(a, b') == add'(b', a))) &
+            (a : nat')
+            -> (x : nat') => (f(x) => f(s'(x)))
+        {
+            use nat_succ_eq;
+            use nat_add_succ;
+            use nat_add_succ_left;
+            use cong_fun_eq;
+            use eq_to_left;
+            use eq_to_right;
+            use eq_transitivity;
+            use eq_transitivity_sym;
+
+            x1 : cong'(f);
+            x2 : cong'(sym(b, add'(a, b') == add'(b', a)));
+            x3 : f == sym(b, add'(a, b') == add'(b', a));
+            a_ty : (a : nat');
+
+            lam r : (x : nat') => (f(x) => f(s'(x))) {
+
+                x_ty : (x : nat');
+
+                lam r : f(x) => f(s'(x)) {
+
+                    fx : f(x);
+
+                    let y1 = cong_fun_eq(x1, x2, x3) : f(x) == sym(b, add'(a, b') == add'(b', a))(x);
+                    let y2 = eq_to_right(y1, fx) : sym(b, add'(a, b') == add'(b', a))(x);
+                    let y3 = y2() : add'(a, x) == add'(x, a);
+
+                    let y4 = nat_succ_eq(y3) : s'(add'(a, x)) == s'(add'(x, a));
+                    let y5 = nat_add_succ(a_ty, x_ty) : add'(a, s'(x)) == s'(add'(a, x));
+                    let y6 = nat_add_succ_left(x_ty, a_ty) : add'(s'(x), a) == s'(add'(x, a));
+                    let y7 = eq_transitivity(y5, y4) : add'(a, s'(x)) == s'(add'(x, a));
+                    let p1 = eq_transitivity_sym(y7, y6) : add'(a, s'(x)) == add'(s'(x), a);
+                    let p2 = p1() : sym(b, add'(a, b') == add'(b', a))(s'(x));
+
+                    let y8 = cong_fun_eq(x1, x2, x3) : f(s'(x)) == sym(b, add'(a, b') == add'(b', a))(s'(x));
+
+                    let r = eq_to_left(y8, p2) : f(s'(x));
+                    return r;
+                }
+                return r;
+            }
+            return r;
+        }
+
+        let g3 = g2() : all(
+            (sym(f, (x : nat') => (f'(x) => f'(s'(x))))(f))^
+            (cong'(f) & cong'(sym(b, add'(a, b') == add'(b', a))) & (f == sym(b, add'(a, b') == add'(b', a))) & (a : nat'))
+        );
+        let x10 = g3() :
+            (sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f))^
+            (cong'(f) & cong'(sym(b, add'(a, b') == add'(b', a))) & (f == sym(b, add'(a, b') == add'(b', a))) & (a : nat'));
+        let x11 = nat_induction_helper_ctx(b_ty, x7, x8, x10, f_eq2, a_ty) : sym(b, add'(a, b') == add'(b', a))(b);
+        let r = x11() : add'(a, b) == add'(b, a);
+        return r;
+    }
+    let f_eq = triv(eq_refl) : sym(b, add'(a, b') == add'(b', a)) == sym(b, add'(a, b') == add'(b', a));
+    let r = inner2(a_ty, b_ty, f_eq) : add'(a, b) == add'(b, a);
+    return r;
+}

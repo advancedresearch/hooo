@@ -1,0 +1,26 @@
+
+sym mul;
+
+use add;
+use nat;
+use z;
+use s;
+
+fn nat_mul_zero : (a : nat') -> mul'(a, z') == z' {
+    axiom nat_mul_zero : (a : nat') -> mul'(a, z') == z';
+
+    x : (a : nat');
+
+    let r = nat_mul_zero(x) : mul'(a, z') == z';
+    return r;
+}
+
+fn nat_mul_succ : (a : nat') & (b : nat') -> mul(a, s'(b)) == add'(a, mul'(a, b)) {
+    axiom nat_mul_succ : (a : nat') & (b : nat') -> mul(a, s'(b)) == add'(a, mul'(a, b));
+
+    x : (a : nat');
+    x2 : (b : nat');
+
+    let r = nat_mul_succ(x, x2) : mul(a, s'(b)) == add'(a, mul'(a, b));
+    return r;
+}

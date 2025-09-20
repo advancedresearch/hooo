@@ -1,0 +1,14 @@
+use s;
+use cong;
+
+fn nat_succ_eq : a == b -> s'(a) == s'(b) {
+    use nat_succ_cong;
+    use triv;
+    use cong_app_eq;
+
+    x : a == b;
+
+    let x2 = triv(nat_succ_cong) : cong'(s');
+    let r = cong_app_eq(x2, x) : s'(a) == s'(b);
+    return r;
+}
