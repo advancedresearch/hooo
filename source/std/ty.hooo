@@ -1,11 +1,64 @@
 
-use z;
+use pord;
 use unsafe;
+use z;
 use s;
 use nat;
 
 sym type;
 
+fn ty_def : true -> (a : b) == ((a => b) & pord'(a, b)) {
+    axiom ty_def : true -> (a : b) == ((a => b) & pord'(a, b));
+    x : true;
+    let r = ty_def(x) : (a : b) == ((a => b) & pord'(a, b));
+    return r;
+}
+
+fn ty_from : (a => b) & pord'(a, b) -> (a : b) {
+    use ty_def;
+    use triv;
+    use eq_to_left;
+
+    x : (a => b) & pord'(a, b);
+
+    let x2 = triv(ty_def) : (a : b) == ((a => b) & pord'(a, b));
+    let r = eq_to_left(x2, x) : (a : b);
+    return r;
+}
+
+fn ty_to : (a : b) -> (a => b) & pord'(a, b) {
+    use ty_def;
+    use triv;
+    use eq_to_right;
+
+    x : (a : b);
+
+    let x2 = triv(ty_def) : (a : b) == ((a => b) & pord'(a, b));
+    let r = eq_to_right(x2, x) : (a => b) & pord'(a, b);
+    return r;
+}
+
+fn ty_to_imply : (a : b) -> a => b {
+    use ty_to;
+    use fst;
+
+    x : (a : b);
+
+    let x2 = ty_to(x) : (a => b) & pord'(a, b);
+    let r = fst(x2) : a => b;
+    return r;
+}
+
+fn ty_to_pord : (a : b) -> pord'(a, b) {
+    use ty_to;
+    use snd;
+
+    x : (a : b);
+
+    let x2 = ty_to(x) : (a => b) & pord'(a, b);
+    let r = snd(x2) : pord'(a, b);
+    return r;
+}
 
 fn ty_succ : (n : nat') -> (type'(n) : type'(s'(n))) {
     axiom ty_succ : (n : nat') -> (type'(n) : type'(s'(n)));
