@@ -1,8 +1,41 @@
+use pord;
+
 /// Core axiom of Path Semantics.
 fn ps_core : (a ~~ b) & (a : c) & (b : d) -> (c ~~ d) {
     axiom ps_core : (a ~~ b) & (a : c) & (b : d) -> (c ~~ d);
     x : (a ~~ b) & (a : c) & (b : d);
     let r = ps_core(x) : c ~~ d;
+    return r;
+}
+
+fn ps_core_imply : (a : c) & (b : d) -> (a ~~ b) => (c ~~ d) {
+    use ps_core;
+
+    x : (a : c);
+    y : (b : d);
+
+    lam r : (a ~~ b) => (c ~~ d) {
+        z : a ~~ b;
+        let r = ps_core(z, x, y) : c ~~ d;
+        return r;
+    }
+    return r;
+}
+
+fn ps_core_ty : (a : c) & (b : d) -> ((a ~~ b) : (c ~~ d)) {
+    use ps_core_imply;
+    use pord_q_lift;
+    use ty_from;
+    use ty_to_pord;
+
+    x : (a : c);
+    y : (b : d);
+
+    let wx = ty_to_pord(x) : pord'(a, c);
+    let wy = ty_to_pord(y) : pord'(b, d);
+    let x2 = pord_q_lift(wx, wy) : pord'(a ~~ b, c ~~ d);
+    let x3 = ps_core_imply(x, y) : (a ~~ b) => (c ~~ d);
+    let r = ty_from(x3, x2) : ((a ~~ b) : (c ~~ d));
     return r;
 }
 
