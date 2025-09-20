@@ -1,0 +1,19 @@
+sym pord;
+
+fn pord_transitivity : pord'(a, b) & pord'(b, c) -> pord'(a, c) {
+    axiom pord_transitivity : pord'(a, b) & pord'(b, c) -> pord'(a, c);
+
+    x : pord'(a, b);
+    y : pord'(b, c);
+
+    let r = pord_transitivity(x, y) : pord'(a, c);
+    return r;
+}
+
+fn pord_q_lift : pord'(a, c) & pord'(b, d) -> pord'(a ~~ b, c ~~ d) {
+    axiom pord_q_lift : pord'(a, c) & pord'(b, d) -> pord'(a ~~ b, c ~~ d);
+    x : pord'(a, c);
+    y : pord'(b, d);
+    let r = pord_q_lift(x, y) : pord'(a ~~ b, c ~~ d);
+    return r;
+}
