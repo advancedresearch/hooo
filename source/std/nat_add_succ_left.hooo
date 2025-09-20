@@ -1,0 +1,9 @@
+
+use nat;
+use s;
+use add;
+
+fn nat_add_succ_left : (x : nat') & (y : nat') -> add'(s'(x), y) == s'(add'(x, y)) {
+    axiom r : add'(s'(x), y) == s'(add'(x, y));
+    return r;
+}

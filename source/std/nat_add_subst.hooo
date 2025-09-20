@@ -1,0 +1,78 @@
+
+use add;
+use cong;
+
+fn nat_add_subst : add'(a, b) & (a == c) & (b == d) -> add'(c, d) {
+    use nat_add_cong;
+    use cong_app_eq;
+    use triv;
+    use eq_to_right;
+    use eq_transitivity;
+    use cong_fun_eq;
+    use cong_app;
+
+    x : add'(a, b);
+    x2 : a == c;
+    x3 : b == d;
+
+    let y = triv(nat_add_cong) : cong'(add');
+    let y2 = cong_app_eq(y, x2) : add'(a) == add'(c);
+    let y3 = cong_app(y) : cong'(add'(a));
+    let y4 = cong_app(y) : cong'(add'(c));
+    let y5 = cong_fun_eq(y3, y4, y2) : add'(a, b) == add'(c, b);
+    let y6 = cong_app_eq(y4, x3) : add'(c, b) == add'(c, d);
+    let y7 = eq_transitivity(y5, y6) : add'(a, b) == add'(c, d);
+    let r = eq_to_right(y7, x) : add'(c, d);
+    return r;
+}
+
+fn nat_add_eq : (a == c) & (b == d) -> add'(a, b) == add'(c, d) {
+    use refl;
+    use nat_add_subst;
+
+    y1 : a == c;
+    y2 : b == d;
+
+    lam f : add'(a, b) => add'(c, d) {
+        x : add'(a, b);
+
+        let r = nat_add_subst(x, y1, y2) : add'(c, d);
+        return r;
+    }
+    lam g : add'(c, d) => add'(a, b) {
+        use eq_symmetry;
+
+        x : add'(c, d);
+
+        let x2 = eq_symmetry(y1) : c == a;
+        let x3 = eq_symmetry(y2) : d == b;
+        let r = nat_add_subst(x, x2, x3) : add'(a, b);
+        return r;
+    }
+    let r = refl(f, g) : add'(a, b) == add'(c, d);
+    return r;
+}
+
+fn nat_add_eq_left : (a == b) -> add'(a, c) == add'(b, c) {
+    use nat_add_eq;
+    use eq_refl;
+    use triv;
+
+    x : a == b;
+
+    let y = triv(eq_refl) : c == c;
+    let r = nat_add_eq(x, y) : add'(a, c) == add'(b, c);
+    return r;
+}
+
+fn nat_add_eq_right : (a == b) -> add'(c, a) == add'(c, b) {
+    use nat_add_eq;
+    use eq_refl;
+    use triv;
+
+    x : a == b;
+
+    let y = triv(eq_refl) : c == c;
+    let r = nat_add_eq(y, x) : add'(c, a) == add'(c, b);
+    return r;
+}

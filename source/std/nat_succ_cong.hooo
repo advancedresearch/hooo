@@ -1,0 +1,12 @@
+
+use cong;
+use s;
+
+fn nat_succ_cong : true -> cong'(s') {
+    axiom nat_succ_cong : true -> cong'(s');
+
+    x : true;
+
+    let r = nat_succ_cong(x) : cong'(s');
+    return r;
+}

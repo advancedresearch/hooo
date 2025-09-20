@@ -1,0 +1,29 @@
+
+use cong;
+use z;
+use s;
+use nat;
+
+fn nat_tauto_induction :
+    cong'(f)^true & f(z')^true &
+    sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f)^true
+-> ((x : nat')^true -> f(x)) {
+    use hooo_rev_and3;
+    use pow_transitivity;
+    use nat_induction;
+    use tauto_hooo_imply;
+    use tauto_imply_to_pow;
+    use triv;
+
+    x : cong'(f)^true & f(z')^true &
+        sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f)^true;
+
+    let x2 = hooo_rev_and3(x) : (cong'(f) & f(z') &
+        sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f))^true;
+    let x3 = pow_transitivity(x2, nat_induction) : ((x : nat') => f(x))^true;
+    let x4 = tauto_hooo_imply(x3) : ((x : nat')^true => f(x)^true)^true;
+    let x5 = tauto_imply_to_pow(x4) : (x : nat')^true -> f(x)^true;
+    let x6 = triv() : f(x)^true -> f(x);
+    let r = pow_transitivity(x5, x6) : (x : nat')^true -> f(x);
+    return r;
+}

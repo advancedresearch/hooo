@@ -1,0 +1,34 @@
+
+use z;
+use s;
+
+sym 0;
+sym 1;
+sym 2;
+
+fn nat_zero_def : true -> 0' == z' {
+    axiom nat_zero_def : true -> 0' == z';
+
+    x : true;
+
+    let r = nat_zero_def(x) : 0' == z';
+    return r;
+}
+
+fn nat_one_def : true -> 1' == s'(0') {
+    axiom nat_one_def : true -> 1' == s'(0');
+
+    x : true;
+
+    let r = nat_one_def(x) : 1' == s'(0');
+    return r;
+}
+
+fn nat_two_def : true -> 2' == s'(1') {
+    axiom nat_two_def : true -> 2' == s'(1');
+
+    x : true;
+
+    let r = nat_two_def(x) : 2' == s'(1');
+    return r;
+}

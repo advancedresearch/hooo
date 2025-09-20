@@ -1,0 +1,122 @@
+
+use cong;
+use nat;
+use s;
+use z;
+
+fn nat_contra_inductive : (x : nat') & (s'(x) == x) -> false {
+    use eq_refl;
+    use triv;
+
+    y : (x : nat');
+    y2 : s'(x) == x;
+
+    fn inner :
+        (x : nat') &
+        (s'(x) == x) &
+        (f == sym(x, (s'(x') == x') => false))
+    -> false {
+        use nat_induction_helper;
+        use cong_from;
+
+        y : (x : nat');
+        y2 : s'(x) == x;
+        z : f == sym(x, (s'(x') == x') => false);
+
+        fn h : (a == b) -> (((s'(a) == a) => false) == ((s'(b) == b) => false)) {
+            use nat_succ_eq;
+            use eq_eq_left;
+            use eq_eq_right;
+            use eq_refl;
+            use eq_transitivity;
+            use imply_eq_left;
+            use triv;
+
+            x : a == b;
+
+            let b2 = nat_succ_eq(x) : s'(a) == s'(b);
+            let x1 = eq_eq_left(b2) : (s'(a) == a) == (s'(b) == a);
+            let x2 = eq_eq_right(x) : (s'(b) == a) == (s'(b) == b);
+            let b3 = eq_transitivity(x1, x2) : (s'(a) == a) == (s'(b) == b);
+            let r = imply_eq_left(b3) : ((s'(a) == a) => false) == ((s'(b) == b) => false);
+            return r;
+        }
+
+        let a = h() : all((a == b) => (((s'(a) == a) => false) == ((s'(b) == b) => false)));
+        let a2 = a() : all((a == b) => (sym(x, (s'(x') == x') => false)(a) == sym(x, (s'(x') == x') => false)(b)));
+        let a3 = a2() : sym(f, all((a == b) => (f'(a) == f'(b))))(sym(x, (s'(x') == x') => false));
+        let cong_sym = cong_from(a3) : cong'(sym(x, (s'(x') == x') => false));
+
+        lam g : (s'(z') == z') => false {
+            use nat_contra;
+            use nat_zero_ty;
+            use triv;
+
+            x : s'(z') == z';
+
+            let z_ty = triv(nat_zero_ty) : (z' : nat');
+            let r = nat_contra(z_ty, x) : false;
+            return r;
+        }
+        let z3 = g() : sym(x, (s'(x') == x') => false)(z');
+
+        fn recur :
+            cong'(f) &
+            cong'(sym(x, (s'(x') == x') => false)) &
+            (f == sym(x, (s'(x') == x') => false))
+        -> (x : nat') => (f(x) => f(s'(x))) {
+            use imply_eq_left;
+            use imply_eq_right;
+            use eq_transitivity;
+            use eq_to_left;
+            use eq_to_right;
+            use eq_symmetry;
+            use cong_fun_eq;
+            use nat_injection;
+            use nat_succ_ty;
+
+            a2 : cong'(f);
+            a1 : cong'(sym(x, (s'(x') == x') => false));
+            x1 : f == sym(x, (s'(x') == x') => false);
+
+            lam r : (x : nat') => (f(x) => f(s'(x))) {
+                x : (x : nat');
+                lam r : f(x) => f(s'(x)) {
+                    y : f(x);
+                    let c1 = cong_fun_eq(a2, a1, x1) : f(x) == sym(x, (s'(x') == x') => false)(x);
+                    let c2 = cong_fun_eq(a2, a1, x1) : f(s'(x)) == sym(x, (s'(x') == x') => false)(s'(x));
+                    let c3 = c2() : f(s'(x)) == ((s'(s'(x)) == s'(x)) => false);
+                    let b3 = eq_to_right(c1, y) : (s'(x) == x) => false;
+                    let sx_ty = nat_succ_ty(x) : (s'(x) : nat');
+                    lam g : (s'(s'(x)) == s'(x)) => false {
+                        z : s'(s'(x)) == s'(x);
+                        let z2 = nat_injection(sx_ty, x, z) : s'(x) == x;
+                        let r = b3(z2) : false;
+                        return r;
+                    }
+                    let r = eq_to_left(c3, g) : f(s'(x));
+                    return r;
+                }
+                return r;
+            }
+            return r;
+        }
+
+        let f2 = recur() : all(
+            cong'(f) &
+            cong'(sym(x, (s'(x') == x') => false)) &
+            (f == sym(x, (s'(x') == x') => false))
+            -> sym(f, (x : nat') => (f'(x) => f'(s'(x))))(f));
+        let f3 = f2() : cong'(f) & cong'(sym(x, (s'(x') == x') => false)) &
+            (f == sym(x, (s'(x') == x') => false)) ->
+            sym(f, all((x : nat') => f'(x) => f'(s'(x))))(f);
+        let x7 = nat_induction_helper(y, cong_sym, z3, f3, z) : (s'(x) == x) => false;
+
+        let r = x7(y2) : false;
+        return r;
+    }
+
+    let z = triv(eq_refl) : sym(x, (s'(x') == x') => false) == sym(x, (s'(x') == x') => false);
+    let r = inner(y, y2, z) : false;
+    return r;
+}

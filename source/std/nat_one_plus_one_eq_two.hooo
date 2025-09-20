@@ -1,0 +1,39 @@
+use nat;
+use s;
+use z;
+use add;
+use 0;
+use 1;
+use 2;
+use cong;
+
+fn one_plus_one_eq_two : true -> add'(1', 1') == 2' {
+    use nat_add_succ;
+    use nat_zero_ty;
+    use nat_succ_ty;
+    use nat_add_zero;
+    use nat_succ_cong;
+    use nat_one;
+    use nat_two;
+    use nat_add_eq;
+    use nat_succ_eq;
+    use triv;
+    use eq_symmetry;
+    use eq_transitivity;
+    use cong_to;
+
+    let z_ty = triv(nat_zero_ty) : z' : nat';
+    let sz_ty = nat_succ_ty(z_ty) : (s'(z') : nat');
+    let add_o_o = nat_add_succ(sz_ty, z_ty) : add'(s'(z'), s'(z')) == s'(add'(s'(z'), z'));
+    let eq_add_oz_o = nat_add_zero(sz_ty) : add'(s'(z'), z') == s'(z');
+    let x = nat_succ_eq(eq_add_oz_o) : s'(add'(s'(z'), z')) == s'(s'(z'));
+    let x2 = eq_transitivity(add_o_o, x) : add'(s'(z'), s'(z')) == s'(s'(z'));
+    let x5 = triv(nat_two) : 2' == s'(s'(z'));
+    let x6 = triv(nat_one) : 1' == s'(z');
+    let y = nat_add_eq(x6, x6) : add'(1', 1') == add'(s'(z'), s'(z'));
+    let y2 = eq_symmetry(x5) : s'(s'(z')) == 2';
+    let y3 = eq_symmetry(y) : add'(s'(z'), s'(z')) == add'(1', 1');
+    let y3 = eq_transitivity(y, x2) : add'(1', 1') == s'(s'(z'));
+    let r = eq_transitivity(y3, y2) : add'(1', 1') == 2';
+    return r;
+}
