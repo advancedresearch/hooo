@@ -1,0 +1,290 @@
+
+use nat;
+use s;
+use type;
+
+sym AutoQu;
+sym Id;
+sym Def;
+
+fn auto_qu_def : true -> AutoQu' == all((a : b) -> ~a) {
+    axiom auto_qu_def : true -> AutoQu' == all((a : b) -> ~a);
+    x : true;
+    let r = auto_qu_def(x) : AutoQu' == all((a : b) -> ~a);
+    unsafe return r;
+}
+
+fn auto_qu_from : all((a : b) -> ~a) -> AutoQu' {
+    use auto_qu_def;
+    use eq_to_left;
+    use triv;
+
+    x : all((a : b) -> ~a);
+
+    let x2 = triv(auto_qu_def) : AutoQu' == all((a : b) -> ~a);
+    let r = eq_to_left(x2, x) : AutoQu';
+    return r;
+}
+
+fn auto_qu_to : AutoQu' -> all((a : b) -> ~a) {
+    use auto_qu_def;
+    use eq_to_right;
+    use triv;
+
+    x : AutoQu';
+
+    let x2 = triv(auto_qu_def) : AutoQu' == all((a : b) -> ~a);
+    let r = eq_to_right(x2, x) : all((a : b) -> ~a);
+    unsafe return r;
+}
+
+fn auto_qu_eq_eq_q :
+    AutoQu' & (a : c) & (b : d) -> (a == b) == (a ~~ b)
+{
+    use refl;
+    use q_to_eq;
+    use auto_qu_to;
+
+    x : AutoQu';
+    y : (a : c);
+    z : (b : d);
+
+    lam f : (a == b) => (a ~~ b) {
+        use q_from;
+
+        w : a == b;
+
+        let x2 = auto_qu_to(x) : all((a : b) -> ~a);
+        let y2 = x2(y) : ~a;
+        let z2 = x2(z) : ~b;
+        let r = q_from(w, y2, z2) : a ~~ b;
+        return r;
+    }
+    let g = q_to_eq() : (a ~~ b) => (a == b);
+    let r = refl(f, g) : (a == b) == (a ~~ b);
+    return r;
+}
+
+fn auto_qu_eq_to_tyq :
+    AutoQu' & (a : c) & (b : d) & (a == b) -> c ~~ d
+{
+    use auto_qu_eq_eq_q;
+    use eq_to_right;
+    use ps_core;
+
+    x1 : AutoQu';
+    x2 : (a : c);
+    x3 : (b : d);
+    x4 : a == b;
+
+    let y1 = auto_qu_eq_eq_q(x1, x2, x3) : (a == b) == (a ~~ b);
+    let y2 = eq_to_right(y1, x4) : a ~~ b;
+    let r = ps_core(y2, x2, x3) : c ~~ d;
+    return r;
+}
+
+fn auto_qu_typequ :
+    AutoQu' & (n : nat') -> ~type'(n)
+{
+    use ty_succ;
+    use auto_qu_to;
+
+    x : AutoQu';
+    y : (n : nat');
+
+    let x2 = auto_qu_to(x) : all((a : b) -> ~a);
+    let x3 = ty_succ(y) : (type'(n) : type'(s'(n)));
+    let r = x2(x3) : ~type'(n);
+    return r;
+}
+
+fn auto_qu_type_eq_eq_q :
+    AutoQu' & (n : nat') & (m : nat')
+-> (type'(n) == type'(m)) == (type'(n) ~~ type'(m)) {
+    use ty_succ;
+    use auto_qu_eq_eq_q;
+
+    x : AutoQu';
+    y : (n : nat');
+    z : (m : nat');
+
+    let y2 = ty_succ(y) : (type'(n) : type'(s'(n)));
+    let z2 = ty_succ(z) : (type'(m) : type'(s'(m)));
+    let r = auto_qu_eq_eq_q(x, y2, z2) : (type'(n) == type'(m)) == (type'(n) ~~ type'(m));
+    return r;
+}
+
+fn ident_def : true -> Id'(a, x, y) == ((x == y) & (x : a) & (y : a)) {
+    axiom ident_def : true -> Id'(a, x, y) == ((x == y) & (x : a) & (y : a));
+    x : true;
+    let r = ident_def(x) : Id'(a, x, y) == ((x == y) & (x : a) & (y : a));
+    return r;
+}
+
+fn ident_from : ((x == y) & (x : a) & (y : a)) -> Id'(a, x, y) {
+    use ident_def;
+    use triv;
+    use eq_to_left;
+
+    x : (x == y) & (x : a) & (y : a);
+
+    let x2 = triv(ident_def) : Id'(a, x, y) == ((x == y) & (x : a) & (y : a));
+    let r = eq_to_left(x2, x)  : Id'(a, x, y);
+    return r;
+}
+
+fn ident_to : Id'(a, x, y) -> ((x == y) & (x : a) & (y : a)) {
+    use ident_def;
+    use triv;
+    use eq_to_right;
+
+    x : Id'(a, x, y);
+
+    let x2 = triv(ident_def) : Id'(a, x, y) == ((x == y) & (x : a) & (y : a));
+    let r = eq_to_right(x2, x) : (x == y) & (x : a) & (y : a);
+    return r;
+}
+
+fn auto_qu_ident_to_q : AutoQu' & Id'(a, x, y) -> x ~~ y {
+    use ident_to;
+    use snd;
+    use fst;
+    use auto_qu_eq_eq_q;
+    use eq_to_right;
+
+    x : AutoQu';
+    y : Id'(a, x, y);
+
+    let x2 = ident_to(y) : (x == y) & (x : a) & (y : a);
+    let x3 = snd(x2) : (x : a) & (y : a);
+    let x4 = fst(x3) : (x : a);
+    let x5 = snd(x3) : (y : a);
+    let x6 = auto_qu_eq_eq_q(x, x4, x5) : (x == y) == (x ~~ y);
+    let x7 = fst(x2) : x == y;
+    let r = eq_to_right(x6, x7) : x ~~ y;
+    return r;
+}
+
+fn def_def : true -> Def'(a, x, y) == Id'(a, x, y)^true {
+    axiom def_def : true -> Def'(a, x, y) == Id'(a, x, y)^true;
+    x : true;
+    let r = def_def(x) : Def'(a, x, y) == Id'(a, x, y)^true;
+    return r;
+}
+
+fn def_from : Id'(a, x, y)^true -> Def'(a, x, y) {
+    use def_def;
+    use triv;
+    use eq_to_left;
+
+    x : Id'(a, x, y)^true;
+
+    let x2 = triv(def_def) : Def'(a, x, y) == Id'(a, x, y)^true;
+    let r = eq_to_left(x2, x) : Def'(a, x, y);
+    return r;
+}
+
+fn def_to : Def'(a, x, y) -> Id'(a, x, y)^true {
+    use def_def;
+    use triv;
+    use eq_to_right;
+
+    x : Def'(a, x, y);
+
+    let x2 = triv(def_def) : Def'(a, x, y) == Id'(a, x, y)^true;
+    let r = eq_to_right(x2, x) : Id'(a, x, y)^true;
+    return r;
+}
+
+fn def_from_parts :
+    (x : a)^true & (y : a)^true & (x == y)^true
+-> Def'(a, x, y) {
+    use def_from;
+    use hooo_rev_and3;
+    use ident_from;
+    use pow_transitivity;
+
+    x : (x : a)^true;
+    y : (y : a)^true;
+    z : (x == y)^true;
+
+    let x2 = hooo_rev_and3(z, x, y) : ((x == y) & (x : a) & (y : a))^true;
+    let x3 = pow_transitivity(x2, ident_from) : Id'(a, x, y)^true;
+    let r = def_from(x3) : Def'(a, x, y);
+    return r;
+}
+
+fn def_to_parts :
+    Def'(a, x, y)
+-> (x : a)^true & (y : a)^true & (x == y)^true {
+    use def_to;
+    use fst;
+    use hooo_and3;
+    use ident_to;
+    use pow_transitivity;
+    use refl;
+    use snd;
+
+    x : Def'(a, x, y);
+
+    let x2 = def_to(x) : Id'(a, x, y)^true;
+    let x3 = pow_transitivity(x2, ident_to) :
+        ((x == y) & (x : a) & (y : a))^true;
+    let x4 = hooo_and3(x3) :
+        (x == y)^true & (x : a)^true & (y : a)^true;
+    let x5 = fst(x4) : (x == y)^true;
+    let x6 = snd(x4) : (x : a)^true & (y : a)^true;
+    let x7 = fst(x6) : (x : a)^true;
+    let x8 = snd(x6) : (y : a)^true;
+    let r = refl(x7, x8, x5) :
+        (x : a)^true & (y : a)^true & (x == y)^true;
+    return r;
+}
+
+fn def_eq_parts :
+    true -> Def'(a, x, y) == ((x : a)^true & (y : a)^true & (x == y)^true)
+{
+    use pow_eq_to_tauto_eq;
+    use def_to_parts;
+    use def_from_parts;
+    use refl;
+
+    x : true;
+
+    let x2 = refl(def_to_parts, def_from_parts) :
+        Def'(a, x, y) =^= ((x : a)^true & (y : a)^true & (x == y)^true);
+    let x3 = pow_eq_to_tauto_eq(x2) :
+        true -> Def'(a, x, y) == ((x : a)^true & (y : a)^true & (x == y)^true);
+    let r = x3(x) :
+        Def'(a, x, y) == ((x : a)^true & (y : a)^true & (x == y)^true);
+    return r;
+}
+
+fn auto_qu_def_to_tauto_q : AutoQu' & Def'(a, x, y) -> (x ~~ y)^true {
+    use auto_qu_to;
+    use def_to_parts;
+    use fst;
+    use pow_transitivity;
+    use hooo_rev_and3;
+    use snd;
+    use q_from;
+
+    x : AutoQu';
+    y : Def'(a, x, y);
+
+    let x2 = auto_qu_to(x) : all((a : b) -> ~a);
+    let x3 = x2() : (x : a) -> ~x;
+    let x4 = x2() : (y : a) -> ~y;
+    let x5 = def_to_parts(y) :
+        (x : a)^true & (y : a)^true & (x == y)^true;
+    let x6 = fst(x5) : (x : a)^true;
+    let x7 = pow_transitivity(x6, x3) : (~x)^true;
+    let x8 = snd(x5) : (y : a)^true & (x == y)^true;
+    let x9 = fst(x8) : (y : a)^true;
+    let x10 = pow_transitivity(x9, x4) : (~y)^true;
+    let x11 = snd(x8) : (x == y)^true;
+    let x12 = hooo_rev_and3(x11, x7, x10) : ((x == y) & ~x & ~y)^true;
+    let x13 = q_from() : ((x == y) & ~x & ~y) -> x ~~ y;
+    let r = pow_transitivity(x12, x13) : (x ~~ y)^true;
+    return r;
+}
