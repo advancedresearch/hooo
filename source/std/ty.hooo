@@ -1,8 +1,18 @@
 
 use z;
 use unsafe;
+use s;
+use nat;
 
 sym type;
+
+
+fn ty_succ : (n : nat') -> (type'(n) : type'(s'(n))) {
+    axiom ty_succ : (n : nat') -> (type'(n) : type'(s'(n)));
+    x : (n : nat');
+    let r = ty_succ(x) : (type'(n) : type'(s'(n)));
+    return r;
+}
 
 fn ty_lift : unsafe' -> (a : x) -> (a : (a : x)) {
     axiom ty_lift : unsafe' -> (a : x) -> (a : (a : x));
