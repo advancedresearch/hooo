@@ -2,6 +2,13 @@ use tauto_cong;
 
 sym q;
 
+fn q_sym_def : true -> q' == sym(a, sym(b, a' ~~ b')) {
+    axiom q_sym_def : true -> q' == sym(a, sym(b, a' ~~ b'));
+    x : true;
+    let r = q_sym_def(x) : q' == sym(a, sym(b, a' ~~ b'));
+    return r;
+}
+
 fn q_def : true -> q'(a, b) == (a ~~ b) {
     axiom q_def : true -> q'(a, b) == (a ~~ b);
     x : true;
