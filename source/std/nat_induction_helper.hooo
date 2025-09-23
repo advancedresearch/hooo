@@ -36,7 +36,9 @@ fn nat_induction_helper :
 
 fn nat_induction_helper_ctx :
     (x : nat') & cong'(g) & g(z') &
-    (sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f))^(cong'(f) & cong'(g) & (f == g) & c) &
+    (sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(f))^(
+        cong'(f) & cong'(g) & (f == g) & c
+    ) &
     (f == g) & c
 -> g(x) {
     use nat_induction;
