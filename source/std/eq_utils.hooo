@@ -1,0 +1,15 @@
+
+fn eq_rs :
+    (a == b) &
+    (f(c, a) == f(c, b))^(a == b) &
+    (g(f(c, a)) == g(f(c, b)))^(f(c, a) == f(c, b))
+-> g(f(c, a)) == g(f(c, b))
+{
+    x : a == b;
+    y : (f(c, a) == f(c, b))^(a == b);
+    z : (g(f(c, a)) == g(f(c, b)))^(f(c, a) == f(c, b));
+
+    let x2 = y(x) : f(c, a) == f(c, b);
+    let r = z(x2) : g(f(c, a)) == g(f(c, b));
+    return r;
+}

@@ -47,11 +47,7 @@ fn nat_add_zero_left : (a : nat') -> add'(z', a) == a {
         return r;
     }
 
-    let x9 = f() : all((x : nat') =>
-        (add'(z', x) == x) => (add'(z', s'(x)) == s'(x)));
     let x7 = triv(nat_add_zero_zero) : add'(z', z') == z';
-    let x8 = x9() : all((x : nat') =>
-        (sym(a, add'(z', a') == a')(x) => sym(a, add'(z', a') == a')(s'(x))));
 
     fn g : a == b -> (add'(z', a) == a) == (add'(z', b) == b) {
         use eq_symmetry;
@@ -84,19 +80,15 @@ fn nat_add_zero_left : (a : nat') -> add'(z', a) == a {
         return r;
     }
 
-    let y4 = g() : all(a == b -> (add'(z', a) == a) == (add'(z', b) == b));
-    let y3 = y4() : all(a == b ->
-        sym(a, add'(z', a') == a')(a) == sym(a, add'(z', a') == a')(b));
-    let y2 = y3() : sym(f, all(a == b -> f'(a) == f'(b)))(sym(a, add'(z', a') == a'));
+    let y2 = g() : sym(f, all(a == b -> f'(a) == f'(b)))(sym(a, add'(z', a') == a'));
     let x4 = cong_from(y2) : cong'(sym(a, add'(z', a') == a'));
     let x5 = x7() : sym(a, add'(z', a') == a')(z');
-    let x6 = x8() : sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(
+    let x6 = f() : sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(
         sym(a, add'(z', a') == a')
     );
     let x3 = nat_induction(x4, x5, x6) :
         (a : nat') => sym(a, add'(z', a') == a')(a);
-    let x2 = x3() : (a : nat') => (add'(z', a) == a);
-    let r = x2(x) : add'(z', a) == a;
+    let r = x3(x) : add'(z', a) == a;
     return r;
 }
 
@@ -135,20 +127,15 @@ fn nat_add_succ_left :
                 x_ty : (x : nat');
 
                 let y2 = y(x_ty) : add'(s'(x), y) == s'(add'(x, y));
-
                 let y3 = nat_add_succ(x_ty, y_ty) :
                     add'(x, s'(y)) == s'(add'(x, y));
-
                 let y4 = eq_transitivity_sym(y2, y3) :
                     add'(s'(x), y) == add'(x, s'(y));
-
                 let y4 = nat_succ_eq(y4) :
                     s'(add'(s'(x), y)) == s'(add'(x, s'(y)));
-
                 let succ_x_ty = nat_succ_ty(x_ty) : (s'(x) : nat');
                 let y5 = nat_add_succ(succ_x_ty, y_ty) :
                     add'(s'(x), s'(y)) == s'(add'(s'(x), y));
-
                 let r = eq_transitivity(y5, y4) :
                     add'(s'(x), s'(y)) == s'(add'(x, s'(y)));
                 return r;
@@ -164,23 +151,14 @@ fn nat_add_succ_left :
         let succ_x_ty = nat_succ_ty(x_ty) : (s'(x) : nat');
         let x2 = nat_add_zero(succ_x_ty) :
             add'(s'(x), z') == s'(x);
-
         let x3 = nat_add_zero(x_ty) :
             add'(x, z') == x;
         let x4 = nat_succ_eq(x3) :
             s'(add'(x, z')) == s'(x);
-
         let r = eq_transitivity_sym(x2, x4) :
             add'(s'(x), z') == s'(add'(x, z'));
         return r;
     }
-
-    let x9 = f() : all((y : nat') =>
-        ((x : nat') => add'(s'(x), y) == s'(add'(x, y))) =>
-        ((x : nat') => add'(s'(x), s'(y)) == s'(add'(x, s'(y)))));
-    let x8 = x9() : all((y : nat') =>
-        sym(y, (x : nat') => add'(s'(x), y') == s'(add'(x, y')))(y) =>
-        sym(y, (x : nat') => add'(s'(x), y') == s'(add'(x, y')))(s'(y)));
 
     fn x13 : a == b ->
         ((x : nat') => add'(s'(x), a) == s'(add'(x, a))) ==
@@ -191,15 +169,14 @@ fn nat_add_succ_left :
         use eq_transitivity_sym;
         use nat_add_eq_right;
         use nat_succ_eq;
+        use eq_rs;
         use refl;
 
         x : a == b;
 
         let x2 = nat_add_eq_right(x) :
             add'(s'(x), a) == add'(s'(x), b);
-        let x3 = nat_add_eq_right(x) :
-            add'(x, a) == add'(x, b);
-        let x4 = nat_succ_eq(x3) :
+        let x4 = eq_rs(x, nat_add_eq_right, nat_succ_eq) :
             s'(add'(x, a)) == s'(add'(x, b));
 
         lam f1 : ((x : nat') => add'(s'(x), a) == s'(add'(x, a))) =>
@@ -211,10 +188,8 @@ fn nat_add_succ_left :
                 x_ty : (x : nat');
 
                 let y2 = y(x_ty) : add'(s'(x), a) == s'(add'(x, a));
-
                 let y3 = eq_transitivity_rev_sym(x2, y2) :
                     add'(s'(x), b) == s'(add'(x, a));
-
                 let r = eq_transitivity(y3, x4) :
                     add'(s'(x), b) == s'(add'(x, b));
                 return r;
@@ -230,10 +205,8 @@ fn nat_add_succ_left :
                 x_ty : (x : nat');
 
                 let y2 = y(x_ty) : add'(s'(x), b) == s'(add'(x, b));
-
                 let y3 = eq_transitivity(x2, y2) :
                     add'(s'(x), a) == s'(add'(x, b));
-
                 let r = eq_transitivity_sym(y3, x4) :
                     add'(s'(x), a) == s'(add'(x, a));
                 return r;
@@ -246,27 +219,17 @@ fn nat_add_succ_left :
         return r;
     }
 
-    let x12 = x13() : all(a == b ->
-        ((x : nat') => add'(s'(x), a) == s'(add'(x, a))) ==
-        ((x : nat') => add'(s'(x), b) == s'(add'(x, b))));
-    let x11 = x12() : all(a == b ->
-        sym(y, (x : nat') => add'(s'(x), y') == s'(add'(x, y')))(a) ==
-        sym(y, (x : nat') => add'(s'(x), y') == s'(add'(x, y')))(b));
-    let x10 = x11() : sym(f, all(a == b -> f'(a) == f'(b)))(
+    let x10 = x13() : sym(f, all(a == b -> f'(a) == f'(b)))(
         sym(y, (x : nat') => add'(s'(x), y') == s'(add'(x, y')))
     );
-
     let x5 = cong_from(x10) : cong'(sym(y, (x : nat') => add'(s'(x), y') == s'(add'(x, y'))));
     let x6 = x10() : sym(y, (x : nat') => add'(s'(x), y') == s'(add'(x, y')))(z');
-    let x7 = x8() : sym(f, all((y : nat') => (f'(y) => f'(s'(y)))))(
+    let x7 = f() : sym(f, all((y : nat') => (f'(y) => f'(s'(y)))))(
         sym(y, (x : nat') => add'(s'(x), y') == s'(add'(x, y')))
     );
-
     let x4 = nat_induction(x5, x6, x7) : (y : nat') =>
         sym(y, (x : nat') => add'(s'(x), y') == s'(add'(x, y')))(y);
-
-    let x2 = x4() : (y : nat') => (x : nat') => add'(s'(x), y) == s'(add'(x, y));
-    let x3 = x2(y_ty) : (x : nat') => add'(s'(x), y) == s'(add'(x, y));
+    let x3 = x4(y_ty) : (x : nat') => add'(s'(x), y) == s'(add'(x, y));
     let r = x3(x_ty) : add'(s'(x), y) == s'(add'(x, y));
     return r;
 }
@@ -311,7 +274,6 @@ fn nat_add_symmetry : (a : nat') & (b : nat') -> add'(a, b) == add'(b, a) {
                     s'(add'(a, b)) == add'(b, s'(a));
                 let y6 = nat_add_succ_left(a_ty, b_ty) :
                     add'(s'(a), b) == s'(add'(a, b));
-
                 let r = eq_transitivity(y6, y5) :
                     add'(s'(a), b) == add'(b, s'(a));
                 return r;
@@ -362,7 +324,6 @@ fn nat_add_symmetry : (a : nat') & (b : nat') -> add'(a, b) == add'(b, a) {
                 let y2 = y(b_ty) : add'(x, b) == add'(b, x);
                 let y3 = eq_transitivity_rev_sym(x2, y2) :
                     add'(y, b) == add'(b, x);
-
                 let r = eq_transitivity(y3, x3) : add'(y, b) == add'(b, y);
                 return r;
             }
@@ -377,29 +338,20 @@ fn nat_add_symmetry : (a : nat') & (b : nat') -> add'(a, b) == add'(b, a) {
                 b_ty : (b : nat');
 
                 let y2 = y(b_ty) : add'(y, b) == add'(b, y);
-
                 let y3 = eq_transitivity(x2, y2) :
                     add'(x, b) == add'(b, y);
-
                 let r = eq_transitivity_sym(y3, x3) :
                     add'(x, b) == add'(b, x);
                 return r;
             }
             return r;
         }
-
         let r = refl(f1, f2) : ((b : nat') => add'(x, b) == add'(b, x)) ==
             ((b : nat') => add'(y, b) == add'(b, y));
         return r;
     }
 
-    let x17 = x18() : all(x == y ->
-        ((b : nat') => add'(x, b) == add'(b, x)) ==
-        ((b : nat') => add'(y, b) == add'(b, y)));
-    let x16 = x17() : all(x == y ->
-        sym(a, (b : nat') => add'(a', b) == add'(b, a'))(x) ==
-        sym(a, (b : nat') => add'(a', b) == add'(b, a'))(y));
-    let x15 = x16() : sym(f, all(x == y -> f'(x) == f'(y)))(
+    let x15 = x18() : sym(f, all(x == y -> f'(x) == f'(y)))(
         sym(a, (b : nat') => add'(a', b) == add'(b, a'))
     );
 
@@ -412,10 +364,7 @@ fn nat_add_symmetry : (a : nat') & (b : nat') -> add'(a, b) == add'(b, a) {
     let x4 = nat_induction(x5, x6, x7) : (a : nat') =>
         sym(a, (b : nat') => add'(a', b) == add'(b, a'))(a);
 
-    let x2 = x4() : (a : nat') => (b : nat') => add'(a, b) == add'(b, a);
-
-    let x3 = x2(a_ty) : (b : nat') => add'(a, b) == add'(b, a);
-
+    let x3 = x4(a_ty) : (b : nat') => add'(a, b) == add'(b, a);
     let r = x3(b_ty) : add'(a, b) == add'(b, a);
     return r;
 }
