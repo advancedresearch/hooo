@@ -66,3 +66,15 @@ fn not_excm_to_eq_nn : excm(a)  ->  a == !!a {
     return r;
 }
 
+fn not_imply_elim : (a => !a)  ->  !a {
+    x : a => !a;
+
+    lam g : !a {
+        y : a;
+
+        let na = x(y) : !a;
+        let r = na(y) : false;
+        return r;
+    }
+    return g;
+}
