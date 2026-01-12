@@ -25,3 +25,30 @@ fn nat_mul_subst : mul'(a, b) & (a == c) & (b == d) -> mul'(c, d) {
     return r;
 }
 
+fn nat_mul_eq : (a == c) & (b == d) -> mul'(a, b) == mul'(c, d) {
+    use refl;
+    use nat_mul_subst;
+
+    y1 : a == c;
+    y2 : b == d;
+
+    lam f : mul'(a, b) => mul'(c, d) {
+        x : mul'(a, b);
+
+        let r = nat_mul_subst(x, y1, y2) : mul'(c, d);
+        return r;
+    }
+    lam g : mul'(c, d) => mul'(a, b) {
+        use eq_symmetry;
+
+        x : mul'(c, d);
+
+        let x2 = eq_symmetry(y1) : c == a;
+        let x3 = eq_symmetry(y2) : d == b;
+        let r = nat_mul_subst(x, x2, x3) : mul'(a, b);
+        return r;
+    }
+    let r = refl(f, g) : mul'(a, b) == mul'(c, d);
+    return r;
+}
+
