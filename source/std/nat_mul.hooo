@@ -1,10 +1,20 @@
 
 sym mul;
 
+use cong;
 use add;
 use nat;
 use z;
 use s;
+
+fn nat_mul_cong : true -> cong'(mul') {
+    axiom nat_mul_cong : true -> cong'(mul');
+
+    x : true;
+
+    let r = nat_mul_cong(x) : cong'(mul');
+    return r;
+}
 
 fn nat_mul_zero : (a : nat') -> mul'(a, z') == z' {
     axiom nat_mul_zero : (a : nat') -> mul'(a, z') == z';
