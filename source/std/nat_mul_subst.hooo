@@ -52,3 +52,26 @@ fn nat_mul_eq : (a == c) & (b == d) -> mul'(a, b) == mul'(c, d) {
     return r;
 }
 
+fn nat_mul_eq_left : (a == b) -> mul'(a, c) == mul'(b, c) {
+    use nat_mul_eq;
+    use eq_refl;
+    use triv;
+
+    x : a == b;
+
+    let y = triv(eq_refl) : c == c;
+    let r = nat_mul_eq(x, y) : mul'(a, c) == mul'(b, c);
+    return r;
+}
+
+fn nat_mul_eq_right : (a == b) -> mul'(c, a) == mul'(c, b) {
+    use nat_mul_eq;
+    use eq_refl;
+    use triv;
+
+    x : a == b;
+
+    let y = triv(eq_refl) : c == c;
+    let r = nat_mul_eq(y, x) : mul'(c, a) == mul'(c, b);
+    return r;
+}
