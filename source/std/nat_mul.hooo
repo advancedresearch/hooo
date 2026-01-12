@@ -15,8 +15,11 @@ fn nat_mul_zero : (a : nat') -> mul'(a, z') == z' {
     return r;
 }
 
-fn nat_mul_succ : (a : nat') & (b : nat') -> mul(a, s'(b)) == add'(a, mul'(a, b)) {
-    axiom nat_mul_succ : (a : nat') & (b : nat') -> mul(a, s'(b)) == add'(a, mul'(a, b));
+fn nat_mul_succ :
+    (a : nat') & (b : nat')
+-> mul(a, s'(b)) == add'(a, mul'(a, b)) {
+    axiom nat_mul_succ :
+      (a : nat') & (b : nat') -> mul(a, s'(b)) == add'(a, mul'(a, b));
 
     x : (a : nat');
     x2 : (b : nat');
