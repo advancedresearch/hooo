@@ -1,0 +1,90 @@
+use add;
+use cong;
+use nat;
+use mul;
+use s;
+use z;
+
+fn nat_mul_zero_zero : true -> mul'(z', z') == z' {
+    use nat_mul_zero;
+    use nat_zero_ty;
+
+    x : true;
+
+    let zero_ty = nat_zero_ty(x) : (z' : nat');
+    let r = nat_mul_zero(zero_ty) : mul'(z', z') == z';
+    return r;
+}
+
+fn nat_mul_zero_left : (a : nat') -> mul'(z', a) == z' {
+    use cong_from;
+    use nat_induction;
+    use nat_mul_zero_zero;
+    use triv;
+
+    a_ty : (a : nat');
+
+    fn x14 : x == y -> (mul'(z', x) == z') == (mul'(z', y) == z') {
+        use eq_eq_left;
+        use nat_mul_eq_right;
+
+        eq_xy : x == y;
+
+        let x2 = nat_mul_eq_right(eq_xy) : mul'(z', x) == mul'(z', y);
+        let r = eq_eq_left(x2) : (mul'(z', x) == z') == (mul'(z', y) == z');
+        return r;
+    }
+    let x13 = x14() : all(x == y ->
+        (mul'(z', x) == z') == (mul'(z', y) == z'));
+    let x12 = x13() : all(x == y ->
+        sym(a, mul'(z', a') == z')(x) == sym(a, mul'(z', a') == z')(y));
+    let x11 = x12() : sym(f, all(x == y -> f'(x) == f'(y)))(
+        sym(a, mul'(z', a') == z')
+    );
+
+    let x10 = triv(nat_mul_zero_zero) : mul'(z', z') == z';
+
+    fn x9 : (x : nat') -> (mul'(z', x) == z') => (mul'(z', s'(x)) == z')
+    {
+        use eq_transitivity;
+        use nat_add_zero_zero;
+        use nat_add_eq_right;
+        use nat_mul_succ;
+        use nat_zero_ty;
+        use triv;
+
+        x_ty : (x : nat');
+
+        lam r : (mul'(z', x) == z') => (mul'(z', s'(x)) == z') {
+            y : mul'(z', x) == z';
+
+            let zero_ty = triv(nat_zero_ty) : (z' : nat');
+            let y2 = nat_mul_succ(zero_ty, x_ty) :
+                mul'(z', s'(x)) == add'(z', mul'(z', x));
+            let y3 = nat_add_eq_right(y) : add'(z', mul'(z', x)) == add'(z', z');
+            let y4 = triv(nat_add_zero_zero) : add'(z', z') == z';
+            let y5 = eq_transitivity(y2, y3) : mul'(z', s'(x)) == add'(z', z');
+
+            let r = eq_transitivity(y5, y4) : mul'(z', s'(x)) == z';
+            return r;
+        }
+        return r;
+    }
+    let x8 = x9() : all((x : nat') => (mul'(z', x) == z') =>
+        (mul'(z', s'(x)) == z'));
+    let x7 = x8() : all((x : nat') => (sym(a, mul'(z', a') == z')(x) =>
+        sym(a, mul'(z', a') == z')(s'(x))));
+
+    let x4 = cong_from(x11) : cong'(sym(a, mul'(z', a') == z'));
+    let x5 = x10() : sym(a, mul'(z', a') == z')(z');
+    let x6 = x7() : sym(f, all((x : nat') => (f'(x) => f'(s'(x)))))(
+        sym(a, mul'(z', a') == z')
+    );
+
+    let x3 = nat_induction(x4, x5, x6) :
+        (a : nat') => sym(a, mul'(z', a') == z')(a);
+    let x2 = x3() : (a : nat') => (mul'(z', a) == z');
+    let r = x2(a_ty) : mul'(z', a) == z';
+    return r;
+}
+
