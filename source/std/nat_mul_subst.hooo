@@ -1,0 +1,27 @@
+use mul;
+use cong;
+
+fn nat_mul_subst : mul'(a, b) & (a == c) & (b == d) -> mul'(c, d) {
+    use nat_mul_cong;
+    use cong_app_eq;
+    use triv;
+    use eq_to_right;
+    use eq_transitivity;
+    use cong_fun_eq;
+    use cong_app;
+
+    x : mul'(a, b);
+    x2 : a == c;
+    x3 : b == d;
+
+    let y = triv(nat_mul_cong) : cong'(mul');
+    let y2 = cong_app_eq(y, x2) : mul'(a) == mul'(c);
+    let y3 = cong_app(y) : cong'(mul'(a));
+    let y4 = cong_app(y) : cong'(mul'(c));
+    let y5 = cong_fun_eq(y3, y4, y2) : mul'(a, b) == mul'(c, b);
+    let y6 = cong_app_eq(y4, x3) : mul'(c, b) == mul'(c, d);
+    let y7 = eq_transitivity(y5, y6) : mul'(a, b) == mul'(c, d);
+    let r = eq_to_right(y7, x) : mul'(c, d);
+    return r;
+}
+
