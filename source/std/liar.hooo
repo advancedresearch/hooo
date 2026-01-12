@@ -1,10 +1,10 @@
 fn liar_not : (!a)^a & a^(!a)  ->  false {
-    use hooo_imply_elim;
-    
+    use not_imply_elim;
+
     x : (!a)^a;
     y : a^(!a);
 
-    let x4 = hooo_imply_elim(x) : !a;
+    let x4 = not_imply_elim(x) : !a;
     let x5 = y(x4) : a;
     let r = x4(x5) : false;
     return r;
@@ -15,7 +15,7 @@ fn liar_para : (false^a)^a & a^(false^a)  ->  false {
 
     x : (false^a)^a;
     y : a^(false^a);
-    
+
     let x5 = pow_elim(x) : false^a;
     let x6 = y(x5) : a;
     let r = x5(x6) : false;
@@ -29,11 +29,11 @@ fn para_liar : (false^a)^(a^true) & (a^true)^(false^a) & excm(a)^true -> false {
     x : (false^a)^(a^true);
     y : (a^true)^(false^a);
     z : excm(a)^true;
-    
+
     let z2 = tauto_excm_to_or_pow(z) : a^true | (!a)^true;
     lam f : a^true => false {
         w : a^true;
-        
+
         let w2 = triv(w) : a;
         let w3 = x(w) : false^a;
         let r = w3(w2) : false;
@@ -41,9 +41,9 @@ fn para_liar : (false^a)^(a^true) & (a^true)^(false^a) & excm(a)^true -> false {
     }
     lam g : (!a)^true => false {
         use tauto_not_to_para;
-        
+
         w : (!a)^true;
-        
+
         let w2 = tauto_not_to_para(w) : false^a;
         let w3 = y(w2) : a^true;
         let w4 = triv(w3) : a;
@@ -53,4 +53,3 @@ fn para_liar : (false^a)^(a^true) & (a^true)^(false^a) & excm(a)^true -> false {
     let r = match z2(f, g) : false;
     return r;
 }
-
