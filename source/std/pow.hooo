@@ -1,0 +1,51 @@
+use cong;
+use prop;
+
+sym prop_pow;
+
+fn pow_ty : true -> (prop_pow' : prop' => prop' => prop') {
+    axiom pow_ty : true -> (prop_pow' : prop' => prop' => prop');
+    x : true;
+    let r = pow_ty(x) : (prop_pow' : prop' => prop' => prop');
+    return r;
+}
+
+fn pow_sym_def : true -> prop_pow' == sym(a, sym(b, a' -> b')) {
+    axiom pow_sym_def : true -> prop_pow' == sym(a, sym(b, a' -> b'));
+    x : true;
+    let r = pow_sym_def(x) : prop_pow' == sym(a, sym(b, a' -> b'));
+    return r;
+}
+
+fn pow_def : true -> prop_pow'(a, b) == (a -> b) {
+    use pow_cong;
+    use pow_sym_def;
+    use pow_ty;
+    use cong_fun_bin_eq;
+    use cong_fun_eq;
+    use cong_in_arg;
+
+    x : true;
+
+    let y2 = pow_cong(x) : cong'(prop_pow');
+    let y3 = pow_sym_def(x) : prop_pow' == sym(a, sym(b, a' -> b'));
+    let y4 = cong_in_arg(y2, y3) : cong'(sym(a, sym(b, a' -> b')));
+    let y6 = cong_fun_bin_eq(y2, y4, y3) :
+        prop_pow'(a, b) == sym(a, sym(b, a' -> b'))(a, b);
+    let r = y6() : prop_pow'(a, b) == (a -> b);
+    return r;
+}
+
+fn pow_cong : true -> cong'(prop_pow') {
+    axiom pow_cong : true -> cong'(prop_pow');
+    x : true;
+    let r = pow_cong(x) : cong'(prop_pow');
+    return r;
+}
+
+fn pow_lift : a^b -> (a^b)^c {
+    axiom pow_lift : a^b -> (a^b)^c;
+    x : a^b;
+    let r = pow_lift(x) : (a^b)^c;
+    return r;
+}
