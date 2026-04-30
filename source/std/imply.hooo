@@ -88,7 +88,7 @@ fn rev_modus_tollens_nn : (!!a => !!b)  ->  (!b => !a) {
     let f = not_double() : !b => !!!b;
     let y2 = imply_transitivity(f, y) : !b => !!!a;
     use not_rev_triple;
-    let g = not_rev_triple() : !!!a => !a;    
+    let g = not_rev_triple() : !!!a => !a;
     let r = imply_transitivity(y2, g) : !b => !a;
     return r;
 }
@@ -270,3 +270,18 @@ fn imply_from_or : (!a | b)  ->  (a => b) {
     return r;
 }
 
+fn imply_excm_not : excm(a) => !b -> !b {
+    use nnexcm;
+    use modus_tollens;
+    use triv;
+    use not_rev_triple;
+
+    x : excm(a) => !b;
+
+    let x2 = modus_tollens(x) : !!b => !excm(a);
+    let x3 = modus_tollens(x2) : !!excm(a) => !!!b;
+    let x4 = triv(nnexcm) : !!excm(a);
+    let x5 = x3(x4) : !!!b;
+    let r = not_rev_triple(x5) : !b;
+    return r;
+}
