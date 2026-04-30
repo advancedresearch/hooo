@@ -72,13 +72,20 @@ impl Context {
         false
     }
 
-    pub fn is_type_declared(&self, ty: &Type, sym_blocks: &mut Vec<Arc<String>>) -> bool {
+    pub fn is_type_declared(
+        &self,
+        ty: &Type,
+        sym_blocks: &mut Vec<Arc<String>>,
+        undeclared: &mut Vec<Arc<String>>
+    ) -> bool {
         use Type::*;
 
         match ty {
             Sym(s) => {
-                self.is_symbol_declared(s) ||
-                sym_blocks.iter().any(|n| n == s)
+                let res = self.is_symbol_declared(s) ||
+                    sym_blocks.iter().any(|n| n == s);
+                if !res {undeclared.push(s.clone())};
+                res
             }
             True | False | Ty(_) | AllTy(_) => true,
             LocSym(a) => {
@@ -87,28 +94,29 @@ impl Context {
             }
             Pow(ab) => {
                 let n = sym_blocks.len();
-                let res = self.is_type_declared(&ab.1, sym_blocks) &&
-                    self.is_type_declared(&ab.0, sym_blocks);
+                let res = self.is_type_declared(&ab.1, sym_blocks, undeclared) &&
+                    self.is_type_declared(&ab.0, sym_blocks, undeclared);
                 sym_blocks.truncate(n);
                 res
             }
             Fun(ab) => {
                 let n = sym_blocks.len();
-                let res = self.is_type_declared(&ab.0, sym_blocks) &&
-                    self.is_type_declared(&ab.1, sym_blocks);
+                let res = self.is_type_declared(&ab.0, sym_blocks, undeclared) &&
+                    self.is_type_declared(&ab.1, sym_blocks, undeclared);
                 sym_blocks.truncate(n);
                 res
             }
             And(ab) | Or(ab) | Imply(ab) |
             App(ab) | Sd(ab) | Jud(ab) | Comp(ab) |
             Q(ab) | Qi(ab) | Pair(ab) =>
-                self.is_type_declared(&ab.0, sym_blocks) &&
-                self.is_type_declared(&ab.1, sym_blocks),
-            All(a) | Nec(a) | Pos(a) | Qu(a) => self.is_type_declared(a, sym_blocks),
+                self.is_type_declared(&ab.0, sym_blocks, undeclared) &&
+                self.is_type_declared(&ab.1, sym_blocks, undeclared),
+            All(a) | Nec(a) | Pos(a) | Qu(a) =>
+                self.is_type_declared(a, sym_blocks, undeclared),
             SymBlock(ab) => {
                 let n = sym_blocks.len();
                 sym_blocks.push(ab.0.clone());
-                let res = self.is_type_declared(&ab.1, sym_blocks);
+                let res = self.is_type_declared(&ab.1, sym_blocks, undeclared);
                 sym_blocks.truncate(n);
                 res
             }
@@ -162,8 +170,23 @@ impl Context {
         search: &mut Search
     ) -> Result<(), String> {
         let ty = t.get_type();
-        if !is_use && !self.is_type_declared(&ty, &mut vec![]) {
-            return Err("Some symbols where not declared".into())
+        let mut undeclared = vec![];
+        if !is_use && !self.is_type_declared(&ty, &mut vec![], &mut undeclared) {
+            undeclared.sort();
+            undeclared.dedup();
+            let mut err = String::new();
+            err.push_str("Some symbols were not declared: `");
+            let mut first = true;
+            for sym in undeclared {
+                if first {
+                    first = false;
+                } else {
+                    err.push_str(", ");
+                }
+                err.push_str(&**sym);
+            }
+            err.push_str("`.");
+            return Err(err.into())
         }
         match t.has_type(&ty, self, search) {
             Ok(()) => {
