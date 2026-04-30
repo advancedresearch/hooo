@@ -1,0 +1,33 @@
+
+sym Id;
+
+fn ident_def : true -> Id'(a, x, y) == ((x == y) & (x : a) & (y : a)) {
+    axiom ident_def : true -> Id'(a, x, y) == ((x == y) & (x : a) & (y : a));
+    x : true;
+    let r = ident_def(x) : Id'(a, x, y) == ((x == y) & (x : a) & (y : a));
+    return r;
+}
+
+fn ident_from : ((x == y) & (x : a) & (y : a)) -> Id'(a, x, y) {
+    use ident_def;
+    use triv;
+    use eq_to_left;
+
+    x : (x == y) & (x : a) & (y : a);
+
+    let x2 = triv(ident_def) : Id'(a, x, y) == ((x == y) & (x : a) & (y : a));
+    let r = eq_to_left(x2, x)  : Id'(a, x, y);
+    return r;
+}
+
+fn ident_to : Id'(a, x, y) -> ((x == y) & (x : a) & (y : a)) {
+    use ident_def;
+    use triv;
+    use eq_to_right;
+
+    x : Id'(a, x, y);
+
+    let x2 = triv(ident_def) : Id'(a, x, y) == ((x == y) & (x : a) & (y : a));
+    let r = eq_to_right(x2, x) : (x == y) & (x : a) & (y : a);
+    return r;
+}
