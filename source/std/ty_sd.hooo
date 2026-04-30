@@ -1,0 +1,72 @@
+
+grade ty_sd_proof_strength [ty_sd_to_neq];
+grade ty_sd_cumulative_strength [ty_sd_inc, ty_sd_cumulative_para, ty_sd_cumulative];
+
+use type;
+use z;
+use s;
+use nat;
+
+/// Make symbolic distinct types non-equal.
+fn ty_sd_to_neq : sd(a, b) & (a : type'(z')) & (b : type'(z')) -> !(a == b) {
+    axiom ty_sd_to_neq : sd(a, b) & (a : type'(z')) & (b : type'(z')) -> !(a == b);
+    x : sd(a, b) & (a : type'(z')) & (b : type'(z'));
+    let r = ty_sd_to_neq(x) : !(a == b);
+    return r;
+}
+
+fn ty_sd_inc : (n : nat') -> sd(type'(n), type'(s'(n))) {
+    use nat_succ_ty;
+    use sd_symmetry;
+    use ty_sd_cumulative_para;
+
+    x : (n : nat');
+
+    fn x2 : (s'(n) : nat') & (n : nat') & (s'(n) == n) -> false {
+        use nat_contra_inductive;
+
+        sn_ty : (s'(n) : nat');
+        n_ty : (n : nat');
+        x : s'(n) == n;
+
+        let r = nat_contra_inductive(n_ty, x) : false;
+        return r;
+    }
+
+    let x3 = nat_succ_ty(x) : (s'(n) : nat');
+    let x4 = ty_sd_cumulative_para(x3, x, x2) : sd(type'(s'(n)), type'(n));
+    let r = sd_symmetry(x4) : sd(type'(n), type'(s'(n)));
+    return r;
+}
+
+fn ty_sd_cumulative_para :
+    (n : nat') &
+    (m : nat') &
+    false^((n : nat') & (m : nat') & (n == m))
+-> sd(type'(n), type'(m)) {
+    use para_to_not;
+    use ty_sd_cumulative;
+
+    x1 : (n : nat');
+    x2 : (m : nat');
+    x3 : false^((n : nat') & (m : nat') & (n == m));
+
+    lam x4 : !(n == m) {
+        y : (n == m);
+        let r = x3(x1, x2, y) : false;
+        return r;
+    }
+    let r = ty_sd_cumulative(x1, x2, x4) : sd(type'(n), type'(m));
+    return r;
+}
+
+fn ty_sd_cumulative :
+    (n : nat') & (m : nat') & !(n == m) -> sd(type'(n), type'(m))
+{
+    x : (n : nat') & (m : nat') & !(n == m);
+
+    axiom ty_sd_cumulative :
+        (n : nat') & (m : nat') & !(n == m) -> sd(type'(n), type'(m));
+    let r = ty_sd_cumulative(x) : sd(type'(n), type'(m));
+    return r;
+}

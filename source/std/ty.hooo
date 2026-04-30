@@ -114,14 +114,6 @@ fn ty_uniq : !(a == b) & ((c : a) == (c : b)) -> false {
     return r;
 }
 
-/// Make symbolic distinct types non-equal.
-fn ty_sd_to_neq : sd(a, b) & (a : type'(z')) & (b : type'(z')) -> !(a == b) {
-    axiom ty_sd_to_neq : sd(a, b) & (a : type'(z')) & (b : type'(z')) -> !(a == b);
-    x : sd(a, b) & (a : type'(z')) & (b : type'(z'));
-    let r = ty_sd_to_neq(x) : !(a == b);
-    return r;
-}
-
 fn ty_fun : (a : at) & (b : bt) -> ((a => b) : at => bt) {
     axiom ty_fun : (a : at) & (b : bt) -> ((a => b) : at => bt);
     x : (a : at) & (b : bt);
