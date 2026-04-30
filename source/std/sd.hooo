@@ -31,6 +31,24 @@ fn sd_symmetry : sd(a, b) -> sd(b, a) {
     return r;
 }
 
+fn sd_eq_symmetry : true -> sd(a, b) == sd(b, a) {
+    use sd_symmetry;
+    use refl;
+
+    lam f1 : sd(a, b) => sd(b, a) {
+        x : sd(a, b);
+        let r = sd_symmetry(x) : sd(b, a);
+        return r;
+    }
+    lam f2 : sd(b, a) => sd(a, b) {
+        x : sd(b, a);
+        let r = sd_symmetry(x) : sd(a, b);
+        return r;
+    }
+    let r = refl(f1, f2) : sd(a, b) == sd(b, a);
+    return r;
+}
+
 fn sd_conv_eq_from : sd'(a, b) == sd'(c, d) -> sd(a, b) == sd(c, d) {
     use eq_transitivity;
     use eq_transitivity_rev_sym;
@@ -88,17 +106,18 @@ fn sd_conv_to : sd(a, b) -> sd'(a, b) {
 }
 
 fn sd_eq_left : (a == b)^true -> sd(a, c) == sd(b, c) {
-    use sd_conv_eq_from;
-    use sd_tauto_cong;
-    use sd_ty;
-    use tauto_cong_eq_left;
+    use eq_transitivity;
+    use sd_eq_right;
+    use sd_eq_symmetry;
     use triv;
 
     x : (a == b)^true;
 
-    let y = triv(sd_ty) : (sd' : prop' => prop' => prop');
-    let x2 = tauto_cong_eq_left(sd_tauto_cong, y, x) : sd'(a, c) == sd'(b, c);
-    let r = sd_conv_eq_from(x2) : sd(a, c) == sd(b, c);
+    let x2 = sd_eq_right(x) : sd(c, a) == sd(c, b);
+    let x3 = triv(sd_eq_symmetry) : sd(a, c) == sd(c, a);
+    let x4 = triv(sd_eq_symmetry) : sd(c, b) == sd(b, c);
+    let x5 = eq_transitivity(x3, x2) : sd(a, c) == sd(c, b);
+    let r = eq_transitivity(x5, x4) : sd(a, c) == sd(b, c);
     return r;
 }
 
@@ -162,6 +181,30 @@ fn sd_in_right_arg : sd(a, b) & (b == c)^true -> sd(a, c) {
     let x2 = sd_symmetry(x) : sd(b, a);
     let x3 = sd_in_left_arg(x2, y) : sd(c, a);
     let r = sd_symmetry(x3) : sd(a, c);
+    return r;
+}
+
+fn sd_tauto_eq_to_sd_refl_left : sd(a, b) & (a == b)^true -> sd(a, a) {
+    use sd_eq_right;
+    use eq_to_left;
+
+    x : sd(a, b);
+    y : (a == b)^true;
+
+    let z = sd_eq_right(y) : sd(a, a) == sd(a, b);
+    let r = eq_to_left(z, x) : sd(a, a);
+    return r;
+}
+
+fn sd_tauto_eq_to_sd_refl_right : sd(a, b) & (a == b)^true -> sd(b, b) {
+    use sd_eq_left;
+    use eq_to_right;
+
+    x : sd(a, b);
+    y : (a == b)^true;
+
+    let z = sd_eq_left(y) : sd(a, b) == sd(b, b);
+    let r = eq_to_right(z, x) : sd(b, b);
     return r;
 }
 
