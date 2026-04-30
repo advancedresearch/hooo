@@ -1,5 +1,6 @@
 
 grade foo [axiom_1];
+grade foo2 [axiom_1];
 
 fn axiom_1 : a -> a {
     x : a;

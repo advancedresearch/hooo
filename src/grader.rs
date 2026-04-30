@@ -4,6 +4,8 @@ use cycle_detector::CycleDetector;
 
 pub(crate) type Name = (Vec<Arc<String>>, Arc<String>);
 
+type Filter = HashMap<usize, Vec<Arc<String>>>;
+
 pub fn grade_report<I: Iterator<Item = (Arc<String>, Vec<Vec<Name>>, bool)>>(
     iter: I,
     cycle_detector: &CycleDetector,
@@ -13,7 +15,7 @@ pub fn grade_report<I: Iterator<Item = (Arc<String>, Vec<Vec<Name>>, bool)>>(
     let mut s = String::new();
     writeln!(&mut s, "grades {{").unwrap();
     let mut grades: HashMap<Arc<String>, Grader> = HashMap::default();
-    let mut filter: HashMap<usize, Arc<String>> = HashMap::default();
+    let mut filter: Filter = HashMap::default();
     for (name, args, external) in iter {
         let insert = if let Some(grader) = grades.get_mut(&name) {
             if grader.external != external {
@@ -36,7 +38,11 @@ pub fn grade_report<I: Iterator<Item = (Arc<String>, Vec<Vec<Name>>, bool)>>(
                 for n in grader.args.iter() {
                     for m in n {
                         if let Some(id) = cycle_detector.ids.get(m) {
-                            filter.insert(*id, name.clone());
+                            if let Some(names) = filter.get_mut(id) {
+                                names.push(name.clone());
+                            } else {
+                                filter.insert(*id, vec![name.clone()]);
+                            }
                         }
                     }
                 }
@@ -75,7 +81,7 @@ impl Grader {
         &self,
         s: &mut String,
         cycle_detector: &CycleDetector,
-        filter: &mut HashMap<usize, Arc<String>>,
+        filter: &mut Filter,
     ) {
         use std::fmt::Write;
 
@@ -99,7 +105,7 @@ impl Grader {
             for (a, b) in &cycle_detector.edges {
                 // Filter out other locally declared theorem grading axioms.
                 if let Some(n) = filter.get(a) {
-                    if *n != self.name {continue};
+                    if !n.iter().any(|n| *n == self.name) {continue};
                 }
 
                 let gr_a = grades.get(a);
@@ -118,7 +124,22 @@ impl Grader {
             if !changed {break}
         }
 
+        // Don't output empty theorem grading.
         if grades.len() == 0 {return}
+        let mut any = false;
+        'outer: for gr in 0..self.args.len() {
+            for (gr_key, (gr_val, _)) in &grades {
+                if *gr_val == gr {
+                    for (name, id) in &cycle_detector.ids {
+                        if id == gr_key && name.0.len() == 0 {
+                            any = true;
+                            break 'outer;
+                        }
+                    }
+                }
+            }
+        }
+        if !any {return}
 
         writeln!(s, "    {}: {{", self.name).unwrap();
         for gr in 0..self.args.len() {
