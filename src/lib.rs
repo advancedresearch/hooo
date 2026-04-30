@@ -190,8 +190,13 @@ impl Context {
             ctx.symbols = self.symbols.clone();
             let unsafe_flag = f(&mut ctx, search)?;
             if ctx.prove(ty.clone(), search) && ctx.safe(&ty) {
-                if !unsafe_flag && !ty.is_safe_to_prove() {
-                    return Err((range, format!("Not safe to prove `{}`\nUse `unsafe return`", ty.to_str(true, None))));
+                let is_safe_to_prove = ty.is_safe_to_prove();
+                if !unsafe_flag && !is_safe_to_prove {
+                    return Err((range, format!("Not safe to prove `{}`\nUse `unsafe return`",
+                        ty.to_str(true, None))));
+                } else if unsafe_flag && is_safe_to_prove {
+                    return Err((range, format!("Unsafe return unneeded for `{}`\nUse `return`",
+                        ty.to_str(true, None))));
                 }
                 // Force the proof since it is safe.
                 let ty = ty.lift();
