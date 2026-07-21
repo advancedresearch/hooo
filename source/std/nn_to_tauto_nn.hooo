@@ -57,3 +57,14 @@ fn not_to_tauto_not : !a -> (!a)^true {
     let r = pow_transitivity(x3, not_rev_triple) : (!a)^true;
     return r;
 }
+
+fn not_to_para : !a -> false^a {
+    use tauto_not_to_para;
+    use not_to_tauto_not;
+
+    x : !a;
+
+    let x2 = not_to_tauto_not(x) : (!a)^true;
+    let r = tauto_not_to_para(x2) : false^a;
+    return r;
+}
