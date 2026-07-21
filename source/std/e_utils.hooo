@@ -1,5 +1,5 @@
 
-fn nn_tauto_e_to_tauto_nn : !!a & excm(!a)^true -> (!!a)^true {
+fn nn_tauto_excm_n_to_tauto_nn : !!a & excm(!a)^true -> (!!a)^true {
     use hooo_tauto_or;
     use refl;
 
@@ -23,48 +23,31 @@ fn nn_tauto_e_to_tauto_nn : !!a & excm(!a)^true -> (!!a)^true {
     return r;
 }
 
-fn nn_to_tauto_nn : !!a -> (!!a)^true {
-    use nn_tauto_e_to_tauto_nn;
-    use hooo_excm_ex;
-
-    x : !!a;
-
-    let r = nn_tauto_e_to_tauto_nn(x, hooo_excm_ex) : (!!a)^true;
-    return r;
-}
-
-fn to_tauto_nn : a -> (!!a)^true {
-    use nn_to_tauto_nn;
-    use not_double;
-
-    x : a;
-
-    let x2 = not_double(x) : !!a;
-    let r = nn_to_tauto_nn(x2) : (!!a)^true;
-    return r;
-}
-
-fn not_to_tauto_not : !a -> (!a)^true {
-    use nn_to_tauto_nn;
+fn not_tauto_excm_n_to_tauto_not : !a & excm(!a)^true -> (!a)^true {
+    use nn_tauto_excm_n_to_tauto_nn;
     use not_double;
     use pow_transitivity;
     use not_rev_triple;
+    use excm_n_to_excm_nn;
 
     x : !a;
+    y : excm(!a)^true;
 
+    let y2 = pow_transitivity(y, excm_n_to_excm_nn) : excm(!!a)^true;
     let x2 = not_double(x) : !!!a;
-    let x3 = nn_to_tauto_nn(x2) : (!!!a)^true;
+    let x3 = nn_tauto_excm_n_to_tauto_nn(x2, y2) : (!!!a)^true;
     let r = pow_transitivity(x3, not_rev_triple) : (!a)^true;
     return r;
 }
 
-fn not_to_para : !a -> false^a {
+fn not_tauto_excm_n_to_para : !a & excm(!a)^true -> false^a {
+    use not_tauto_excm_n_to_tauto_not;
     use tauto_not_to_para;
-    use not_to_tauto_not;
 
     x : !a;
+    y : excm(!a)^true;
 
-    let x2 = not_to_tauto_not(x) : (!a)^true;
+    let x2 = not_tauto_excm_n_to_tauto_not(x, y) : (!a)^true;
     let r = tauto_not_to_para(x2) : false^a;
     return r;
 }
