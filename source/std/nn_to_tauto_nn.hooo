@@ -1,0 +1,35 @@
+
+fn nn_to_tauto_nn : !!a -> (!!a)^true {
+    use hooo_excm_ex;
+    use hooo_or;
+    use refl;
+
+    x : !!a;
+
+    let y2 = hooo_or(hooo_excm_ex) : (!a)^true | (!!a)^true;
+    lam f1 : (!a)^true => (!!a)^true {
+        use absurd;
+        use triv;
+
+        y : (!a)^true;
+
+        let y2 = triv(y) : !a;
+        let y3 = x(y2) : false;
+        let r = absurd(y3) : (!!a)^true;
+        return r;
+    }
+    let f2 = refl() : (!!a)^true => (!!a)^true;
+    let r = match y2 (f1, f2) : (!!a)^true;
+    return r;
+}
+
+fn to_tauto_nn : a -> (!!a)^true {
+    use nn_to_tauto_nn;
+    use not_double;
+
+    x : a;
+
+    let x2 = not_double(x) : !!a;
+    let r = nn_to_tauto_nn(x2) : (!!a)^true;
+    return r;
+}
