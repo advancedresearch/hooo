@@ -73,3 +73,27 @@ fn nn_to_exists_true : !!a -> ex'(true, a) {
     let r = exists_from(x2) : ex'(true, a);
     return r;
 }
+
+fn exists_true_tauto_e_to_tauto_nn : ex'(true, a) & excm(!a)^true -> (!!a)^true {
+    use exists_to;
+    use hooo_tauto_or;
+    use refl;
+
+    x : ex'(true, a);
+    y : excm(!a)^true;
+
+    let x2 = exists_to(x) : !((!a)^true);
+    let y2 = hooo_tauto_or(y) : (!a)^true | (!!a)^true;
+    lam f1 : (!a)^true => (!!a)^true {
+        use absurd;
+
+        z : (!a)^true;
+
+        let z2 = x2(z) : false;
+        let r = absurd(z2) : (!!a)^true;
+        return r;
+    }
+    let f2 = refl() : (!!a)^true => (!!a)^true;
+    let r = match y2 (f1, f2) : (!!a)^true;
+    return r;
+}
