@@ -21,6 +21,45 @@ fn e_to : E'  ->  all(excm(!a)) {
     unsafe return r;
 }
 
+fn excm_nn_to_excm_n : excm(!!a) -> excm(!a) {
+    use refl;
+    use not_rev_triple;
+    use left;
+    use right;
+
+    x : excm(!!a);
+
+    let f1 = right() : !!a => excm(!a);
+    lam f2 : !!!a => excm(!a) {
+        y : !!!a;
+
+        let y2 = not_rev_triple(y) : !a;
+        let r = left(y2) : excm(!a);
+        return r;
+    }
+    let r = match x (f1, f2) : excm(!a);
+    return r;
+}
+
+fn excm_n_to_excm_nn : excm(!a) -> excm(!!a) {
+    use not_double;
+    use left;
+    use right;
+
+    x : excm(!a);
+
+    lam f1 : !a => excm(!!a) {
+        y : !a;
+
+        let y2 = not_double(y) : !!!a;
+        let r = right(y2) : excm(!!a);
+        return r;
+    }
+    let f2 = left() : !!a => excm(!!a);
+    let r = match x (f1, f2) : excm(!!a);
+    return r;
+}
+
 fn excm_n_to_e_triple : excm(!a) -> (a | !a | !!a) {
     use right;
 
@@ -88,4 +127,3 @@ fn excm_n_to_e_imply :
     let r = match x2 (f, g) : (!a | b) | (!b | a) | (!!a & !!b);
     return r;
 }
-
