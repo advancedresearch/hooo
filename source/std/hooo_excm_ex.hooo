@@ -10,22 +10,22 @@
 /// When you are uncertain what to do, add explicit assumptions.
 fn hooo_excm_ex : true -> excm(!a) {
     use refl;
-    use hooo_or;
+    use hooo_imply_or;
     use excm_lift;
     use excm_lift_neg;
     use left;
     use right;
 
     let x = refl() : excm(a) -> excm(a);
-    let x2 = hooo_or(x) : a^excm(a) | (!a)^excm(a);
-    lam f : a^excm(a) => excm(!a) {
-        y : a^excm(a);
+    let x2 = hooo_imply_or(x) : (excm(a) => a) | (excm(a) => !a);
+    lam f : (excm(a) => a) => excm(!a) {
+        y : excm(a) => a;
         let y2 = excm_lift(y) : !!a;
         let r = right(y2) : excm(!a);
         return r;
     }
-    lam g : (!a)^excm(a) => excm(!a) {
-        y : (!a)^excm(a);
+    lam g : (excm(a) => !a) => excm(!a) {
+        y : excm(a) => !a;
         let y2 = excm_lift_neg(y) : !a;
         let r = left(y2) : excm(!a);
         return r;
