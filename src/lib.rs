@@ -1326,8 +1326,8 @@ impl Loader {
         }
         loader.dependencies.push(std);
 
-        let files: Vec<String> = std::fs::read_dir(&**loader.dir).unwrap()
-            .filter(|entry| {
+        let files: Vec<String> = if let Ok(x) = std::fs::read_dir(&**loader.dir) {
+            x.filter(|entry| {
                 if let Ok(entry) = entry {
                     let path = entry.path();
                     if path.is_file() {
@@ -1338,7 +1338,8 @@ impl Loader {
                 } else {false}
             })
             .map(|entry| entry.unwrap().path().to_str().unwrap().into())
-        .collect();
+            .collect()
+        } else {vec![]};
 
         let (tx, rx) = std::sync::mpsc::channel();
         let error: Arc<Mutex<Result<(), String>>> = Arc::new(Ok(()).into());
