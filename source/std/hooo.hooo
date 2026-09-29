@@ -1,9 +1,17 @@
-grade meta_strength [pow_lift, tauto_hooo_imply, tauto_hooo_tauto_or, tauto_hooo_or];
+grade meta_strength [pow_lift, tauto_hooo_imply, tauto_hooo_imply_or];
+grade collapse_strength [tauto_hooo_tauto_or, tauto_hooo_or];
 
 fn tauto_hooo_imply : (a => b)^c  ->  (a^c => b^c)^true {
     axiom tauto_hooo_imply : (a => b)^c -> (a^c => b^c)^true;
     x : (a => b)^c;
     let r = tauto_hooo_imply(x) : (a^c => b^c)^true;
+    return r;
+}
+
+fn tauto_hooo_imply_or : (a | b)^c -> ((c => a) | (c => b))^true {
+    use tauto_hooo_or;
+    x : (a | b)^c;
+    let r = tauto_hooo_or(x) : ((c => a) | (c => b))^true;
     return r;
 }
 
@@ -61,6 +69,16 @@ fn hooo_imply : (a => b)^c  ->  a^c => b^c {
     let y = tauto_hooo_imply(x) : (a^c => b^c)^true;
     let z = triv(y) : (a^c => b^c);
     return z;
+}
+
+fn hooo_imply_or : (a | b)^c  ->  (c => a) | (c => b) {
+    use tauto_hooo_imply_or;
+    use triv;
+
+    x : (a | b)^c;
+    let y = tauto_hooo_imply_or(x) : ((c => a) | (c => b))^true;
+    let r = triv(y) : (c => a) | (c => b);
+    return r;
 }
 
 fn hooo_or : (a | b)^c  ->  (a^c | b^c) {
