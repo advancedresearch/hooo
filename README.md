@@ -59,27 +59,25 @@ in the world, because it is the foundation for constructive logic and many type 
 Usually, IPL is thought of as a "simple language" that is generalized in various ways.
 For example, by adding predicates, one gets First Order Logic.
 
-Previously, IPL was thought of as "complete" in the sense that it can derive every
-formula that is true about propositions.
-To reason about IPL at meta-level, mathematicians relied on some meta-language (e.g. Sequent Calculus)
+To reason about IPL at meta-level, mathematicians rely on some meta-language (e.g. Sequent Calculus)
 or some modal logic.
 
 For example, in Provability Logic, `□(a => b)` is introduced by proving `⊢ a => b` in Sequent Calculus.
 
-Recently, I discovered that, while logical implication (`=>`) in IPL corresponds to lambda/closures,
+While logical implication (`=>`) in IPL corresponds to lambda/closures,
 there is no possible way to express the analogue of function pointers (`->`).
 People thought previously that, since logical implication is a kind of exponential object,
 that IPL covered exponentials in the sense of Category Theory.
 However, there can be more than one kind of exponential!
-The extension of IPL to include function pointers is called "exponential propositions".
+The extension of IPL to include function pointers is called "Exponential Propositions" (EP).
 
-Exponential propositions allows a unification of the meta-language of IPL with its object-language.
-This means that IPL in its previous form is "incomplete", in the sense that there are no ways
-to express exponential propositions.
+EP allows a unification of the meta-language of IPL with its object-language.
+This solves the previous problems of needing to use a separate meta-language for meta-theorem proving.
 
-Hooo finalizes intuitionistic logic by introducing exponential propositions (HOOO EP).
-This solves the previous problems of using a separate meta-language.
 Inference rules in Hooo are first-class citizens.
+It means, you can use rules as inputs to other meta-rules and produce new rules.
+This is an advantage when you are designing some mathematical language
+where a large set of inference rules follow from a small set of axioms.
 
 There is no separation between the language and meta-language in Hooo.
 All types, including rules, are constructive propositions.
@@ -105,19 +103,29 @@ function pointers have the types of proofs.
 By calculating with these types, one obtains new proofs. Now, in order to do this,
 you need some special function pointers with types that proves
 which types of function pointers one can prove.
-These special function pointers are the axioms.
+These special function pointers are the axioms of HOOO EP.
 With other words: Type Theory Magic!
 
-There are 3 axioms in HOOO EP:
+There are 3 axioms in HOOO EP that measure meta-strength:
 
 ```text
 pow_lift : a^b -> (a^b)^c
 tauto_hooo_imply : (a => b)^c -> (a^c => b^c)^true
-tauto_hooo_or : (a | b)^c -> (a^c | b^c)^true
+tauto_hooo_imply_or : (a | b)^c -> ((c => a) | (b => c))^true
 ```
 
-The philosophy of HOOO EP is that the axioms are intuitive.
-This is how people can know that the axioms can be trusted.
+There are 2 axioms in HOOO EP that measure collapse-strength:
+
+```text
+tauto_hooo_tauto_or : (a | b)^true  ->  (a^true | b^true)^true
+tauto_hooo_or : (a | b)^c  ->  (a^c | b^c)^true
+```
+
+This is according to the HOOO EP 2026 Standard (see [paper](https://github.com/advancedresearch/path_semantics/blob/master/papers-wip2/hooo-ep-2026-standard.pdf) in the Path Semantics project).
+
+When you use these axioms in your proofs,
+Hooo will automatically grade the theorems in your project.
+You can examine "Hooo.config" to see the results.
 
 From these axioms, there are infinitely complex logical consequences.
 It is important to keep the axioms few and simple to not cause trouble later on.
