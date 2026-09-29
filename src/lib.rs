@@ -1466,7 +1466,11 @@ impl Loader {
         let name: &str = if let Some(lib) = lib {
             &**lib.name
         } else {
-            Path::new(&**self.dir).file_stem().unwrap().to_str().unwrap()
+            if &**self.dir == "." {
+                Path::new(&**self.dir).to_str().unwrap()
+            } else {
+                Path::new(&**self.dir).file_stem().unwrap().to_str().unwrap()
+            }
         };
         let version: &str = if let Some(lib) = &lib {
             &**lib.version
