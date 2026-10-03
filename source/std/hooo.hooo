@@ -192,27 +192,29 @@ fn hooo_rev_or : (a^c | b^c) -> (a | b)^c {
 }
 
 fn hooo_dual_rev_or : c^a & c^b  ->  c^(a | b) {
-    use hooo_or;
-    use refl;
+    use pow_and_lift;
+    use pow_transitivity;
+    use tauto_imply_to_pow;
+    use hooo_imply;
 
     x : c^a;
     y : c^b;
 
-    let x2 = refl() : (a | b)^(a | b);
-    let x3 = hooo_or(x2) : a^(a | b) | b^(a | b);
-    lam f : a^(a | b) => c^(a | b) {
-        z : a^(a | b);
-        use pow_transitivity;
-        let r = pow_transitivity(z, x) : c^(a | b);
+    fn f : c^a & c^b -> (a | b) => c {
+        x : c^a;
+        y : c^b;
+
+        lam r : (a | b) => c {
+            z : a | b;
+            let r = match z (x, y) : c;
+            return r;
+        }
         return r;
     }
-    lam g : b^(a | b) => c^(a | b) {
-        z : b^(a | b);
-        use pow_transitivity;
-        let r = pow_transitivity(z, y) : c^(a | b);
-        return r;
-    }
-    let r = match x3 (f, g) : c^(a | b);
+
+    let x2 = pow_and_lift(x, y) : (c^a & c^b)^true;
+    let x3 = pow_transitivity(x2, f) : ((a | b) => c)^true;
+    let r = tauto_imply_to_pow(x3) : c^(a | b);
     return r;
 }
 
