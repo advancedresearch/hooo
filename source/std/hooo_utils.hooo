@@ -490,3 +490,61 @@ fn tauto_eq_symmetry : (a == b)^true  ->  (b == a)^true {
     let r = pow_eq_to_tauto_eq(x3) : (b == a)^true;
     return r;
 }
+
+fn hooo_or_weaken_to_left : (b -> a) -> (a | b -> c) == (a -> c) {
+    use refl;
+
+    x : b -> a;
+
+    lam f1 : (a | b -> c) => (a -> c) {
+        use left;
+        use pow_transitivity;
+
+        y : a | b -> c;
+
+        let y2 = left() : a -> a | b;
+        let r = pow_transitivity(y2, y) : a -> c;
+        return r;
+    }
+    lam f2 : (a -> c) => (a | b -> c) {
+        use pow_transitivity;
+        use hooo_dual_rev_or;
+
+        y : a-> c;
+
+        let y2 = pow_transitivity(x, y) : b -> c;
+        let r = hooo_dual_rev_or(y, y2) : a | b -> c;
+        return r;
+    }
+    let r = refl(f1, f2) : (a | b -> c) == (a -> c);
+    return r;
+}
+
+fn hooo_or_weaken_to_right : (a -> b) -> (a | b -> c) == (b -> c) {
+    use refl;
+
+    x : a -> b;
+
+    lam f1 : (a | b -> c) => (b -> c) {
+        use right;
+        use pow_transitivity;
+
+        y : a | b -> c;
+
+        let y2 = right() : b -> a | b;
+        let r = pow_transitivity(y2, y) : b -> c;
+        return r;
+    }
+    lam f2 : (b -> c) => (a | b -> c) {
+        use pow_transitivity;
+        use hooo_dual_rev_or;
+
+        y : b -> c;
+
+        let y2 = pow_transitivity(x, y) : a -> c;
+        let r = hooo_dual_rev_or(y2, y) : a | b -> c;
+        return r;
+    }
+    let r = refl(f1, f2) : (a | b -> c) == (b -> c);
+    return r;
+}
