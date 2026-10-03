@@ -217,58 +217,6 @@ fn hooo_dual_rev_or : c^a & c^b  ->  c^(a | b) {
     return r;
 }
 
-fn pow_to_imply : b^a -> a => b {
-    x : b^a;
-
-    let y = x() : a => b;
-    return y;
-}
-
-fn pow_to_imply_lift : b^a -> (a => b)^c {
-    x : b^a;
-
-    use pow_lift;
-    let y = pow_lift(x) : (b^a)^c;
-    return y;
-}
-
-fn pow_to_tauto_imply : a^b -> (b => a)^true {
-    x : a^b;
-
-    use pow_lift;
-    let y = pow_lift(x) : (a^b)^true;
-
-    let z = y() : (b => a)^true;
-    return z;
-}
-
-fn pow_transitivity : b^a & c^b -> c^a {
-    use hooo_imply;
-    use pow_and_lift;
-
-    x : b^a;
-    y : c^b;
-
-    fn f : a -> ((b^a & c^b) => c) {
-        x : a;
-
-        lam g : (b^a & c^b) => c {
-            y : b^a;
-            z : c^b;
-
-            let x2 = y(x) : b;
-            let x3 = z(x2) : c;
-            return x3;
-        }
-        return g;
-    }
-
-    let x2 = hooo_imply(f) : (b^a & c^b)^a => c^a;
-    let x3 = pow_and_lift(x, y) : (b^a & c^b)^a;
-    let r = x2(x3) : c^a;
-    return r;
-}
-
 fn hooo_comp : c^b & b^a  ->  c^a {
     use pow_transitivity;
     use and_symmetry;
