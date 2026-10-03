@@ -43,7 +43,7 @@ fn and_cong : true -> cong'(prop_and') {
     return r;
 }
 
-fn and_map : a -> b => (a & b) {
+fn and_map_fst : a -> b => (a & b) {
     x : a;
 
     lam f : b => (a & b) {
@@ -51,6 +51,19 @@ fn and_map : a -> b => (a & b) {
 
         use refl;
         let x3 = refl(x, x2) : (a & b);
+        return x3;
+    }
+    return f;
+}
+
+fn and_map_snd : b -> a => (a & b) {
+    x : b;
+
+    lam f : a => (a & b) {
+        x2 : a;
+
+        use refl;
+        let x3 = refl(x2, x) : (a & b);
         return x3;
     }
     return f;

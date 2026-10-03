@@ -116,14 +116,14 @@ fn hooo_dual_or : c^(a | b)  ->  c^a & c^b {
 }
 
 fn hooo_rev_and : a^c & b^c -> (a & b)^c {
-    use and_map;
+    use and_map_fst;
     use pow_to_imply_lift;
     use hooo_imply;
     use modus_ponens;
 
     x : a^c;
     y : b^c;
-    let x1 = and_map() : (b => (a & b))^a;
+    let x1 = and_map_fst() : (b => (a & b))^a;
     let x2 = pow_to_imply_lift(x1) : (a => b => (a & b))^c;
     let x3 = hooo_imply(x2) : a^c => (b => (a & b))^c;
     let x4 = modus_ponens(x, x3) : (b => (a & b))^c;
