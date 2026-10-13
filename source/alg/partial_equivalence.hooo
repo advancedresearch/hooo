@@ -1,0 +1,25 @@
+sym partial_equivalence;
+
+use commutative;
+use transitive;
+
+fn partial_equivalence_from :
+    commutative'(p) & transitive'(p)
+-> partial_equivalence'(p) {
+    axiom partial_equivalence_from :
+        commutative'(p) & transitive'(p) -> partial_equivalence'(p);
+    x : commutative'(p);
+    y : transitive'(p);
+    let r = partial_equivalence_from(x, y): partial_equivalence'(p);
+    return r;
+}
+
+fn partial_equivalence_to :
+    partial_equivalence'(p)
+-> commutative'(p) & transitive'(p) {
+    axiom partial_equivalence_to :
+        partial_equivalence'(p) -> commutative'(p) & transitive'(p);
+    x : partial_equivalence'(p);
+    let r = partial_equivalence_to(x) : commutative'(p) & transitive'(p);
+    return r;
+}
