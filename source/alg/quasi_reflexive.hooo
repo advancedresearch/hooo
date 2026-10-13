@@ -1,0 +1,73 @@
+sym left_quasi_reflexive;
+sym right_quasi_reflexive;
+sym quasi_reflexive;
+
+fn left_quasi_reflexive_from :
+    sym(p, all(p'(a, b) -> p'(a, a)))(p)
+-> left_quasi_reflexive'(p)
+{
+    axiom left_quasi_reflexive_from :
+        sym(p, all(p'(a, b) -> p'(a, a)))(p) -> left_quasi_reflexive'(p);
+    x : sym(p, all(p'(a, b) -> p'(a, a)))(p);
+    let r = left_quasi_reflexive_from(x): left_quasi_reflexive'(p);
+    return r;
+}
+
+fn left_quasi_reflexive_to :
+    left_quasi_reflexive'(p)
+-> sym(p, all(p'(a, b) -> p'(a, a)))(p)
+{
+    axiom left_quasi_reflexive_to :
+        left_quasi_reflexive'(p) -> sym(p, all(p'(a, b) -> p'(a, a)))(p);
+    x : left_quasi_reflexive'(p);
+    let r = left_quasi_reflexive_to(x) : sym(p, all(p'(a, b) -> p'(a, a)))(p);
+    unsafe return r;
+}
+
+fn right_quasi_reflexive_from :
+    sym(p, all(p'(a, b) -> p'(b, b)))(p)
+-> right_quasi_reflexive'(p)
+{
+    axiom right_quasi_reflexive_from :
+        sym(p, all(p'(a, b) -> p'(b, b)))(p) -> right_quasi_reflexive'(p);
+    x : sym(p, all(p'(a, b) -> p'(b, b)))(p);
+    let r = right_quasi_reflexive_from(x): right_quasi_reflexive'(p);
+    return r;
+}
+
+fn right_quasi_reflexive_to :
+    right_quasi_reflexive'(p)
+-> sym(p, all(p'(a, b) -> p'(a, a)))(p)
+{
+    axiom right_quasi_reflexive_to :
+        right_quasi_reflexive'(p) -> sym(p, all(p'(a, b) -> p'(a, a)))(p);
+    x : right_quasi_reflexive'(p);
+    let r = right_quasi_reflexive_to(x) : sym(p, all(p'(a, b) -> p'(a, a)))(p);
+    unsafe return r;
+}
+
+fn quasi_reflexive_from :
+    left_quasi_reflexive'(p) & right_quasi_reflexive'(p)
+-> quasi_reflexive'(p)
+{
+    axiom quasi_reflexive_from :
+        left_quasi_reflexive'(p) & right_quasi_reflexive'(p)
+        -> quasi_reflexive'(p);
+    x : left_quasi_reflexive'(p);
+    y : right_quasi_reflexive'(p);
+    let r = quasi_reflexive_from(x, y) : quasi_reflexive'(p);
+    return r;
+}
+
+fn quasi_reflexive_to :
+    quasi_reflexive'(p)
+-> left_quasi_reflexive'(p) & right_quasi_reflexive'(p)
+{
+    axiom quasi_reflexive_to :
+        quasi_reflexive'(p)
+        -> left_quasi_reflexive'(p) & right_quasi_reflexive'(p);
+    x : quasi_reflexive'(p);
+    let r = quasi_reflexive_to(x) :
+        left_quasi_reflexive'(p) & right_quasi_reflexive'(p);
+    return r;
+}
