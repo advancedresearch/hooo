@@ -1112,6 +1112,57 @@ impl Type {
         }
     }
 
+    /// Detects whether type contains only symbols or free variables inside `all` expressions.
+    ///
+    /// This is used by the Smart De-All algorithm to handle cases for sym-block application.
+    ///
+    /// One can specify an optional symbol for a sym-block to look for inside some `all` expression.
+    ///
+    /// Returns `Err("x")` when some variable "x" is not free.
+    ///
+    /// When only containing symbols or free variables:
+    ///
+    /// - Returns `Ok(true)` if symbol occurs inside `all` expression.
+    /// - Returns `Ok(false)` otherwise.
+    pub fn all_has_only_symbols_or_free_variables(
+        &self,
+        symbol: Option<&str>,
+        free_vars: &[Arc<String>],
+        active: bool
+    ) -> Result<bool, Arc<String>> {
+        use Type::*;
+
+        match self {
+            Sym(f) => {
+                if let Some(symbol) = symbol {
+                    if **f == symbol {Ok(active)}
+                    else {Ok(false)}
+                } else {Ok(false)}
+            }
+            True | False | LocSym(_) => Ok(false),
+            Ty(s) | AllTy(s) => if active {
+                if free_vars.iter().any(|n| n == s) {Ok(false)}
+                else {Err(s.clone())}
+            } else {Ok(false)},
+            All(s) => s.all_has_only_symbols_or_free_variables(symbol, free_vars, true),
+            Fun(ab) | Pow(ab) | And(ab) | Or(ab) | Imply(ab) |
+            App(ab) | Jud(ab) |
+            Sd(ab) | Qi(ab) | Q(ab) |
+            Comp(ab) | Pair(ab) => {
+                let a = ab.0.all_has_only_symbols_or_free_variables(symbol, free_vars, active);
+                let b = ab.1.all_has_only_symbols_or_free_variables(symbol, free_vars, active);
+                match (a, b) {
+                    (Err(x), _) | (_, Err(x)) => Err(x),
+                    (Ok(a), Ok(b)) => Ok(a || b)
+                }
+            }
+            Nec(a) | Pos(a) | Qu(a) =>
+                a.all_has_only_symbols_or_free_variables(symbol, free_vars, active),
+            SymBlock(ab) =>
+                ab.1.all_has_only_symbols_or_free_variables(symbol, free_vars, active),
+        }
+    }
+
     /// Prepare type for Herbrandization.
     pub fn de_all(&self) -> Option<Type> {
         use Type::*;
