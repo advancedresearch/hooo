@@ -732,6 +732,35 @@ impl Type {
         }
     }
 
+    pub fn get_free_variables(&self, ctx: Option<&Context>, free_vars: &mut Vec<Arc<String>>) {
+        use Type::*;
+
+        match self {
+            True | False | Sym(_) | LocSym(_) => {}
+            Ty(a) => {
+                if let Some(ctx) = ctx {
+                    if !ctx.bounded_vars.iter().any(|n| n == a) &&
+                       !free_vars.iter().any(|n| n == a) {
+                        free_vars.push(a.clone());
+                    }
+                }
+            }
+            AllTy(a) => {
+                if !free_vars.iter().any(|n| n == a) {
+                    free_vars.push(a.clone());
+                }
+            }
+            And(ab) | Or(ab) | Imply(ab) |
+            App(ab) | Pow(ab) | Fun(ab) | Jud(ab) | Pair(ab) |
+            Q(ab) | Qi(ab) | Sd(ab) | Comp(ab) => {
+                ab.0.get_free_variables(ctx, free_vars);
+                ab.1.get_free_variables(ctx, free_vars);
+            }
+            All(a) | Qu(a) | Nec(a) | Pos(a) => a.get_free_variables(ctx, free_vars),
+            SymBlock(ab) => ab.1.get_free_variables(ctx, free_vars),
+        }
+    }
+
     pub fn to_str(&self, top: bool, parent_op: Option<Op>) -> String {
         if !top && needs_parens(self, parent_op) {format!("({})", self)}
         else {format!("{}", self)}
