@@ -286,9 +286,9 @@ fn nat_add_symmetry : (a : nat') & (b : nat') -> add'(a, b) == add'(b, a) {
     let x9 = x10() : all((a : nat') =>
         ((b : nat') => add'(a, b) == add'(b, a)) =>
         ((b : nat') => add'(s'(a), b) == add'(b, s'(a))));
-    let x8 = x9() : all((a : nat') =>
-        (sym(a, (b : nat') => add'(a', b) == add'(b, a'))(a) =>
-        sym(a, (b : nat') => add'(a', b) == add'(b, a'))(s'(a))));
+    let x8 = x9() : all((x : nat') =>
+        (sym(a, (b : nat') => add'(a', b) == add'(b, a'))(x) =>
+        sym(a, (b : nat') => add'(a', b) == add'(b, a'))(s'(x))));
 
     let x12 = nat_add_zero(b_ty) : add'(b, z') == b;
     let x13 = nat_add_zero_left(b_ty) : add'(z', b) == b;
