@@ -52,6 +52,8 @@ pub struct Context {
     pub proofs: Vec<Type>,
     /// Stores proof cache.
     pub proof_cache: HashSet<Type>,
+    /// Stores bound variables.
+    pub bounded_vars: Vec<Arc<String>>,
 }
 
 impl Context {
@@ -62,6 +64,7 @@ impl Context {
             term_names: vec![],
             proofs: vec![],
             proof_cache: HashSet::default(),
+            bounded_vars: vec![],
         }
     }
 
