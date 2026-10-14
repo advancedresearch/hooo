@@ -213,6 +213,9 @@ impl Context {
     ) -> Result<(), (Range, String)> {
         if let Type::Pow(_) | Type::Fun(_) = &ty {
             let mut ctx = Context::new();
+            if let Some((a, _)) = ty.fun_norm() {
+                a.store_bounded_variables(&mut ctx);
+            }
             ctx.symbols = self.symbols.clone();
             let unsafe_flag = f(&mut ctx, search)?;
             if ctx.prove(ty.clone(), search) && ctx.safe(&ty) {
@@ -703,6 +706,29 @@ impl Type {
                     return Some((ty, args))
                 }
             }
+        }
+    }
+
+    /// The bounded variables are needed to determine free variables.
+    /// The free variables are used to decide whether de-all is OK in sym-block application.
+    pub fn store_bounded_variables(&self, ctx: &mut Context) {
+        use Type::*;
+
+        match self {
+            True | False | Sym(_) | LocSym(_) => {}
+            Ty(a) | AllTy(a) => {
+                if !ctx.bounded_vars.iter().any(|n| n == a) {
+                    ctx.bounded_vars.push(a.clone());
+                }
+            }
+            And(ab) | Or(ab) | Imply(ab) |
+            App(ab) | Pow(ab) | Fun(ab) | Jud(ab) | Pair(ab) |
+            Q(ab) | Qi(ab) | Sd(ab) | Comp(ab) => {
+                ab.0.store_bounded_variables(ctx);
+                ab.1.store_bounded_variables(ctx);
+            }
+            All(a) | Qu(a) | Nec(a) | Pos(a) => a.store_bounded_variables(ctx),
+            SymBlock(_) => {}
         }
     }
 
