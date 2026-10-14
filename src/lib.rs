@@ -2236,6 +2236,76 @@ mod tests {
     }
 
     #[test]
+    fn test_bind_2() {
+        let mut bind = vec![];
+        let a: Type = "a".try_into().unwrap();
+        let b: Type = "b".try_into().unwrap();
+        assert!(a.bind(false, &b, &mut bind).is_err());
+        let mut bind = vec![];
+        assert!(a.bind(true, &b, &mut bind).is_err());
+
+        let mut bind = vec![];
+        let a: Type = "all(a)".try_into().unwrap();
+        let b: Type = "b".try_into().unwrap();
+        assert!(a.bind(false, &b, &mut bind).is_ok());
+
+        let mut bind = vec![];
+        let a: Type = "all(a)".try_into().unwrap();
+        let b: Type = "all(b)".try_into().unwrap();
+        assert!(a.bind(false, &b, &mut bind).is_ok());
+
+        let mut bind = vec![];
+        let a: Type = "a".try_into().unwrap();
+        let b: Type = "all(b)".try_into().unwrap();
+        assert!(a.bind(false, &b, &mut bind).is_err());
+
+        let mut bind = vec![];
+        let a: Type = all_ty("a");
+        let b: Type = "all(b)".try_into().unwrap();
+        assert!(a.bind(false, &b, &mut bind).is_ok());
+
+        let mut bind = vec![];
+        let a: Type = all_ty("a");
+        let b: Type = all_ty("b");
+        assert!(a.bind(false, &b, &mut bind).is_ok());
+
+        let mut bind = vec![];
+        let a: Type = all_ty("a");
+        let b: Type = ty("b");
+        assert!(a.bind(false, &b, &mut bind).is_ok());
+
+        let mut bind = vec![];
+        let a: Type = all_ty("a");
+        let b: Type = ty("b");
+        assert!(a.bind(false, &b, &mut bind).is_ok());
+    }
+
+    #[test]
+    fn test_bind_3() {
+        let mut bind = vec![];
+        let a: Type = "a => a".try_into().unwrap();
+        let b: Type = "b => b".try_into().unwrap();
+        assert!(a.bind(false, &b, &mut bind).is_err());
+
+        let mut bind = vec![];
+        let a: Type = "all(a => a)".try_into().unwrap();
+        let b: Type = "b => b".try_into().unwrap();
+        assert!(a.bind(false, &b, &mut bind).is_ok());
+
+        let mut bind = vec![];
+        let a: Type = imply(all_ty("a"), all_ty("a"));
+        let b: Type = imply(all_ty("b"), all_ty("b"));
+        assert!(a.bind(false, &b, &mut bind).is_ok());
+
+        let mut bind = vec![];
+        let a: Type = imply(all_ty("a"), all_ty("a"));
+        let b: Type = "all(b => b)".try_into().unwrap();
+        // Not sure whether this should be `is_err` or `is_ok`.
+        // See https://github.com/advancedresearch/hooo/issues/459
+        assert!(a.bind(false, &b, &mut bind).is_err());
+    }
+
+    #[test]
     fn test_app_to_has_bound() {
         let a: Type = "a".try_into().unwrap();
         let b: Type = "b".try_into().unwrap();
