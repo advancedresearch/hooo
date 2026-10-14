@@ -2,6 +2,9 @@ sym partial_equivalence;
 
 use commutative;
 use transitive;
+use left_quasi_reflexive;
+use right_quasi_reflexive;
+use quasi_reflexive;
 
 fn partial_equivalence_from :
     commutative'(p) & transitive'(p)
@@ -21,5 +24,128 @@ fn partial_equivalence_to :
         partial_equivalence'(p) -> commutative'(p) & transitive'(p);
     x : partial_equivalence'(p);
     let r = partial_equivalence_to(x) : commutative'(p) & transitive'(p);
+    return r;
+}
+
+fn partial_equivalence_to_left_quasi_reflexive :
+    partial_equivalence'(p)
+-> left_quasi_reflexive'(p) {
+    use partial_equivalence_to;
+    use std::fst;
+    use commutative_to;
+    use std::snd;
+    use transitive_to;
+    use left_quasi_reflexive_from;
+
+    x : partial_equivalence'(p);
+
+    let x2 = partial_equivalence_to(x) : commutative'(p) & transitive'(p);
+    let x3 = fst(x2) : commutative'(p);
+    let x4 = commutative_to(x3) : sym(p, all(p'(a, b) == p'(b, a)))(p);
+    let x5 = snd(x2) : transitive'(p);
+    let x6 = transitive_to(x5) :
+        sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(p);
+
+    fn f :
+        sym(p, p'(a, b) == p'(b, a))(p) &
+        sym(p, p'(a, b) & p'(b, a) => p'(a, a))(p)
+    -> sym(p, p'(a, b) => p'(a, a))(p) {
+      x : sym(p, all(p'(a, b) == p'(b, a)))(p);
+      y : sym(p, all(p'(a, b) & p'(b, a) => p'(a, a)))(p);
+
+      let x2 = x() : p(a, b) == p(b, a);
+      let y2 = y() : p(a, b) & p(b, a) => p(a, a);
+      lam f: p(a, b) => p(a, a) {
+          use std::eq_to_right;
+          z : p(a, b);
+          let z2 = eq_to_right(x2, z) : p(b, a);
+          let r = y2(z, z2) : p(a, a);
+          return r;
+      }
+      let r = f() : sym(p, p'(a, b) => p'(a, a))(p);
+      unsafe return r;
+    }
+    let f2 = f() : all(
+        sym(p, p'(a, b) == p'(b, a))(p) &
+        sym(p, p'(a, b) & p'(b, a) => p'(a, a))(p)
+        -> sym(p, p'(a, b) => p'(a, a))(p)
+    );
+    let f3 = f2() :
+        sym(p, all(p'(a, b) == p'(b, a)))(p) &
+        sym(p, all(p'(a, b) & p'(b, a) => p'(a, a)))(p)
+        -> sym(p, all(p'(a, b) => p'(a, a)))(p);
+    let x7 = f3(x4, x6) : sym(p, all(p'(a, b) => p'(a, a)))(p);
+
+    let r = left_quasi_reflexive_from(x7) : left_quasi_reflexive'(p);
+    return r;
+}
+
+fn partial_equivalence_to_right_quasi_reflexive :
+    partial_equivalence'(p)
+-> right_quasi_reflexive'(p) {
+    use partial_equivalence_to;
+    use std::fst;
+    use commutative_to;
+    use std::snd;
+    use transitive_to;
+    use right_quasi_reflexive_from;
+
+    x : partial_equivalence'(p);
+
+    let x2 = partial_equivalence_to(x) : commutative'(p) & transitive'(p);
+    let x3 = fst(x2) : commutative'(p);
+    let x4 = commutative_to(x3) : sym(p, all(p'(a, b) == p'(b, a)))(p);
+    let x5 = snd(x2) : transitive'(p);
+    let x6 = transitive_to(x5) :
+        sym(p, all(p'(a, b) & p'(b, c) => p'(a, c)))(p);
+
+    fn f :
+        sym(p, p'(a, b) == p'(b, a))(p) &
+        sym(p, p'(a, b) & p'(b, a) => p'(a, a))(p)
+    -> sym(p, p'(a, b) => p'(b, b))(p) {
+      x : sym(p, all(p'(a, b) == p'(b, a)))(p);
+      y : sym(p, all(p'(a, b) & p'(b, a) => p'(a, a)))(p);
+
+      let x2 = x() : p(a, b) == p(b, a);
+      let y2 = y() : p(b, a) & p(a, b) => p(b, b);
+      lam f: p(a, b) => p(b, b) {
+          use std::eq_to_right;
+          z : p(a, b);
+          let z2 = eq_to_right(x2, z) : p(b, a);
+          let r = y2(z2, z) : p(b, b);
+          return r;
+      }
+      let r = f() : sym(p, p'(a, b) => p'(b, b))(p);
+      unsafe return r;
+    }
+    let f2 = f() : all(
+        sym(p, p'(a, b) == p'(b, a))(p) &
+        sym(p, p'(a, b) & p'(b, a) => p'(a, a))(p)
+        -> sym(p, p'(a, b) => p'(b, b))(p)
+    );
+    let f3 = f2() :
+        sym(p, all(p'(a, b) == p'(b, a)))(p) &
+        sym(p, all(p'(a, b) & p'(b, a) => p'(a, a)))(p)
+        -> sym(p, all(p'(a, b) => p'(b, b)))(p);
+    let x7 = f3(x4, x6) : sym(p, all(p'(a, b) => p'(b, b)))(p);
+
+    let r = right_quasi_reflexive_from(x7) : right_quasi_reflexive'(p);
+    return r;
+}
+
+fn partial_equivalence_to_quasi_reflexivity :
+    partial_equivalence'(p)
+-> quasi_reflexive'(p) {
+    use partial_equivalence_to_left_quasi_reflexive;
+    use partial_equivalence_to_right_quasi_reflexive;
+    use quasi_reflexive_from;
+
+    x : partial_equivalence'(p);
+
+    let x2 = partial_equivalence_to_left_quasi_reflexive(x) :
+        left_quasi_reflexive'(p);
+    let x3 = partial_equivalence_to_right_quasi_reflexive(x) :
+        right_quasi_reflexive'(p);
+    let r = quasi_reflexive_from(x2, x3) : quasi_reflexive'(p);
     return r;
 }
