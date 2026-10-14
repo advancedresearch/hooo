@@ -198,12 +198,6 @@ fn sym_unwrap : sym(a, b)(a) -> b {
     return r;
 }
 
-fn sym_to_all : a -> sym(a, all(a'))(a) {
-    x : a;
-    let r = x() : sym(a, all(a'))(a);
-    unsafe return r;
-}
-
 fn sym_from_all : sym(a, all(a'))(a) -> a {
     x : sym(a, all(a'))(a);
     let r = x() : a;
@@ -222,20 +216,6 @@ fn sym_pow_to_pow_tauto : sym(f, a^b)(f) -> sym(f, a^(b^true))(f) {
     use pow_to_pow_tauto;
     let x3 = pow_to_pow_tauto(x2) : a^(b^true);
     let r = x3() : sym(f, a^(b^true))(f);
-    unsafe return r;
-}
-
-fn sym_pow_lift : a^b -> (sym(a, all(a'))(a))^(sym(b, all(b'))(b)) {
-    use sym_to_all;
-    use sym_from_all;
-    use pow_transitivity;
-
-    x : a^b;
-
-    let f = sym_from_all() : sym(b, all(b'))(b) -> b;
-    let x2 = pow_transitivity(f, x) : sym(b, all(b'))(b) -> a;
-    let g = sym_to_all() : a -> sym(a, all(a'))(a);
-    let r = pow_transitivity(x2, g) : sym(b, all(b'))(b) -> sym(a, all(a'))(a);
     unsafe return r;
 }
 
@@ -266,3 +246,36 @@ fn sym_inner_to_bin : sym(a, sym(b, c)(b))(a) -> sym(a, sym(b, c))(a, b) {
     let r = x() : sym(a, sym(b, c))(a, b);
     return r;
 }
+
+/*
+// This code should fail when uncommented.
+
+fn sym_to_all : a -> sym(a, all(a'))(a) {
+    x : a;
+    let r = x() : sym(a, all(a'))(a);
+    unsafe return r;
+}
+
+fn everything_is_false : a -> false {
+    use sym_to_all;
+    x : a;
+    let x2 = sym_to_all() : a -> all(a);
+    let x3 = x2(x) : all(a);
+    let r = x3() : false;
+    return r;
+}
+
+fn sym_pow_lift : a^b -> (sym(a, all(a'))(a))^(sym(b, all(b'))(b)) {
+    use sym_to_all;
+    use sym_from_all;
+    use pow_transitivity;
+
+    x : a^b;
+
+    let f = sym_from_all() : sym(b, all(b'))(b) -> b;
+    let x2 = pow_transitivity(f, x) : sym(b, all(b'))(b) -> a;
+    let g = sym_to_all() : a -> sym(a, all(a'))(a);
+    let r = pow_transitivity(x2, g) : sym(b, all(b'))(b) -> sym(a, all(a'))(a);
+    unsafe return r;
+}
+*/
