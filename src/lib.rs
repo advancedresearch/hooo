@@ -1163,6 +1163,153 @@ impl Type {
         }
     }
 
+    /// Smart De-All algorithm for zero-argument Herbrandization.
+    ///
+    /// Prepares type for Herbrandization in a smart way,
+    /// by allowing de-all when there is a cover of free variables
+    /// in the function type, e.g. the type of `x` in `x() : t`.
+    /// The type `t` is the type that is transformed by the Smart De-All algorithm,
+    /// when a simple type check fails.
+    ///
+    /// A free variable is a variable that is not bound by the context.
+    /// This means it needs to come from a source where it was quantified over.
+    ///
+    /// - `rs`: Whether smart de-all happens in the argument of a sym-block (the right side).
+    /// - `free_vars`: A list of free variables from left term argument type.
+    pub fn smart_de_all(
+        &self,
+        rs: bool,
+        free_vars: &[Arc<String>]
+    ) -> Option<(Type, Option<Arc<String>>)> {
+        use Type::*;
+
+        match self {
+            True | False | Ty(_) | Sym(_) | LocSym(_) =>
+                Some((self.clone(), None)),
+            All(s) => Some(((**s).clone(), None)),
+            And(ab) => {
+                let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                let err = if err_a.is_some() {err_a} else {err_b};
+                Some((and(a, b), err))
+            }
+            Or(ab) => {
+                    let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                    let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                    let err = if err_a.is_some() {err_a} else {err_b};
+                    Some((or(a, b), err))
+            }
+            Imply(ab) => {
+                let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                let err = if err_a.is_some() {err_a} else {err_b};
+                Some((imply(a, b), err))
+            }
+            Pair(ab) => {
+                let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                let err = if err_a.is_some() {err_a} else {err_b};
+                Some((pair(a, b), err))
+            }
+            Sd(ab) => {
+                let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                let err = if err_a.is_some() {err_a} else {err_b};
+                Some((sd(a, b), err))
+            }
+            Jud(ab) => {
+                let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                let err = if err_a.is_some() {err_a} else {err_b};
+                Some((jud(a, b), err))
+            }
+            Comp(ab) => {
+                let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                let err = if err_a.is_some() {err_a} else {err_b};
+                Some((comp(a, b), err))
+            }
+            Qi(ab) => {
+                let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                let err = if err_a.is_some() {err_a} else {err_b};
+                Some((qi(a, b), err))
+            }
+            Q(ab) => {
+                let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                let err = if err_a.is_some() {err_a} else {err_b};
+                Some((q(a, b), err))
+            }
+            Pow(ab) => {
+                let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                let err = if err_a.is_some() {err_a} else {err_b};
+                Some((pow(a, b), err))
+            }
+            Fun(ab) => {
+                let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                let err = if err_a.is_some() {err_a} else {err_b};
+                Some((fun(a, b), err))
+            }
+            Nec(a) => {
+                let (a, err_a) = a.smart_de_all(rs, free_vars)?;
+                Some((nec(a), err_a))
+            }
+            Pos(a) => {
+                let (a, err_a) = a.smart_de_all(rs, free_vars)?;
+                Some((pos(a), err_a))
+            }
+            Qu(a) => {
+                let (a, err_a) = a.smart_de_all(rs, free_vars)?;
+                Some((qu(a), err_a))
+            }
+            App(ab) => {
+                if let (SymBlock(sym_ab), c) = (&ab.0, &ab.1) {
+                    let left = sym_ab.1.all_has_only_symbols_or_free_variables(Some(&**sym_ab.0), free_vars, false);
+                    let right = c.all_has_only_symbols_or_free_variables(None, free_vars, true);
+                    return match (left, right) {
+                        // Default cloning, tell which variable that blocked de-all.
+                        // When the error happens in the right expression,
+                        // it is only relevant if the sym-block symbol was inside an `all`.
+                        (Err(x), _) | (Ok(true), Err(x)) => {
+                            let (a, _) = ab.0.smart_de_all(rs, free_vars)?;
+                            let (b, _) = ab.1.smart_de_all(true, free_vars)?;
+                            Some((app(a, b), Some(x)))
+                        }
+                        (Ok(false), _) | (Ok(true), Ok(_)) => {
+                            let (a, err_a) = sym_ab.1.smart_de_all(rs, free_vars)?;
+                            let (c, err_c) = c.smart_de_all(true, free_vars)?;
+                            let err = if err_a.is_some() {err_a} else {err_c};
+                            Some((app(sym_block(sym_ab.0.clone(), a), c), err))
+                        }
+                    }
+                } else {
+                    let (a, err_a) = ab.0.smart_de_all(rs, free_vars)?;
+                    let (b, err_b) = ab.1.smart_de_all(rs, free_vars)?;
+                    let err = if err_a.is_some() {err_a} else {err_b};
+                    Some((app(a, b), err))
+                }
+            }
+            SymBlock(ab) => {
+                if false {
+                    // This code is for a possible future extension of the smart de-all algorithm.
+                    match ab.1.all_has_only_symbols_or_free_variables(None, free_vars, false) {
+                        Err(x) => Some((self.clone(), Some(x))),
+                        Ok(_) => {
+                            let (a, err_a) = ab.1.smart_de_all(rs, free_vars)?;
+                            Some((sym_block(ab.0.clone(), a), err_a))
+                        }
+                    }
+                } else {
+                    Some((self.clone(), None))
+                }
+            }
+            AllTy(_) => None,
+        }
+    }
+
     /// Prepare type for Herbrandization.
     pub fn de_all(&self) -> Option<Type> {
         use Type::*;
