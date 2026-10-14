@@ -2051,6 +2051,14 @@ mod tests {
         let a: Type = "all(a)".try_into().unwrap();
         let b: Type = "all(all(b))".try_into().unwrap();
         assert!(a.has_bound(&b).is_ok());
+
+        let a = all_ty("a");
+        let b = ty("a");
+        assert!(a.has_bound(&b).is_ok());
+
+        let a = all_ty("a");
+        let b = all(ty("a"));
+        assert!(a.has_bound(&b).is_ok());
     }
 
     #[test]
