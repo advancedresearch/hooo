@@ -426,11 +426,24 @@ impl Term {
                     if args.len() == 0 {
                         if ty_f.has_bound(t).is_ok() {return Ok(())};
 
-                        if let Some(ty) = ty.de_all() {
+                        let mut free_vars = vec![];
+                        ty_f.get_free_variables(Some(ctx), &mut free_vars);
+                        let (de_all_ty, err_ty) = if let Some((ty, err_ty)) =
+                            ty.smart_de_all(false, &free_vars)
+                        {
                             if ty_f.has_bound(&ty).is_ok() {return Ok(())};
-                        }
+                            (Some(ty), err_ty)
+                        } else {(None, None)};
 
-                        Err(format!("Expected:\n\n  {}\n\nFound:\n\n  {}\n", ty, ty_f))
+                        let de_all_ty = if let Some(x) = de_all_ty {
+                            format!("\n\nDe-all type:\n\n  {}", x)
+                        } else {String::new()};
+                        let not_free = if let Some(x) = err_ty {
+                            format!("\nNot free: `{}`", x)
+                        } else {String::new()};
+                        Err(format!("Expected:\n\n  {}\n\nFound:\n\n  {}\n\n\
+                                    Bound variables: {:?}\nFree variables: {:?}{}{}\n",
+                            ty, ty_f, ctx.bounded_vars, free_vars, not_free, de_all_ty))
                     } else {
                         let arg_ind = arg_inds.pop().unwrap();
                         let mut ty_arg = ctx.terms[arg_ind.unwrap()].get_type();
