@@ -221,8 +221,9 @@ foo'(a)    Apply symbol `foo` to `a`
 sym(f, f') Symbolic block (see section [Symbolic blocks])
 sym a      Locally declared symbol `a` (see section [Symbolic blocks])
 
-x : a      Premise/argument
-let y      Theorem/variable
+x : a             Premise/argument
+let y             Theorem/variable
+let y = unsafe    Coerce (see section [Coercion])
 
 return x                    Make a conclusion (safe)
 unsafe return x             Override safety (unsafe)
@@ -445,6 +446,126 @@ fn sym_eq_refl : sym a  ->  a' == a' {
     return r;
 }
 ```
+
+### Herbrandization
+
+A common technique in theorem proving is Herbrandization.
+
+Herbrandization is a way to treat free variables as symbols,
+which means that we can lift them up into `all(..)` expressions.
+
+For example:
+
+```text
+fn foo : a -> b {
+    x : a;
+
+    ...
+    let y = ... : b;
+    let y2 = y() : all(b); // <--- `b` does not depend on `a`
+    return y2;
+}
+```
+
+Notice that there are no arguments: `y()`.
+When you do this, without passing any arguments,
+Hooo will use a Smart De-All algorithm to do Herbrandization for you.
+
+Herbrandization is the dual of Skolemization and Hooo uses both of them.
+Most of the time, Hooo uses these techniques a little bit, behind the scenes, without the user needing to think much about it.
+
+Anyway, sometimes you might want to bring out the big guns,
+and do Herbrandization explicitly, as part of some proof.
+This when you use no arguments and just lift up the type into `all(..)`.
+
+Wrapping the type in a simple `all(...)` is not the only thing you can do.
+The Smart De-All algorithm can do some very clever transformations.
+But first, you need to learn the basics.
+
+The function type of `y` in the example, which is `b`, covers the free variables
+that might be lifted up into an `all(..)` expression.
+Since there is only one `b`, this is the only free variable that is accessible.
+
+Now, think about `b` as `b'`, a symbol.
+Since `all(..)` expressions lift variables,
+when we use `all(b')`, nothing is changed, because there are no variables.
+Hence, `all(b)` can be constructed from `b`, since `b` is free.
+
+Do not worry if you can not wrap your head around this right now,
+because Herbrandization is a very powerful technique that takes a lot of
+experience before you get an intuition for how it works.
+
+The syntax of Hooo is designed to make the proofs as readable as possible,
+and since Herbrandization is a common technique, it is built-in to make the
+flow of reading proofs continuous.
+
+For more advanced usage of Herbrandization, look at the source of Hooo's
+standard library, where there are no arguments and some `all(..)` block appears.
+
+### Coercion
+
+Hooo is not just designed to assist in correct theorem proving.
+One of the major motivations of Hooo's design is to reason about *incorrectness*.
+
+Just like Hooo has safety heuristics to help you detect when you might have
+designed some axioms a bit too strong, Hooo also gives you the ability to
+reason about incorrect Herbrandization.
+
+Incorrect Herbrandization is not as dangerous as using axioms to fill a hole
+in a proof, but it can still lead to inconsistency.
+Sometimes you might want some safety before you fill out the rest of the proof.
+
+To do incorrect Herbrandization, use the `unsafe` keyword, like this:
+
+```text
+fn sym_to_all : a -> sym(a, all(a'))(a) {
+    x : a;
+    let r = unsafe x() : sym(a, all(a'))(a); <--- uses "unsafe" keyword
+    unsafe return r;
+}
+```
+
+Notice that this unsafe proof also triggers the safety heuristics in Hooo.
+
+Now, this might not look that unsafe, does it? Well... take a look at this:
+
+```text
+fn everything_is_false : a -> false {
+    use sym_to_all;
+    x : a;
+    let x2 = sym_to_all() : a -> all(a);
+    let x3 = x2(x) : all(a);
+    let r = x3() : false;
+    return r;
+}
+```
+
+So, a simple mistake can be the most unsafe thing you can do in Logic.
+
+OK, but what happens when you use `unsafe f()`?
+
+What happens is that Hooo uses an empty list for bounded variables,
+such that every variable in the function type that gives you free variables,
+becomes a free variable.
+
+In the `sym_to_all` example, `a` is a bounded variable, so when we use
+"unsafe", we can bypass the rules for safe Herbrandization.
+We can construct the type `sym(a, all(a'))(a)`.
+However, if you tried with `all(a)` instead, you will notice that Hooo refuses.
+You need to do something clever with Herbrandization to trick Hooo.
+
+This is a form of type coercion.
+We force Hooo to give us a type, even though it is not safe to do so.
+
+Hooo is an experimental theorem prover assistant, so there might be edge cases
+that are either bugs or not covered by Hooo's rules.
+In that case, you can coerce Hooo into doing what you believe is a correct step.
+Perhaps in a future version, Hooo can handle that edge case safely.
+
+A special use case of `unsafe` is to shorten down proofs, that can be correct
+in theory, but they are just too hard to do, without adding much clarification.
+Through experience, you might learn how to do this safely.
+Remember to leave a comment for the reader so they can learn more if needed.
 
 ### Theorem grading
 
