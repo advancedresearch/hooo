@@ -2506,6 +2506,49 @@ mod tests {
         assert_eq!(a.de_sym(&mut bind), b);
     }
 
+    #[test]
+    fn test_smart_de_all() {
+        let a: Type = "a".try_into().unwrap();
+        let b: Type = "sym(a, all(a'))(a)".try_into().unwrap();
+        assert!(a.has_bound(&b).is_err());
+        assert!(b.has_bound(&a).is_ok());
+        let (b2, err_b2) = b.smart_de_all(false, &[]).unwrap();
+        assert_eq!(b2, b);
+        assert_eq!(err_b2, Some(Arc::new("a".into())));
+        assert!(a.has_bound(&b2).is_err());
+    }
+
+    #[test]
+    fn test_smart_de_all_2() {
+        let a: Type = "a'".try_into().unwrap();
+        let b: Type = "sym(a, all(a'))(a')".try_into().unwrap();
+        assert!(a.has_bound(&b).is_err());
+        assert!(b.has_bound(&a).is_ok());
+        assert!(a.has_bound(&b.smart_de_all(false, &[]).unwrap().0).is_ok());
+    }
+
+    #[test]
+    fn test_smatt_de_all_3() {
+        let a: Type = "a".try_into().unwrap();
+        let b: Type = "sym(a, all(a'))(a)".try_into().unwrap();
+        let free_vars: Vec<Arc<String>> = vec![Arc::new("a".into())];
+        assert!(a.has_bound(&b).is_err());
+        assert!(b.has_bound(&a).is_ok());
+        assert!(a.has_bound(&b.smart_de_all(false, &free_vars).unwrap().0).is_ok());
+    }
+
+    #[test]
+    fn test_smart_de_all_4() {
+        let a: Type = "sym(b, b')".try_into().unwrap();
+        let b: Type = "sym(a, all(a'))(sym(b, b'))".try_into().unwrap();
+        let c: Type = "sym(a, a')(sym(b, b'))".try_into().unwrap();
+        assert!(a.has_bound(&b).is_err());
+        assert!(b.has_bound(&a).is_ok());
+        let (b2, err_b2) = b.smart_de_all(false, &[]).unwrap();
+        assert_eq!(b2, c);
+        assert_eq!(err_b2, None);
+        assert!(a.has_bound(&b2).is_ok());
+    }
 
     #[test]
     fn test_sym_block_imply_variance() {
