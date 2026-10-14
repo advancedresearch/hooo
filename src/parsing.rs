@@ -33,7 +33,7 @@ fn parse_lib(
         } else if let Ok((range, val)) = convert.meta_string("desc") {
             convert.update(range);
             description = Some(val);
-        } else if let Ok((range, (name, _, ty))) = parse_var(meta_cache, "fun", convert, ignored) {
+        } else if let Ok((range, (_unsafe_flag, name, _, ty))) = parse_var(meta_cache, "fun", convert, ignored) {
             convert.update(range);
             functions.insert(name, ty.lift());
         } else if let Ok((range, val)) = convert.meta_string("dep_path") {
@@ -109,7 +109,7 @@ fn run_ctx(
         }
 
         match parse_var(meta_cache, "fun_decl", convert, ignored) {
-            Ok((range, (name, _, ty))) => {
+            Ok((range, (_unsafe_flag, name, _, ty))) => {
                 convert.update(range);
                 if loader.run {
                     let n = loader.trace.len();
@@ -173,7 +173,7 @@ fn run_ctx(
         }
 
         match parse_var(meta_cache, "axiom", convert, ignored) {
-            Ok((range, (name, args, ty))) => {
+            Ok((range, (_unsafe_flag, name, args, ty))) => {
                 convert.update(range);
                 if loader.run {
                     if args.len() == 0 {
@@ -191,7 +191,7 @@ fn run_ctx(
         }
 
         match parse_var(meta_cache, "var", convert, ignored) {
-            Ok((range, (name, args, ty))) => {
+            Ok((range, (_unsafe_flag, name, args, ty))) => {
                 convert.update(range);
                 if loader.run {
                     if args.len() == 0 {
@@ -209,16 +209,19 @@ fn run_ctx(
         }
 
         match parse_var(meta_cache, "app", convert, ignored) {
-            Ok((range, (name, args, ty))) => {
+            Ok((range, (unsafe_flag, name, args, ty))) => {
                 convert.update(range);
                 if loader.run {
                     if args.len() >= 1 {
                         let is_use = false;
                         ctx.new_term(
                             (name,
-                             Term::App(
-                                args[0].clone(),
-                                args[1..].into(), ty)),
+                             Term::App {
+                                unsafe_flag,
+                                name: args[0].clone(),
+                                args: args[1..].into(),
+                                expected_ty: ty,
+                            }),
                             is_use, search)
                             .map_err(|err| (range, err))?;
                     } else {
@@ -232,7 +235,7 @@ fn run_ctx(
         }
 
         match parse_var(meta_cache, "match", convert, ignored) {
-            Ok((range, (name, args, ty))) => {
+            Ok((range, (_unsafe_flag, name, args, ty))) => {
                 convert.update(range);
                 if loader.run {
                     if args.len() == 3 || args.len() == 1 {
@@ -251,7 +254,7 @@ fn run_ctx(
         }
 
         match parse_var(meta_cache, "check", convert, ignored) {
-            Ok((range, (name, _, ty))) => {
+            Ok((range, (_unsafe_flag, name, _, ty))) => {
                 convert.update(range);
                 if loader.run {
                     let is_use = false;
@@ -265,7 +268,7 @@ fn run_ctx(
         }
 
         match parse_var(meta_cache, "lam_decl", convert, ignored) {
-            Ok((range, (name, _, ty))) => {
+            Ok((range, (_unsafe_flag, name, _, ty))) => {
                 convert.update(range);
                 if loader.run {
                     if !loader.silent {println!("lam {}", name)};
@@ -400,11 +403,12 @@ fn parse_var(
     node: &str,
     mut convert: Convert,
     ignored: &mut Vec<Range>
-) -> Result<(Range, (Arc<String>, Vec<Arc<String>>, Type)), Option<String>> {
+) -> Result<(Range, (bool, Arc<String>, Vec<Arc<String>>, Type)), Option<String>> {
     let start = convert;
     let start_range = convert.start_node(node).map_err(|_| None)?;
     convert.update(start_range);
 
+    let mut unsafe_flag: Option<bool> = None;
     let mut name: Option<Arc<String>> = None;
     let mut args: Vec<Arc<String>> = vec![];
     let mut ty: Option<Type> = None;
@@ -412,6 +416,9 @@ fn parse_var(
         if let Ok(range) = convert.end_node(node) {
             convert.update(range);
             break;
+        } else if let Ok((range, val)) = convert.meta_bool("unsafe_flag") {
+            convert.update(range);
+            unsafe_flag = Some(val);
         } else if let Ok((range, val)) = convert.meta_string("name") {
             convert.update(range);
             name = Some(val);
@@ -429,9 +436,10 @@ fn parse_var(
         }
     }
 
+    let unsafe_flag = unsafe_flag.unwrap_or(false);
     let name = name.ok_or(None)?;
     let ty = ty.ok_or(None)?;
-    Ok((convert.subtract(start), (name, args, ty)))
+    Ok((convert.subtract(start), (unsafe_flag, name, args, ty)))
 }
 
 fn parse_ty(

@@ -352,7 +352,12 @@ pub enum Term {
     /// Lambda declaration.
     LamDecl(Type),
     /// Function application.
-    App(Arc<String>, Vec<Arc<String>>, Type),
+    App {
+        unsafe_flag: bool,
+        name: Arc<String>,
+        args: Vec<Arc<String>>,
+        expected_ty: Type,
+    },
     /// Match statement.
     Match(Vec<Arc<String>>, Type),
 }
@@ -370,7 +375,7 @@ impl Term {
 
         match self {
             Var(_) => false,
-            Check(_) | Axiom(_) | FunDecl(_) | LamDecl(_) | App(..) | Match(..) => true,
+            Check(_) | Axiom(_) | FunDecl(_) | LamDecl(_) | App {..} | Match(..) => true,
         }
     }
 
@@ -383,7 +388,7 @@ impl Term {
             Var(t) => t.clone(),
             FunDecl(ty) => ty.clone(),
             LamDecl(ty) => ty.clone(),
-            App(_, _, t) => t.clone(),
+            App {expected_ty: t, ..} => t.clone(),
             Match(_, t) => t.clone(),
         }
     }
@@ -397,7 +402,7 @@ impl Term {
         use Term::*;
 
         match self {
-            App(f, args, t) if t.has_bound(ty).is_ok() => {
+            App {unsafe_flag, name: f, args, expected_ty: t} if t.has_bound(ty).is_ok() => {
                 let mut fun_decl: Option<usize> = None;
                 let mut arg_inds: Vec<Option<usize>> = vec![None; args.len()];
                 for (i, term_name) in ctx.term_names.iter().enumerate().rev() {
@@ -427,7 +432,7 @@ impl Term {
                         if ty_f.has_bound(t).is_ok() {return Ok(())};
 
                         let mut free_vars = vec![];
-                        ty_f.get_free_variables(Some(ctx), &mut free_vars);
+                        ty_f.get_free_variables(*unsafe_flag, Some(ctx), &mut free_vars);
                         let (de_all_ty, err_ty) = if let Some((ty, err_ty)) =
                             ty.smart_de_all(false, &free_vars)
                         {
@@ -745,14 +750,19 @@ impl Type {
         }
     }
 
-    pub fn get_free_variables(&self, ctx: Option<&Context>, free_vars: &mut Vec<Arc<String>>) {
+    pub fn get_free_variables(
+        &self,
+        unsafe_flag: bool,
+        ctx: Option<&Context>,
+        free_vars: &mut Vec<Arc<String>>,
+    ) {
         use Type::*;
 
         match self {
             True | False | Sym(_) | LocSym(_) => {}
             Ty(a) => {
                 if let Some(ctx) = ctx {
-                    if !ctx.bounded_vars.iter().any(|n| n == a) &&
+                    if unsafe_flag || !ctx.bounded_vars.iter().any(|n| n == a) &&
                        !free_vars.iter().any(|n| n == a) {
                         free_vars.push(a.clone());
                     }
@@ -766,11 +776,11 @@ impl Type {
             And(ab) | Or(ab) | Imply(ab) |
             App(ab) | Pow(ab) | Fun(ab) | Jud(ab) | Pair(ab) |
             Q(ab) | Qi(ab) | Sd(ab) | Comp(ab) => {
-                ab.0.get_free_variables(ctx, free_vars);
-                ab.1.get_free_variables(ctx, free_vars);
+                ab.0.get_free_variables(unsafe_flag, ctx, free_vars);
+                ab.1.get_free_variables(unsafe_flag, ctx, free_vars);
             }
-            All(a) | Qu(a) | Nec(a) | Pos(a) => a.get_free_variables(ctx, free_vars),
-            SymBlock(ab) => ab.1.get_free_variables(ctx, free_vars),
+            All(a) | Qu(a) | Nec(a) | Pos(a) => a.get_free_variables(unsafe_flag, ctx, free_vars),
+            SymBlock(ab) => ab.1.get_free_variables(unsafe_flag, ctx, free_vars),
         }
     }
 
