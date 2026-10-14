@@ -2436,6 +2436,29 @@ mod tests {
         assert_eq!(a.de_sym(&mut bind), b);
     }
 
+
+    #[test]
+    fn test_sym_block_imply_variance() {
+        let a: Type = "sym(f, f' => b)(all(x))".try_into().unwrap();
+        let b: Type = "sym(f, f' => b)(x)".try_into().unwrap();
+        assert!(a.has_bound(&b).is_err());
+
+        let a: Type = "sym(f, b => f')(all(x))".try_into().unwrap();
+        let b: Type = "sym(f, b => f')(x)".try_into().unwrap();
+        assert!(a.has_bound(&b).is_ok());
+    }
+
+    #[test]
+    fn test_sym_block_eq_variance() {
+        let a: Type = "sym(f, f' == b)(all(x))".try_into().unwrap();
+        let b: Type = "sym(f, f' == b)(x)".try_into().unwrap();
+        assert!(a.has_bound(&b).is_err());
+
+        let a: Type = "sym(f, b == f')(all(x))".try_into().unwrap();
+        let b: Type = "sym(f, b == f')(x)".try_into().unwrap();
+        assert!(a.has_bound(&b).is_err());
+    }
+
     #[test]
     fn test_qu_eq_inv() {
         let a: Type = "~!a -> !~a".try_into().unwrap();
