@@ -633,11 +633,11 @@ grades {
 
 Theorem Grading can get very complex to reason about, so be careful when you use it.
 
-For example, the axioms `excm_ex` and `hooo_excm_ex` are logically equivalent,
+For example, the axioms `ex` and `hooo_ex` are logically equivalent,
 but they use separate Theorem Grading of exclusive-strength and meta-strength respectively.
 Meta-strength 3 implies exclusive-strength 1, but when you are thinking about Existential Logic,
 you might not want theorems depending on exclusive-strength 1 to include meta-strength 3.
-This is because when you only assume `excm_ex`, you can not prove any of the basic axioms in meta-strength 1-3.
+This is because when you only assume `ex`, you can not prove any of the basic axioms in meta-strength 1-3.
 
 Theorem Grading can be very powerful, but it is also subjective, which makes it harder to reason about.
 
