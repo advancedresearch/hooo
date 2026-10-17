@@ -77,7 +77,7 @@ fn or_from_de_morgan_ex : !(a & b) & excm(!a) & excm(!b) -> !a | !b {
     return r;
 }
 
-fn or_from_de_morgan : !(a & b) & excm(a) & excm(b) -> !a | !b {
+fn or_from_de_morgan_excm : !(a & b) & excm(a) & excm(b) -> !a | !b {
     use left;
     use right;
 
@@ -117,13 +117,13 @@ fn or_from_de_morgan : !(a & b) & excm(a) & excm(b) -> !a | !b {
 fn excm_or_from_de_morgan : !(a & b) -> !a | !b {
     use excm;
     use triv;
-    use or_from_de_morgan;
+    use or_from_de_morgan_excm;
 
     x : !(a & b);
 
     let z = triv(excm) : excm(a);
     let z2 = triv(excm) : excm(b);
-    let r = or_from_de_morgan(x, z, z2) : !a | !b;
+    let r = or_from_de_morgan_excm(x, z, z2) : !a | !b;
     return r;
 }
 
