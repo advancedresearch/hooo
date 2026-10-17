@@ -6,7 +6,7 @@ Formal expression `Excm'`
 
 sym Excm;
 
-grade exclusive_strength [excm_ex, excm];
+grade exclusive_strength [ex, excm];
 
 fn excm_to : Excm' -> all(a | !a) {
     axiom excm_to : Excm' -> all(a | !a);
@@ -126,7 +126,7 @@ fn excm_lift : (excm(a) => b) -> !!b {
 /// For HOOO EP, see `hooo_excm_ex`.
 ///
 /// When you are uncertain what to do, add explicit assumptions.
-fn excm_ex : true -> excm(!a) {
+fn ex : true -> excm(!a) {
     use excm;
 
     x : true;
