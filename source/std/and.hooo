@@ -206,3 +206,9 @@ fn and_to_eq : a & b -> a == b {
     return r;
 }
 
+fn and_contra : a & !a -> false {
+    x : a;
+    y : !a;
+    let r = y(x) : false;
+    return r;
+}
