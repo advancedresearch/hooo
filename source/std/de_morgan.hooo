@@ -29,6 +29,54 @@ fn and_to_de_morgan : !a & !b -> !(a | b) {
     return f;
 }
 
+fn or_from_de_morgan_ex : !(a & b) & excm(!a) & excm(!b) -> !a | !b {
+    use left;
+    use right;
+
+    x : !(a & b);
+    y : excm(!a);
+    z : excm(!b);
+
+    lam f : !!a => !a | !b {
+        x2 : !!a;
+
+        lam f : !!b => !a | !b {
+            use left;
+
+            x3 : !!b;
+
+            lam f2 : a => false {
+                x4 : a;
+                lam f2 : b => false {
+                    x5 : b;
+                    let r = x(x4, x5) : false;
+                    return r;
+                }
+                let r = x3(f2) : false;
+                return r;
+            }
+            let r = left(f2) : !a | !b;
+            return r;
+        }
+        lam g : !b => !a | !b {
+            x3 : !b;
+
+            let r = right(x3) : !a | !b;
+            return r;
+        }
+        let r = match z (g, f) : !a | !b;
+        return r;
+    }
+    lam g : !a => !a | !b {
+        x2 : !a;
+
+        let r = left(x2) : !a | !b;
+        return r;
+    }
+    let r = match y (g, f) : !a | !b;
+    return r;
+}
+
 fn or_from_de_morgan : !(a & b) & excm(a) & excm(b) -> !a | !b {
     use left;
     use right;
