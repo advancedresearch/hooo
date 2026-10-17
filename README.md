@@ -428,7 +428,7 @@ Hooo understands how to convert to and from sym-blocks automatically.
 For example, `a` is the same as `sym(b, b')(a)`.
 
 In some cases, you need to prove properties of sym-blocks.
-To make this easier, there is an axiom `sym_transport`:
+To make this easier, there is an theorem `sym_transport`:
 
 ```text
 sym_transport : sym(a, b) & (b == c)^(sym a) -> sym(a, c)
@@ -445,6 +445,12 @@ fn sym_eq_refl : sym a  ->  a' == a' {
     let r = triv(eq_refl) : a' == a';
     return r;
 }
+```
+
+The theorem `sym_transport` uses the axiom `sym_transitivity`:
+
+```text
+sym_transitivity : sym(a, b) & (b => c)^(sym a) -> sym(a, c)
 ```
 
 ### Herbrandization
