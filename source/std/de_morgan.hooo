@@ -115,14 +115,14 @@ fn or_from_de_morgan_excm : !(a & b) & excm(a) & excm(b) -> !a | !b {
 }
 
 fn ex_or_from_de_morgan : !(a & b) -> !a | !b {
-    use excm_ex;
+    use ex;
     use triv;
     use or_from_de_morgan_ex;
 
     x : !(a & b);
 
-    let z = triv(excm_ex) : excm(!a);
-    let z2 = triv(excm_ex) : excm(!b);
+    let z = triv(ex) : excm(!a);
+    let z2 = triv(ex) : excm(!b);
     let r = or_from_de_morgan_ex(x, z, z2) : !a | !b;
     return r;
 }

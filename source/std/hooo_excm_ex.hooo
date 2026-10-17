@@ -47,7 +47,7 @@ fn hooo_excm_ex : true -> excm(!a) {
 fn meta_exclusive_excm_ex : true -> excm(!a) {
     x : true;
     use hooo_excm_ex;
-    use excm_ex;
-    let r = excm_ex(x) : excm(!a);
+    use ex;
+    let r = ex(x) : excm(!a);
     return r;
 }
