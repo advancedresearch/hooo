@@ -5,10 +5,10 @@
 /// This is used when you only want to prove something
 /// for HOOO EP, but not for Existential Logic in general.
 ///
-/// For Existential Logic only, see `excm_ex`.
+/// For Existential Logic only, see `ex`.
 ///
 /// When you are uncertain what to do, add explicit assumptions.
-fn hooo_excm_ex : true -> excm(!a) {
+fn hooo_ex : true -> excm(!a) {
     use refl;
     use hooo_imply_or;
     use excm_lift;
@@ -41,12 +41,12 @@ fn hooo_excm_ex : true -> excm(!a) {
 /// This is used when you want to prove something
 /// for HOOO EP and for Existential Logic at the same time.
 ///
-/// See `excm_ex` and `hooo_excm_ex`.
+/// See `ex` and `ex`.
 ///
 /// When you are uncertain what to do, add explicit assumptions.
-fn meta_exclusive_excm_ex : true -> excm(!a) {
+fn meta_exclusive_ex : true -> excm(!a) {
     x : true;
-    use hooo_excm_ex;
+    use hooo_ex;
     use ex;
     let r = ex(x) : excm(!a);
     return r;

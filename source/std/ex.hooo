@@ -4,24 +4,26 @@
 /// but weaker than Classical Logic (PL).
 ///
 /// EL uses excluded middle of non-existence.
+///
+/// Also known as De Morgan Logic or Weak Excluded Middle (WEM).
 
-sym E;
+sym Ex;
 
-fn e_from : all(excm(!a))  ->  E' {
-    axiom e_from : all(excm(!a)) -> E';
+fn ex_from : all(excm(!a))  ->  Ex' {
+    axiom e_from : all(excm(!a)) -> Ex';
     x : all(excm(!a));
-    let r = e_from(x) : E';
+    let r = e_from(x) : Ex';
     return r;
 }
 
-fn e_to : E'  ->  all(excm(!a)) {
-    axiom e_to : E' -> all(excm(!a));
-    x : E';
+fn ex_to : Ex'  ->  all(excm(!a)) {
+    axiom e_to : Ex' -> all(excm(!a));
+    x : Ex';
     let r = e_to(x) : all(excm(!a));
     unsafe return r;
 }
 
-fn excm_nn_to_excm_n : excm(!!a) -> excm(!a) {
+fn excm_nn_to_ex : excm(!!a) -> excm(!a) {
     use refl;
     use not_rev_triple;
     use left;
@@ -41,7 +43,7 @@ fn excm_nn_to_excm_n : excm(!!a) -> excm(!a) {
     return r;
 }
 
-fn excm_n_to_excm_nn : excm(!a) -> excm(!!a) {
+fn ex_to_excm_nn : excm(!a) -> excm(!!a) {
     use not_double;
     use left;
     use right;
@@ -60,7 +62,7 @@ fn excm_n_to_excm_nn : excm(!a) -> excm(!!a) {
     return r;
 }
 
-fn excm_n_to_e_triple : excm(!a) -> (a | !a | !!a) {
+fn ex_to_ex_triple : excm(!a) -> (a | !a | !!a) {
     use right;
 
     x : excm(!a);
@@ -69,10 +71,10 @@ fn excm_n_to_e_triple : excm(!a) -> (a | !a | !!a) {
     return r;
 }
 
-fn excm_n_to_e_imply :
+fn ex_to_ex_imply :
     excm(!a) & excm(!b) -> ((!a | b) | (!b | a) | (!!a & !!b))
 {
-    use excm_n_to_e_triple;
+    use ex_to_ex_triple;
     use left;
     use refl;
     use right;
@@ -80,7 +82,7 @@ fn excm_n_to_e_imply :
     x : excm(!a);
     e_b : excm(!b);
 
-    let x2 = excm_n_to_e_triple(x) : a | (!a | !!a);
+    let x2 = ex_to_ex_triple(x) : a | (!a | !!a);
     lam f : a => (!a | b) | (!b | a) | (!!a & !!b) {
         y : a;
 
