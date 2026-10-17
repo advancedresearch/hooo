@@ -116,25 +116,6 @@ fn excm_lift : (excm(a) => b) -> !!b {
     return r;
 }
 
-/// Excluded negation with exclusive-strength, no meta-strength.
-///
-/// A Logic that assumes this axiom is an Existental Logic (EL).
-///
-/// This is used when you only want to prove something
-/// for Existential Logic, but not using HOOO EP.
-///
-/// For HOOO EP, see `hooo_excm_ex`.
-///
-/// When you are uncertain what to do, add explicit assumptions.
-fn ex : true -> excm(!a) {
-    use excm;
-
-    x : true;
-
-    let r = excm(x) : excm(!a);
-    return r;
-}
-
 /// Excluded middle with exclusive-strength.
 ///
 /// This is used when you only want to prove something
